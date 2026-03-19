@@ -10,6 +10,7 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - **Node.js version**: 24
 - **Package manager**: pnpm
 - **TypeScript version**: 5.9
+- **Frontend**: React 19, Vite, Tailwind CSS v4
 - **API framework**: Express 5
 - **Database**: PostgreSQL + Drizzle ORM
 - **Validation**: Zod (`zod/v4`), `drizzle-zod`
@@ -21,7 +22,8 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 ```text
 artifacts-monorepo/
 ├── artifacts/              # Deployable applications
-│   └── api-server/         # Express API server
+│   ├── api-server/         # Express API server
+│   └── devprep/            # Tech Interview Preparation Web App
 ├── lib/                    # Shared libraries
 │   ├── api-spec/           # OpenAPI spec + Orval codegen config
 │   ├── api-client-react/   # Generated React Query hooks
@@ -100,6 +102,21 @@ Single-page React + Vite app showcasing all UI controls: text/email/password inp
 - UI Components: shadcn/ui (Radix UI + Tailwind)
 - `pnpm --filter @workspace/controls-demo run dev` — dev server
 
+### `artifacts/devprep` (`@workspace/devprep`)
+
+DevPrep - Tech Interview Preparation Web App
+
+- Entry: `src/main.tsx`
+- Pages: QAPage, FlashcardsPage, CodingPage, MockExamPage, VoicePracticePage
+- UI Components: shadcn/ui component library
+- State: TanStack Query v5
+- Routing: React Router (wouter)
+- Styling: Tailwind CSS v4
+- `pnpm --filter @workspace/devprep run dev` — run the dev server
+- `pnpm --filter @workspace/devprep run build` — production Vite build
+- `pnpm --filter @workspace/devprep run test` — run Vitest unit tests
+- `pnpm --filter @workspace/devprep run lint` — run ESLint
+
 ### `e2e` (`@workspace/e2e`)
 
 Playwright end-to-end test suite for the UI controls demo.
@@ -114,3 +131,47 @@ Playwright end-to-end test suite for the UI controls demo.
 ### `scripts` (`@workspace/scripts`)
 
 Utility scripts package. Each script is a `.ts` file in `src/` with a corresponding npm script in `package.json`. Run scripts via `pnpm --filter @workspace/scripts run <script>`. Scripts can import any workspace package (e.g., `@workspace/db`) by adding it as a dependency in `scripts/package.json`.
+
+## Replit Workflows
+
+### Running Multiple Packages
+
+To run multiple packages concurrently during development:
+
+```bash
+# Run API server and devprep concurrently
+pnpm --filter @workspace/api-server run dev & pnpm --filter @workspace/devprep run dev
+```
+
+### Database Migrations
+
+```bash
+# Push schema changes to development database
+pnpm --filter @workspace/db run push
+
+# Force push (drops and recreates tables - use with caution)
+pnpm --filter @workspace/db run push-force
+```
+
+### Testing
+
+```bash
+# Run all tests from root
+pnpm test
+
+# Run tests for specific package
+pnpm --filter @workspace/devprep run test
+
+# Run tests with coverage
+pnpm --filter @workspace/devprep run test:coverage
+```
+
+### Linting
+
+```bash
+# Lint all packages
+pnpm run lint
+
+# Lint specific package
+pnpm --filter @workspace/devprep run lint
+```
