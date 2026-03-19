@@ -91,6 +91,26 @@ Generated Zod schemas from the OpenAPI spec (e.g. `HealthCheckResponse`). Used b
 
 Generated React Query hooks and fetch client from the OpenAPI spec (e.g. `useHealthCheck`, `healthCheck`).
 
+### `artifacts/controls-demo` (`@workspace/controls-demo`)
+
+Single-page React + Vite app showcasing all UI controls: text/email/password inputs, textarea, select dropdown, checkboxes, radio buttons, switches, sliders, toggle buttons, progress bars, tabs, dialog/modal, badges, alerts, and buttons.
+
+- Entry: `src/main.tsx`
+- Page: `src/pages/ControlsPage.tsx` — all controls with `data-testid` attributes
+- UI Components: shadcn/ui (Radix UI + Tailwind)
+- `pnpm --filter @workspace/controls-demo run dev` — dev server
+
+### `e2e` (`@workspace/e2e`)
+
+Playwright end-to-end test suite for the UI controls demo.
+
+- Config: `playwright.config.ts` — targets `http://localhost:80`, saves screenshots and JSON/HTML reports
+- Tests: `tests/controls.spec.ts` — 21 tests covering every control
+- Screenshots saved to: `e2e/screenshots/`
+- Test results (HTML + JSON) saved to: `e2e/test-results/`
+- Run from workspace root: `pnpm test` or `pnpm --filter @workspace/e2e run test`
+- Run from e2e dir: `pnpm test` (or `npm test` — but `pnpm` is recommended)
+
 ### `scripts` (`@workspace/scripts`)
 
 Utility scripts package. Each script is a `.ts` file in `src/` with a corresponding npm script in `package.json`. Run scripts via `pnpm --filter @workspace/scripts run <script>`. Scripts can import any workspace package (e.g., `@workspace/db`) by adding it as a dependency in `scripts/package.json`.
