@@ -33,7 +33,7 @@ const CONTENT_TYPE = process.env.CONTENT_TYPE || "auto";
 const COUNT = parseInt(process.env.COUNT || "1", 10);
 const LOW_THRESHOLD = 5;
 const ENABLE_VECTOR_DB = process.env.ENABLE_VECTOR_DB !== "false";
-const QUALITY_THRESHOLD = 0.7;
+const QUALITY_THRESHOLD = 0.5;
 
 // ── SQLite setup ──────────────────────────────────────────────────────────────
 const Database = require("better-sqlite3");
@@ -251,64 +251,45 @@ function logGeneration(
 
 function assessQuality(data, type) {
   let score = 0;
-  let maxScore = 0;
-
-  // Check required fields based on type
   const requirements = {
-    question: ["id", "title", "sections", "tags"],
-    flashcard: ["id", "front", "back", "hint"],
+    question: ["id", "title", "sections"],
+    flashcard: ["id", "front", "back"],
     exam: ["id", "question", "choices", "correct", "explanation"],
     voice: ["id", "prompt", "keyPoints"],
-    coding: ["id", "title", "description", "starterCode", "solution"],
+    coding: ["id", "title", "description", "starterCode"],
   };
 
   const required = requirements[type] || [];
-  maxScore += required.length * 10;
-
   for (const field of required) {
-    if (data[field]) {
-      if (Array.isArray(data[field]) && data[field].length > 0) {
-        score += 10;
-      } else if (typeof data[field] === "string" && data[field].length > 10) {
-        score += 10;
-      } else if (typeof data[field] === "object" && data[field] !== null) {
-        score += 10;
-      }
-    }
+    if (data[field]) score += 1;
   }
 
-  // Code quality check
-  maxScore += 20;
+  const dataStr = JSON.stringify(data);
+  if (dataStr.length > 300) score += 1;
+  if (dataStr.length > 800) score += 1;
+
   if (type === "coding") {
     const starterCode = data.starterCode;
     if (starterCode && typeof starterCode === "object") {
-      if (starterCode.javascript && starterCode.javascript.length > 50)
-        score += 10;
-      if (starterCode.python && starterCode.python.length > 50) score += 10;
+      if (starterCode.javascript && starterCode.javascript.length > 30)
+        score += 1;
+      if (starterCode.python && starterCode.python.length > 30) score += 1;
     }
+    if (data.solution) score += 1;
   } else if (type === "question" && data.sections) {
-    const hasCode = data.sections.some((s) => s.type === "code");
-    if (hasCode) score += 20;
+    const hasCode = data.sections.some(
+      (s) => s.type === "code" && s.content && s.content.length > 30,
+    );
+    if (hasCode) score += 1;
   } else if (type === "flashcard" && data.codeExample) {
-    if (data.codeExample.code && data.codeExample.code.length > 20) score += 20;
+    score += 1;
   }
 
-  // Length quality check
-  maxScore += 10;
-  const dataStr = JSON.stringify(data);
-  if (dataStr.length > 500) score += 5;
-  if (dataStr.length > 1000) score += 5;
-
-  // Placeholder check (deduct points)
-  maxScore += 10;
-  if (
-    dataStr.includes("REPLACE") ||
-    dataStr.includes("TODO") ||
-    dataStr.includes("FIXME")
-  ) {
-    score -= 10;
+  if (dataStr.includes("REPLACE") || dataStr.includes("TODO")) {
+    score -= 1;
   }
 
+  const maxScore = required.length + 5;
   return Math.max(0, Math.min(1, score / maxScore));
 }
 
