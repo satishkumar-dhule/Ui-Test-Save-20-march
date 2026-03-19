@@ -1,228 +1,220 @@
-# DevPrep SDLC Agent Team Configuration
+# DevPrep Content Generation Agent Team
 
-> **Last Updated:** 2026-03-19T17:22:00Z  
-> **Session ID:** session-20260319-000000  
-> **Project:** Converting workspace to match reference repo
-
----
-
-## Outstanding Bugs (IMMEDIATE ACTION REQUIRED)
-
-### 🚨 DELEGATOR: Assign these bugs NOW
-
-| Bug ID  | Component           | Description                                                          | Severity | Assigned To         | Status   |
-| ------- | ------------------- | -------------------------------------------------------------------- | -------- | ------------------- | -------- |
-| BUG_001 | Hook Tests          | useAnalytics/useGeneratedContent tests call hooks without renderHook | HIGH     | FRONTEND_ENGINEER_1 | complete |
-| BUG_002 | AppHeader.tsx       | Theme toggle missing `aria-label`                                    | MEDIUM   | UI_UX_AGENT         | complete |
-| BUG_003 | AppHeader.tsx       | Search button title lacks `aria-label`                               | LOW      | UI_UX_AGENT         | complete |
-| BUG_004 | OnboardingModal.tsx | Decorative emoji missing `aria-hidden`                               | LOW      | UI_UX_AGENT         | complete |
-| BUG_005 | vite.config.ts      | No .env.example with PORT/BASE_PATH defaults                         | MEDIUM   | INNOVATION_LEAD     | complete |
-| BUG_006 | main.tsx            | Stub App component used instead of real 486-line App.tsx             | CRITICAL | FRONTEND_ENGINEER_1 | FIXED    |
+> **Last Updated:** 2026-03-19  
+> **Session ID:** session-content-gen-20260319  
+> **Project:** AI-powered content generation with local Vector DB + SQLite
 
 ---
 
-## QA Testing Report (QA_ENGINEER_2 - Chris Taylor)
-
----
-
-## 🚨 MANDATORY: Read AGENT_FRAMEWORK.md First
+## MANDATORY: Read AGENT_FRAMEWORK.md First
 
 **ALL agents MUST read `/home/runner/workspace/AGENT_FRAMEWORK.md` before starting any work.**
 
-The framework defines:
-
-- Agent spawn protocol
-- Checkpoint format and requirements
-- Task assignment workflow
-- Quality gates
-- File update protocols
-
-**Violations will be flagged and must be corrected before new tasks.**
-
 ---
 
-## Team Members
-
-### Core Agents (Always Available)
-
-| ID                  | Name           | Experience | Specialization                           | Status    |
-| ------------------- | -------------- | ---------- | ---------------------------------------- | --------- |
-| FRONTEND_ENGINEER_1 | Alex Chen      | 22 years   | React 19, TypeScript, Performance        | available |
-| FRONTEND_ENGINEER_2 | Jordan Lee     | 19 years   | Vue, Svelte, CSS Architecture            | available |
-| FRONTEND_ENGINEER_3 | Taylor Smith   | 18 years   | Next.js, Testing Library, A11y           | available |
-| QA_ENGINEER_1       | Sarah Mitchell | 21 years   | E2E Testing, Playwright, Quality         | available |
-| QA_ENGINEER_2       | Chris Taylor   | 17 years   | Unit Testing, Jest, Coverage             | available |
-| QA_ENGINEER_3       | Pat Anderson   | 19 years   | API Testing, Cypress, CI/CD Testing      | available |
-| TECH_ARCH_AGENT_1   | David Park     | 25 years   | System Design, APIs, Databases           | available |
-| TECH_ARCH_AGENT_2   | Sam Nguyen     | 20 years   | Microservices, Event-Driven, Messaging   | available |
-| TECH_ARCH_AGENT_3   | Morgan Chen    | 22 years   | Cloud Architecture, Scalability, AWS     | available |
-| UI_UX_AGENT         | Maria Garcia   | 23 years   | UI Design, Accessibility, Design Systems | available |
-| INNOVATION_LEAD     | James Wilson   | 24 years   | DX, Emerging Tech, Best Practices        | available |
-| STRUCTURAL_AGENT    | Lisa Thompson  | 20 years   | Monorepo, Build Systems, Docker          | available |
-| BACKEND_ENGINEER    | Robert Kim     | 21 years   | Express, REST, ORM, Caching              | available |
-| DEVOPS_ENGINEER     | Emma Brown     | 22 years   | CI/CD, Monitoring, Infrastructure        | available |
-| SECURITY_AGENT      | Michael Lee    | 20 years   | Security, Auth, OWASP                    | available |
-| DOCS_AGENT          | Jennifer Davis | 18 years   | Technical Writing, Docs                  | available |
-
-### Supporting Agents (Task-Specific)
-
-| ID            | Status    | Assigned                   |
-| ------------- | --------- | -------------------------- |
-| CONTENT_AGENT | completed | Content generation scripts |
-| DOCKER_AGENT  | completed | Docker configuration       |
-
----
-
-## Outstanding Tasks (Prioritized)
-
-### P0 - Critical (Must Fix)
-
-| Task                                                                        | Assigned To                       | Status   | Priority |
-| --------------------------------------------------------------------------- | --------------------------------- | -------- | -------- |
-| Implement App.tsx (486-line main component)                                 | FRONTEND_ENGINEER_1               | complete | P0       |
-| Create 6 Pages (QA, Flashcards, Coding, MockExam, VoicePractice, not-found) | FRONTEND_ENGINEER_1               | complete | P0       |
-| Create 55 shadcn/ui components                                              | FRONTEND_ENGINEER_1 + UI_UX_AGENT | complete | P0       |
-| Create data files (questions, flashcards, exam, voicePractice, coding)      | CONTENT_AGENT                     | complete | P0       |
-
-### P1 - High Priority
-
-| Task                                                                                 | Assigned To         | Status   | Priority |
-| ------------------------------------------------------------------------------------ | ------------------- | -------- | -------- |
-| Create missing hooks (use-toast, useMergeContent, useErrorReporting, useMonitoring)  | FRONTEND_ENGINEER_1 | complete | P1       |
-| Create service files (progressApi.ts, search types)                                  | BACKEND_ENGINEER    | complete | P1       |
-| Add design tokens to index.css                                                       | UI_UX_AGENT         | complete | P1       |
-| Add ESLint + Prettier configuration                                                  | INNOVATION_LEAD     | complete | P1       |
-| Fix hook unit tests (BUG_001) - use renderHook for useAnalytics, useGeneratedContent | QA_ENGINEER_1       | pending  | P1       |
-
-### P2 - Medium Priority
-
-| Task                             | Assigned To                      | Status   | Priority |
-| -------------------------------- | -------------------------------- | -------- | -------- |
-| Add lib/shared unit tests        | QA_ENGINEER_1                    | complete | P2       |
-| Create test-runner configuration | QA_ENGINEER_2                    | complete | P2       |
-| Implement mutation testing       | QA_ENGINEER_3                    | pending  | P2       |
-| Add API integration tests        | BACKEND_ENGINEER + QA_ENGINEER_1 | pending  | P2       |
-
----
-
-## Gap Analysis (vs Reference)
-
-| Category        | Reference | DevPrep | Status   |
-| --------------- | --------- | ------- | -------- |
-| Pages           | 6         | 6       | COMPLETE |
-| UI Components   | 55        | 55      | COMPLETE |
-| App Components  | 5         | 5       | COMPLETE |
-| Data Files      | 7         | 7       | COMPLETE |
-| Hooks           | 10        | 10      | COMPLETE |
-| Root App.tsx    | 486 lines | 486     | COMPLETE |
-| Design Tokens   | Yes       | Yes     | COMPLETE |
-| ESLint/Prettier | Yes       | Yes     | COMPLETE |
-| Unit Tests      | Yes       | Yes     | COMPLETE |
-
----
-
-## Agent Checkpoint Log
+## Architecture Overview
 
 ```
-[2026-03-19T12:30:00Z] | SYSTEM | INIT | Framework initialized - all agents must follow AGENT_FRAMEWORK.md
-[2026-03-19T12:30:00Z] | SYSTEM | TASK | Outstanding tasks identified - see below
-[2026-03-19T12:35:00Z] | FRONTEND_ENGINEER_1 | START | Beginning P0: App.tsx and pages implementation
-[2026-03-19T12:45:00Z] | FRONTEND_ENGINEER_1 | COMPLETE | P0 implementation complete
-[2026-03-19T12:40:00Z] | FRONTEND_ENGINEER_1 | START | Fixing typecheck errors in devprep
-[2026-03-19T12:45:00Z] | FRONTEND_ENGINEER_1 | COMPLETE | Typecheck errors fixed
-- Added @sentry/browser and web-vitals dependencies
-- Created vite-env.d.ts with PWA types
-- Fixed useErrorReporting.ts mixed operator issue
-- Fixed useMonitoring.ts PerformanceObserver types
-- Added DOMNavigationEvent type
-- Build lib/shared successful
-- pnpm run typecheck passes
-[2026-03-19T14:00:00Z] | SYSTEM | START | Processing outstanding tasks
-[2026-03-19T14:05:00Z] | SYSTEM | COMPLETE | Copied 7 data files from reference to devprep
-[2026-03-19T14:10:00Z] | SYSTEM | COMPLETE | Copied design tokens to index.css
-[2026-03-19T14:15:00Z] | SYSTEM | COMPLETE | Created ESLint + Prettier configuration
-[2026-03-19T14:20:00Z] | SYSTEM | COMPLETE | Created unit tests for lib/shared (timeout, logger, constants)
-[2026-03-19T15:00:00Z] | QA_ENGINEER_3 | START | Running E2E tests and accessibility checks
-[2026-03-19T15:15:00Z] | QA_ENGINEER_3 | CHECKPOINT | E2E tests passed (3/3), found 4 UI/a11y issues
-[2026-03-19T15:20:00Z] | QA_ENGINEER_3 | COMPLETE | QA testing complete - reported 4 bugs in AGENT_TEAM.md
-[2026-03-19T15:25:00Z] | QA_ENGINEER_2 | START | Running vitest unit tests and coverage
-[2026-03-19T15:25:00Z] | QA_ENGINEER_2 | CHECKPOINT | Test results: 14 passed, 5 failed
-- Passed: cn utils (4), useLocalStorage (6), useMobile (3), integration (1)
-- Failed: useAnalytics (2), useGeneratedContent (3) - invalid hook call errors
-- Coverage (passing tests): 100% on covered files
-- Typecheck: PASSED
-[2026-03-19T15:26:00Z] | QA_ENGINEER_2 | COMPLETE | Unit test analysis complete - added BUG_001 to Outstanding Bugs
-[2026-03-19T15:30:00Z] | REPLIT_SECURITY_CISO | START | Configuring security for Replit deployment
-[2026-03-19T15:35:00Z] | REPLIT_SECURITY_CISO | CHECKPOINT | Security review complete
-- Reviewed CORS configuration (open, needs restrictive setup)
-- Reviewed JWT/Auth middleware (basic base64 encoding, needs improvement)
-- Created .env.example with required variables
-- Created SECURITY.md documentation
-[2026-03-19T15:40:00Z] | REPLIT_SECURITY_CISO | COMPLETE | Security configured for Replit deployment
-- Created /artifacts/api-server/.env.example with all required variables
-- Created /docs/SECURITY.md with authentication flow, CORS config, rate limiting
-- Updated CORS configuration in api-server/src/app.ts to use ALLOWED_ORIGINS
-- Ready for Replit deployment
-[2026-03-19T15:30:00Z] | REPLIT_DB_ARCHITECT | START | Configuring database for Replit deployment
-[2026-03-19T15:40:00Z] | REPLIT_DB_ARCHITECT | COMPLETE | Database configured for Replit deployment
-- Verified drizzle.config.ts compatible with DATABASE_URL
-- Schema ready: users, content, quizzes, exams tables
-- Added generate script to package.json
-- Created docs/DATABASE.md with migration and pooling docs
-[2026-03-19T15:30:00Z] | DOCS_AGENT | START | Updating replit.md for DevPrep app
-[2026-03-19T15:35:00Z] | DOCS_AGENT | COMPLETE | replit.md updated with DevPrep documentation
-- Added React 19, Vite, Tailwind CSS v4 to Stack
-- Added devprep to Structure
-- Added artifacts/devprep package documentation (pages, components, state, routing, styling)
-- Added devprep scripts (dev, build, test, lint)
-- Added Replit Workflows section (running multiple packages, database migrations, testing, linting)
-[2026-03-19T15:50:00Z] | INNOVATION_LEAD | COMPLETE | BUG_005 fixed - .env.example created with PORT, BASE_PATH, BASE_URL defaults
-[2026-03-19T15:55:00Z] | UI_UX_AGENT | START | Beginning accessibility fixes for BUG_002, BUG_003, BUG_004
-[2026-03-19T15:56:00Z] | UI_UX_AGENT | CHECKPOINT | Accessibility fixes complete
-- Added aria-label="Search" to search button in AppHeader.tsx
-- Added aria-label="Toggle theme" to theme toggle button in AppHeader.tsx
-- Verified BUG_004 (emoji already has aria-hidden="true")
-[2026-03-19T15:56:00Z] | UI_UX_AGENT | COMPLETE | All accessibility bugs fixed
-[2026-03-19T16:15:00Z] | FRONTEND_ENGINEER_1 | START | Fixing BUG_001 - hook unit tests
-[2026-03-19T16:16:00Z] | FRONTEND_ENGINEER_1 | COMPLETE | BUG_001 fixed - hook tests now pass
-- useAnalytics.test.ts: Added renderHook, mock localStorage, test analytics/updateStats
-- useGeneratedContent.test.ts: Added renderHook, mock fetch, test generated/loading/error
-- All 5 tests now passing
-[2026-03-19T15:30:00Z] | REPLIT_PLATFORM_LEAD | START | Configuring .replit workflows for DevPrep app
-[2026-03-19T15:40:00Z] | REPLIT_PLATFORM_LEAD | COMPLETE | .replit configured with all 3 workflows
-- Added devprep web workflow (port 20452)
-- Added api-server workflow (port 8080)
-- Added mockup-sandbox workflow (port 8081)
-- Updated modules to nodejs-24
-- Added nix packages (gh, docker, containerd, tmux)
-- Added port mapping (4096 -> 9000)
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         CONTENT GENERATION PIPELINE                         │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  GitHub Actions (Scheduled/Demand)                                          │
+│       │                                                                      │
+│       ▼                                                                      │
+│  ┌─────────────────┐     ┌──────────────────┐     ┌─────────────────────┐     │
+│  │  CONTENT_AGENT  │────▶│  opencode-ai    │────▶│  Local SQLite DB   │     │
+│  │  (Orchestrator) │     │  CLI/JS SDK     │     │  (data/devprep.db) │     │
+│  └─────────────────┘     └──────────────────┘     └─────────┬───────────┘     │
+│                                                              │                │
+│                                                              ▼                │
+│                                               ┌───────────────────────────┐   │
+│                                               │   Local Vector DB         │   │
+│                                               │   (data/vectors/)         │   │
+│                                               │   - questions.vec         │   │
+│                                               │   - flashcards.vec         │   │
+│                                               │   - coding.vec             │   │
+│                                               └───────────────────────────┘   │
+│                                                              │                │
+│       ┌───────────────────────────────────────────────────────┘                │
+│       │                                                                      │
+│       ▼                                                                      │
+│  ┌─────────────────┐     ┌──────────────────┐     ┌─────────────────────┐ │
+│  │  API Server     │────▶│  /api/content     │────▶│  Frontend Merge     │ │
+│  │  (Express)      │     │  /api/search      │     │  (Runtime)          │ │
+│  └─────────────────┘     └──────────────────┘     └─────────────────────┘ │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Active Checkpoints
+---
 
-| Agent                | Last Checkpoint        | Status    |
-| -------------------- | ---------------------- | --------- |
-| FRONTEND_ENGINEER_1  | [2026-03-19T16:16:00Z] | available |
-| FRONTEND_ENGINEER_2  | N/A                    | available |
-| FRONTEND_ENGINEER_3  | N/A                    | available |
-| QA_ENGINEER_1        | [2026-03-19T11:20:00Z] | available |
-| QA_ENGINEER_2        | [2026-03-19T15:26:00Z] | available |
-| QA_ENGINEER_3        | [2026-03-19T15:20:00Z] | available |
-| TECH_ARCH_AGENT_1    | [2026-03-19T12:42:00Z] | available |
-| TECH_ARCH_AGENT_2    | N/A                    | available |
-| TECH_ARCH_AGENT_3    | N/A                    | available |
-| UI_UX_AGENT          | [2026-03-19T15:56:00Z] | available |
-| INNOVATION_LEAD      | [2026-03-19T10:05:00Z] | available |
-| STRUCTURAL_AGENT     | [2026-03-19T09:12:00Z] | available |
-| BACKEND_ENGINEER     | N/A                    | available |
-| DEVOPS_ENGINEER      | N/A                    | available |
-| REPLIT_SECURITY_CISO | [2026-03-19T15:40:00Z] | completed |
-| SECURITY_AGENT       | N/A                    | available |
-| DOCS_AGENT           | [2026-03-19T15:35:00Z] | completed |
-| CONTENT_AGENT        | [2026-03-19T09:08:00Z] | completed |
-| DOCKER_AGENT         | [2026-03-19T09:09:00Z] | completed |
-| REPLIT_DB_ARCHITECT  | [2026-03-19T15:40:00Z] | completed |
-| REPLIT_PLATFORM_LEAD | [2026-03-19T15:40:00Z] | completed |
+## Agent Team
+
+### Core Agents
+
+| ID                   | Name           | Experience | Specialization                        | Status    |
+| -------------------- | -------------- | ---------- | ------------------------------------- | --------- |
+| CONTENT_ORCHESTRATOR | Sarah Mitchell | 21 years   | Content Strategy, AI Prompts, Quality | available |
+| VECTOR_DB_AGENT      | David Park     | 25 years   | Vector DB, Embeddings, Similarity     | available |
+| QUALITY_AGENT        | Chris Taylor   | 17 years   | Content Quality, Testing, Validation  | available |
+| PROMPT_ENGINEER      | Maria Garcia   | 23 years   | AI Prompts, Content Structure         | available |
+| DATABASE_AGENT       | Robert Kim     | 21 years   | SQLite, Schema, Data Integrity        | available |
+| CI_CD_AGENT          | Emma Brown     | 22 years   | GitHub Actions, Automation, Workflows | available |
+| DOCS_AGENT           | Jennifer Davis | 18 years   | Technical Writing, Runbooks           | available |
+
+---
+
+## Content Types & Quality Standards
+
+### Supported Content Types
+
+| Type        | Description                   | Quality Bar                          | Daily Target |
+| ----------- | ----------------------------- | ------------------------------------ | ------------ |
+| `question`  | Technical interview questions | 90%+ parse rate, real code examples  | 5/channel    |
+| `flashcard` | Study flashcards with hints   | 95%+ parse rate, valid code snippets | 5/channel    |
+| `exam`      | Scenario-based MCQ exams      | 90%+ parse rate, realistic scenarios | 5/channel    |
+| `voice`     | Voice practice prompts        | 90%+ parse rate, structured key pts  | 5/channel    |
+| `coding`    | Coding challenges with tests  | 85%+ parse rate, runnable code       | 3/channel    |
+
+### Quality Requirements
+
+#### Questions
+
+- Real interview questions (not basics)
+- Minimum 2 code examples (runnable)
+- ELI5 section with real-world analogy
+- Proper markdown with bold/key terms
+- Tags from channel-specific tag pool
+
+#### Flashcards
+
+- Specific concept (not generic)
+- Bullet point answers with `•` separator
+- Working code examples (5-15 lines)
+- Hint that guides without giving away answer
+
+#### Exams
+
+- Scenario-based questions
+- 4 plausible options (2 distractors)
+- 2-3 sentence explanations
+- Real exam domain mapping
+
+#### Voice Practice
+
+- 1-2 sentence prompts
+- 4+ structured key points
+- Natural follow-up questions
+- 120-second time limit
+
+#### Coding Challenges
+
+- Complete runnable code in all languages
+- Test cases with edge cases
+- Time/space complexity analysis
+- Step-by-step approach markdown
+- ELI5 real-world analogy
+- Related concepts tags
+
+---
+
+## Vector DB Specification
+
+### Local Vector Store
+
+```
+data/
+├── devprep.db              # SQLite - all content
+├── vectors/
+│   ├── questions/          # Question embeddings
+│   │   ├── index.bin       # FAISS/pickle index
+│   │   └── metadata.json   # ID mappings
+│   ├── flashcards/         # Flashcard embeddings
+│   ├── coding/             # Coding challenge embeddings
+│   ├── exams/              # Exam question embeddings
+│   └── voice/              # Voice prompt embeddings
+└── embeddings/
+    └── model/              # Local embedding model (optional)
+```
+
+### Embedding Strategy
+
+| Content Type | Embedding Model       | Dimensions | Batch Size |
+| ------------ | --------------------- | ---------- | ---------- |
+| Questions    | sentence-transformers | 384        | 32         |
+| Flashcards   | sentence-transformers | 384        | 32         |
+| Coding       | codebert/multilingual | 768        | 16         |
+| Exams        | sentence-transformers | 384        | 32         |
+| Voice        | sentence-transformers | 384        | 32         |
+
+---
+
+## SQLite Schema
+
+```sql
+-- Main content table
+CREATE TABLE generated_content (
+  id TEXT PRIMARY KEY,
+  channel_id TEXT NOT NULL,
+  content_type TEXT NOT NULL,
+  data TEXT NOT NULL,           -- JSON blob
+  quality_score REAL DEFAULT 0, -- AI-assessed quality
+  embedding_id TEXT,            -- Reference to vector store
+  created_at INTEGER DEFAULT (strftime('%s', 'now')),
+  updated_at INTEGER DEFAULT (strftime('%s', 'now')),
+  status TEXT DEFAULT 'pending', -- pending, approved, rejected
+  generated_by TEXT,            -- opencode model used
+  generation_time_ms INTEGER     -- performance tracking
+);
+
+CREATE INDEX idx_type ON generated_content(content_type);
+CREATE INDEX idx_channel ON generated_content(channel_id);
+CREATE INDEX idx_status ON generated_content(status);
+CREATE INDEX idx_quality ON generated_content(quality_score);
+
+-- Quality feedback table
+CREATE TABLE quality_feedback (
+  id TEXT PRIMARY KEY,
+  content_id TEXT REFERENCES generated_content(id),
+  feedback_type TEXT,           -- upvote, downvote, report
+  user_id TEXT,
+  created_at INTEGER DEFAULT (strftime('%s', 'now'))
+);
+
+-- Generation logs
+CREATE TABLE generation_logs (
+  id TEXT PRIMARY KEY,
+  channel_id TEXT,
+  content_type TEXT,
+  success INTEGER,
+  error_message TEXT,
+  duration_ms INTEGER,
+  model TEXT,
+  created_at INTEGER DEFAULT (strftime('%s', 'now'))
+);
+```
+
+---
+
+## GitHub Actions Workflow
+
+### Workflows
+
+| Workflow            | Trigger                  | Purpose                      |
+| ------------------- | ------------------------ | ---------------------------- |
+| `content-gen.yml`   | Schedule (daily 3AM UTC) | Scheduled content generation |
+| `content-gen.yml`   | Manual dispatch          | On-demand generation         |
+| `vector-index.yml`  | Push to data/            | Rebuild vector indices       |
+| `quality-check.yml` | PR to main               | Validate generated content   |
+
+### Secrets Required
+
+| Secret              | Description                            |
+| ------------------- | -------------------------------------- |
+| `ANTHROPIC_API_KEY` | For Claude-powered generation          |
+| `OPENAI_API_KEY`    | Alternative for GPT-powered generation |
+| `OPENCODE_MODEL`    | Model override (optional)              |
 
 ---
 
@@ -231,131 +223,119 @@ The framework defines:
 ### Before Starting Any Task
 
 1. **READ** `/home/runner/workspace/AGENT_FRAMEWORK.md`
-2. **READ** this section of AGENT_TEAM.md
+2. **READ** this file section
 3. **SELECT** appropriate agent from the Agent Catalogue
-4. **UPDATE** agent status to `active` below
+4. **UPDATE** agent status to `active`
 5. **CREATE** START checkpoint
 6. **EXECUTE** task
 7. **LOG** checkpoints at every milestone
 8. **UPDATE** this file with progress
-9. **SET** status to `available` when done
+9. **SET** status to `available`
 
 ### Agent Selection Guide
 
-| Task Type       | Primary Agent(s)        | Secondary Agent   |
-| --------------- | ----------------------- | ----------------- |
-| React/Component | FRONTEND_ENGINEER_1/2/3 | UI_UX_AGENT       |
-| Testing/QA      | QA_ENGINEER_1/2/3       | FRONTEND_ENGINEER |
-| API/Server      | BACKEND_ENGINEER        | TECH_ARCH_AGENT   |
-| Architecture    | TECH_ARCH_AGENT_1/2/3   | INNOVATION_LEAD   |
-| UI/Design       | UI_UX_AGENT             | FRONTEND_ENGINEER |
-| DevOps/Docker   | DEVOPS_ENGINEER         | STRUCTURAL_AGENT  |
-| Security        | SECURITY_AGENT          | BACKEND_ENGINEER  |
-| Documentation   | DOCS_AGENT              | INNOVATION_LEAD   |
-| Content/Data    | CONTENT_AGENT           | BACKEND_ENGINEER  |
-| Innovation/DX   | INNOVATION_LEAD         | DEVOPS_ENGINEER   |
+| Task Type          | Primary Agent        | Secondary Agent      |
+| ------------------ | -------------------- | -------------------- |
+| Content Generation | CONTENT_ORCHESTRATOR | PROMPT_ENGINEER      |
+| Vector DB          | VECTOR_DB_AGENT      | DATABASE_AGENT       |
+| Quality Assurance  | QUALITY_AGENT        | CONTENT_ORCHESTRATOR |
+| CI/CD              | CI_CD_AGENT          | DATABASE_AGENT       |
+| Documentation      | DOCS_AGENT           | PROMPT_ENGINEER      |
 
 ---
 
-## QA Testing Report (QA_ENGINEER_3 - Pat Anderson)
+## Outstanding Tasks
 
-### E2E Test Results
+### P0 - Critical
 
-- **Status**: PASSED (3/3 tests)
-- **Tests**: has correct title, root element exists, page loads without errors
-- **Environment**: PORT=5173 BASE_PATH=/ required for dev server
+| Task                                                 | Assigned To          | Status  | Priority |
+| ---------------------------------------------------- | -------------------- | ------- | -------- |
+| Create `.github/workflows/content-gen.yml`           | CI_CD_AGENT          | pending | P0       |
+| Update `generate-content.mjs` with vector DB support | CONTENT_ORCHESTRATOR | pending | P0       |
+| Add quality scoring to generation pipeline           | QUALITY_AGENT        | pending | P0       |
+| Create vector embedding script                       | VECTOR_DB_AGENT      | pending | P0       |
+| Update SQLite schema with new columns                | DATABASE_AGENT       | pending | P0       |
 
-### Accessibility Findings
+### P1 - High Priority
 
-**Good:**
+| Task                                        | Assigned To          | Status  | Priority |
+| ------------------------------------------- | -------------------- | ------- | -------- |
+| Create embedding service                    | VECTOR_DB_AGENT      | pending | P1       |
+| Add search endpoint using vector similarity | CONTENT_ORCHESTRATOR | pending | P1       |
+| Update API to expose generated content      | DATABASE_AGENT       | pending | P1       |
+| Create quality feedback endpoints           | QUALITY_AGENT        | pending | P1       |
+| Document runbook for GitHub Actions         | DOCS_AGENT           | pending | P1       |
 
-- SearchModal has comprehensive ARIA attributes (role, aria-modal, aria-labelledby)
-- OnboardingModal has proper checkbox semantics with aria-checked
-- Search results support keyboard navigation with aria-selected
-- Button component has proper focus-visible ring styling
+### P2 - Medium Priority
 
-**Issues:**
-
-- Icon-only buttons lack aria-label for screen readers
-- Decorative emoji not marked aria-hidden
-
----
-
-## Unit Test Report (QA_ENGINEER_2 - Chris Taylor)
-
-### Test Summary
-
-- **Total Tests**: 19
-- **Passed**: 14 (74%)
-- **Failed**: 5 (26%)
-
-### Passing Tests (74%)
-
-| Test File                     | Tests | Status |
-| ----------------------------- | ----- | ------ |
-| utils/utils.test.ts           | 4     | PASS   |
-| hooks/useLocalStorage.test.ts | 6     | PASS   |
-| hooks/useMobile.test.ts       | 3     | PASS   |
-| integration/basic.test.ts     | 1     | PASS   |
-
-### Failing Tests (26%)
-
-| Test File                         | Tests | Error                                                          |
-| --------------------------------- | ----- | -------------------------------------------------------------- |
-| hooks/useAnalytics.test.ts        | 2     | TypeError: Cannot read properties of null (reading 'useState') |
-| hooks/useGeneratedContent.test.ts | 3     | TypeError: Cannot read properties of null (reading 'useState') |
-
-### Coverage Report (Passing Tests)
-
-| File                     | Stmts | Branch | Funcs | Lines |
-| ------------------------ | ----- | ------ | ----- | ----- |
-| hooks/useLocalStorage.ts | 100%  | 100%   | 100%  | 100%  |
-| hooks/useMobile.ts       | 100%  | 100%   | 100%  | 100%  |
-| lib/constants.ts         | 100%  | 100%   | 100%  | 100%  |
-| lib/utils.ts             | 100%  | 100%   | 100%  | 100%  |
-
-### Typecheck Status
-
-- **Status**: PASSED
-- **Command**: `pnpm run typecheck` in devprep
-
-### Root Cause Analysis
-
-The failing tests call React hooks directly without proper React Testing Library setup:
-
-- `useAnalytics.test.ts` and `useGeneratedContent.test.ts` call hooks without `renderHook`
-- Need to use `@testing-library/react` `renderHook` for proper hook testing
-
-### Recommended Fixes
-
-1. Update `useAnalytics.test.ts` to use `renderHook` from `@testing-library/react`
-2. Update `useGeneratedContent.test.ts` to use `renderHook` from `@testing-library/react`
-3. Alternatively, mock the hooks' dependencies and test return values
+| Task                                          | Assigned To          | Status  | Priority |
+| --------------------------------------------- | -------------------- | ------- | -------- |
+| Add batch generation support                  | CONTENT_ORCHESTRATOR | pending | P2       |
+| Create content refresh strategy               | PROMPT_ENGINEER      | pending | P2       |
+| Add monitoring dashboard for generation stats | CI_CD_AGENT          | pending | P2       |
 
 ---
 
-## Current Remediation Tasks
+## Checkpoint Log
 
-### Completed Remediation
+```
+[2026-03-19T00:00:00Z] | SYSTEM | INIT | Content Generation Agent Team initialized
+[2026-03-19T00:00:00Z] | SYSTEM | TASK | Outstanding tasks identified - see below
+```
 
-| Gap Item               | Resolution                              | Status   |
-| ---------------------- | --------------------------------------- | -------- |
-| Data Files (7 missing) | Copied from reference                   | complete |
-| Design Tokens          | Added to index.css                      | complete |
-| ESLint/Prettier        | Created configs                         | complete |
-| Unit Tests             | Created for lib/shared                  | complete |
-| E2E Tests              | Playwright tests pass                   | complete |
-| Security Configuration | Created .env.example, SECURITY.md, CORS | complete |
+### Active Checkpoints
 
-### Remaining Tasks
+| Agent                | Last Checkpoint | Status    |
+| -------------------- | --------------- | --------- |
+| CONTENT_ORCHESTRATOR | N/A             | available |
+| VECTOR_DB_AGENT      | N/A             | available |
+| QUALITY_AGENT        | N/A             | available |
+| PROMPT_ENGINEER      | N/A             | available |
+| DATABASE_AGENT       | N/A             | available |
+| CI_CD_AGENT          | N/A             | pending   |
+| DOCS_AGENT           | N/A             | pending   |
 
-| Task                   | Assigned To             | Status   |
-| ---------------------- | ----------------------- | -------- |
-| Mutation testing setup | QA_ENGINEER_3           | pending  |
-| API integration tests  | BACKEND + QA_ENGINEER_1 | pending  |
-| Accessibility fixes    | UI_UX_AGENT             | complete |
-| Dev server DX          | INNOVATION_LEAD         | pending  |
-| Fix hook unit tests    | QA_ENGINEER_1           | pending  |
+---
+
+## Quality Gates
+
+### Content Generation Quality Gate
+
+- [ ] JSON parse succeeds (≥85% of attempts)
+- [ ] All required fields present
+- [ ] Code examples are syntactically valid
+- [ ] Tags match channel tag pool
+- [ ] Difficulty is appropriate for content type
+- [ ] Vector embedding generated and stored
+- [ ] SQLite record created with quality_score
+
+### Vector DB Quality Gate
+
+- [ ] Embedding model loads successfully
+- [ ] Batch processing completes without OOM
+- [ ] Index saved with correct format
+- [ ] Metadata mappings are complete
+- [ ] Search returns relevant results
+
+---
+
+## Channels Configuration
+
+### Active Channels
+
+| ID            | Name                       | Type | Tags                                   |
+| ------------- | -------------------------- | ---- | -------------------------------------- |
+| javascript    | JavaScript                 | tech | javascript, async, closures, prototype |
+| react         | React                      | tech | react, hooks, state, performance       |
+| algorithms    | Algorithms                 | tech | algorithms, sorting, big-o, dp         |
+| devops        | DevOps                     | tech | devops, docker, ci-cd, linux           |
+| kubernetes    | Kubernetes                 | tech | kubernetes, k8s, containers            |
+| networking    | Networking                 | tech | networking, http, rest, dns            |
+| system-design | System Design              | tech | cs, distributed, concurrency           |
+| aws-saa       | AWS Solutions Architect    | cert | aws, cloud                             |
+| aws-dev       | AWS Developer              | cert | aws, cloud, serverless                 |
+| cka           | Certified Kubernetes Admin | cert | kubernetes, k8s                        |
+| terraform     | HashiCorp Terraform        | cert | terraform, iac                         |
 
 ---
 
@@ -369,90 +349,6 @@ The failing tests call React hooks directly without proper React Testing Library
 4. **SELECT** next task by priority
 5. **ASSIGN** to appropriate agent
 6. **SPAWN** agent with full context
-
----
-
-## Reference Repository
-
-- **URL:** https://github.com/satishkumar-dhule/tesh.git
-- **Cloned to:** /tmp/tesh-reference
-
----
-
-## Framework Enforcement
-
-### Checklist for Each Agent
-
-- [ ] Read AGENT_FRAMEWORK.md
-- [ ] Check Outstanding Tasks
-- [ ] Select appropriate task
-- [ ] Update agent Status to `active`
-- [ ] Create START checkpoint
-- [ ] Execute task with checkpoints
-- [ ] Update progress in this file
-- [ ] Create COMPLETE checkpoint
-- [ ] Set Status to `available`
-
-### Violation Reporting
-
-If an agent does not follow the framework:
-
-1. Log ISSUE in checkpoint
-2. Report in next checkpoint
-3. Document violation below
-
----
-
-## Server Investigation Team (10 Agents) - 2026-03-19
-
-### CRITICAL ROOT CAUSE FOUND:
-
-**main.tsx was importing STUB component instead of real App!**
-
-`components/app/App.tsx` was a stub returning `null` for everything.
-The real 486-line App.tsx was never imported.
-
-### Investigation Findings:
-
-| Agent               | Role             | Findings                                             |
-| ------------------- | ---------------- | ---------------------------------------------------- |
-| TECH_ARCH_AGENT_1   | Network Analysis | Port conflicts, multiple vite processes running      |
-| FRONTEND_ENGINEER_1 | Vite Config      | Vite config OK, server starts on fallback ports      |
-| QA_ENGINEER_1       | E2E Config       | Playwright webServer configured correctly            |
-| STRUCTURAL_AGENT    | Dependencies     | node_modules OK, pnpm workspace healthy              |
-| FRONTEND_ENGINEER_2 | TypeScript       | TypeScript: PASSED                                   |
-| FRONTEND_ENGINEER_3 | Build            | Build works with BASE_PATH env var                   |
-| TECH_ARCH_AGENT_2   | Root Cause       | **FOUND: Stub App returns null instead of real App** |
-| DEVOPS_ENGINEER     | Workspace        | Workspace config OK                                  |
-| TECH_ARCH_AGENT_3   | Network          | Ports 5173-5176 occupied by zombie vite processes    |
-| INNOVATION_LEAD     | Env Config       | .env configured correctly                            |
-
-### CRITICAL BUG (BUG_006):
-
-| Item     | Details                                               |
-| -------- | ----------------------------------------------------- |
-| File     | `/src/main.tsx`                                       |
-| Problem  | Imported `./components/app/App` (stub returning null) |
-| Solution | Changed to import `./App` (real 486-line component)   |
-| Status   | **FIXED**                                             |
-
-### Fixes Applied:
-
-1. `components/app/App.tsx` - stub removed from import chain
-2. `main.tsx` - now imports real `./App` (486 lines)
-3. `tests/app.spec.ts` - relaxed console error filter for Vite HMR
-4. Killed zombie vite processes
-5. Server now runs on http://localhost:5173
-
-### Final Status:
-
-| Test       | Result                     |
-| ---------- | -------------------------- |
-| E2E Tests  | ✅ 3/3 PASSED              |
-| Unit Tests | ✅ 19/19 PASSED            |
-| Typecheck  | ✅ PASSED                  |
-| Server     | ✅ http://localhost:5173   |
-| App Render | ✅ Full DevPrep UI loading |
 
 ---
 

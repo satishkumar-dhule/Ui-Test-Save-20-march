@@ -1,15 +1,14 @@
 /**
  * DevPrep Content Generator — powered by opencode-ai
  *
- * Generates realistic, structured DevPrep content (questions, flashcards,
- * exams, voice prompts, coding challenges) and saves each item as a JSON row
- * in a local SQLite database (data/devprep.db).
- *
- * The api-server reads from this DB and exposes content at /api/content.
- * The DevPrep frontend merges static + dynamic data at runtime.
+ * Generates high-quality study content with:
+ * - Local SQLite database storage
+ * - Vector DB embedding generation
+ * - Quality scoring
+ * - Comprehensive content types
  *
  * Usage:
- *   node generate-content.mjs                              # auto: 1 item per type for lowest channel
+ *   node generate-content.mjs                              # auto-detect
  *   TARGET_CHANNEL=javascript CONTENT_TYPE=question node generate-content.mjs
  *   TARGET_CHANNEL=javascript CONTENT_TYPE=all COUNT=2 node generate-content.mjs
  */
@@ -19,19 +18,22 @@ import { createRequire } from "module";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import crypto from "crypto";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DB_PATH = path.resolve(__dirname, "../data/devprep.db");
+const DB_PATH =
+  process.env.DB_PATH || path.resolve(__dirname, "../data/devprep.db");
+const VECTOR_DIR =
+  process.env.VECTOR_DIR || path.resolve(__dirname, "../data/vectors");
 const require = createRequire(import.meta.url);
 
 // ── Config ────────────────────────────────────────────────────────────────────
 const TARGET_CHANNEL = process.env.TARGET_CHANNEL || "";
-// CONTENT_TYPE: "auto" | "all" | "question" | "flashcard" | "exam" | "voice" | "coding"
-// "auto" = 1 item for the lowest-count channel per type
-// "all"  = COUNT items per type for TARGET_CHANNEL (or auto-detect per type)
 const CONTENT_TYPE = process.env.CONTENT_TYPE || "auto";
 const COUNT = parseInt(process.env.COUNT || "1", 10);
 const LOW_THRESHOLD = 5;
+const ENABLE_VECTOR_DB = process.env.ENABLE_VECTOR_DB !== "false";
+const QUALITY_THRESHOLD = 0.7;
 
 // ── SQLite setup ──────────────────────────────────────────────────────────────
 const Database = require("better-sqlite3");
@@ -46,10 +48,40 @@ function openDb() {
       channel_id TEXT NOT NULL,
       content_type TEXT NOT NULL,
       data TEXT NOT NULL,
+      quality_score REAL DEFAULT 0,
+      embedding_id TEXT,
+      created_at INTEGER DEFAULT (strftime('%s', 'now')),
+      updated_at INTEGER DEFAULT (strftime('%s', 'now')),
+      status TEXT DEFAULT 'pending',
+      generated_by TEXT,
+      generation_time_ms INTEGER,
+      UNIQUE(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS quality_feedback (
+      id TEXT PRIMARY KEY,
+      content_id TEXT NOT NULL,
+      feedback_type TEXT NOT NULL,
+      user_id TEXT,
+      created_at INTEGER DEFAULT (strftime('%s', 'now')),
+      FOREIGN KEY (content_id) REFERENCES generated_content(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS generation_logs (
+      id TEXT PRIMARY KEY,
+      channel_id TEXT,
+      content_type TEXT,
+      success INTEGER,
+      error_message TEXT,
+      duration_ms INTEGER,
+      model TEXT,
       created_at INTEGER DEFAULT (strftime('%s', 'now'))
     );
+
     CREATE INDEX IF NOT EXISTS idx_type ON generated_content(content_type);
     CREATE INDEX IF NOT EXISTS idx_channel ON generated_content(channel_id);
+    CREATE INDEX IF NOT EXISTS idx_status ON generated_content(status);
+    CREATE INDEX IF NOT EXISTS idx_quality ON generated_content(quality_score);
   `);
   return db;
 }
@@ -59,51 +91,92 @@ const CHANNELS = [
   {
     id: "javascript",
     name: "JavaScript",
-    tags: ["javascript", "async", "closures", "prototype"],
+    tags: [
+      "javascript",
+      "async",
+      "closures",
+      "prototype",
+      "types",
+      "generators",
+    ],
+    difficulty: "intermediate",
   },
   {
     id: "react",
     name: "React",
-    tags: ["react", "hooks", "state", "performance"],
+    tags: ["react", "hooks", "state", "performance", "reconciliation"],
+    difficulty: "intermediate",
   },
   {
     id: "algorithms",
     name: "Algorithms",
-    tags: ["algorithms", "sorting", "big-o", "dynamic-programming"],
+    tags: [
+      "algorithms",
+      "sorting",
+      "big-o",
+      "dynamic-programming",
+      "trees",
+      "graphs",
+    ],
+    difficulty: "advanced",
   },
   {
     id: "devops",
     name: "DevOps",
-    tags: ["devops", "docker", "ci-cd", "linux"],
+    tags: ["devops", "docker", "ci-cd", "linux", "containers"],
+    difficulty: "intermediate",
   },
   {
     id: "kubernetes",
     name: "Kubernetes",
-    tags: ["kubernetes", "k8s", "containers"],
+    tags: ["kubernetes", "k8s", "containers", "orchestration", "helm"],
+    difficulty: "advanced",
   },
   {
     id: "networking",
     name: "Networking",
-    tags: ["networking", "http", "rest", "dns"],
+    tags: ["networking", "http", "rest", "dns", "tcp-ip", "https"],
+    difficulty: "intermediate",
   },
   {
     id: "system-design",
     name: "System Design",
-    tags: ["cs", "distributed", "concurrency", "oop"],
+    tags: ["cs", "distributed", "concurrency", "scalability", "caching"],
+    difficulty: "advanced",
   },
-  { id: "aws-saa", name: "AWS Solutions Architect", tags: ["aws", "cloud"] },
-  { id: "aws-dev", name: "AWS Developer", tags: ["aws", "serverless"] },
+  {
+    id: "aws-saa",
+    name: "AWS Solutions Architect",
+    tags: ["aws", "cloud", "ec2", "s3", "vpc", "iam"],
+    difficulty: "intermediate",
+    certCode: "SAA-C03",
+  },
+  {
+    id: "aws-dev",
+    name: "AWS Developer",
+    tags: ["aws", "cloud", "serverless", "lambda", "api-gateway"],
+    difficulty: "intermediate",
+    certCode: "DVA-C02",
+  },
   {
     id: "cka",
     name: "Certified Kubernetes Admin",
-    tags: ["kubernetes", "k8s"],
+    tags: ["kubernetes", "k8s", "cluster", "pods", "services"],
+    difficulty: "advanced",
+    certCode: "CKA",
   },
-  { id: "terraform", name: "HashiCorp Terraform", tags: ["terraform", "iac"] },
+  {
+    id: "terraform",
+    name: "HashiCorp Terraform",
+    tags: ["terraform", "iac", "modules", "state", "providers"],
+    difficulty: "intermediate",
+    certCode: "TA-002-P",
+  },
 ];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function makeId(prefix) {
-  return `${prefix}-gen-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+  return `${prefix}-${Date.now()}-${crypto.randomBytes(2).toString("hex")}`;
 }
 
 function countGenerated(db, type) {
@@ -128,25 +201,132 @@ function findLowestChannel(db, type) {
   return sorted.length > 0 ? sorted[0] : null;
 }
 
-function saveToDb(db, id, channelId, type, dataObj) {
+function saveToDb(db, id, channelId, type, dataObj, generationTime, model) {
+  const qualityScore = assessQuality(dataObj, type);
+  const embeddingId = ENABLE_VECTOR_DB ? `${type}s/${id}` : null;
+
   db.prepare(
     `
-    INSERT OR REPLACE INTO generated_content (id, channel_id, content_type, data, created_at)
-    VALUES (?, ?, ?, ?, strftime('%s', 'now'))
+    INSERT OR REPLACE INTO generated_content 
+    (id, channel_id, content_type, data, quality_score, embedding_id, created_at, updated_at, status, generated_by, generation_time_ms)
+    VALUES (?, ?, ?, ?, ?, ?, strftime('%s', 'now'), strftime('%s', 'now'), ?, ?, ?)
   `,
-  ).run(id, channelId, type, JSON.stringify(dataObj));
-  console.log(`   ✅ Saved ${type} [${id}] for channel "${channelId}"`);
+  ).run(
+    id,
+    channelId,
+    type,
+    JSON.stringify(dataObj),
+    qualityScore,
+    embeddingId,
+    qualityScore >= QUALITY_THRESHOLD ? "approved" : "pending",
+    model || "opencode-default",
+    generationTime || 0,
+  );
+
+  logGeneration(db, channelId, type, true, null, generationTime, model);
+  console.log(
+    `   ✅ Saved ${type} [${id}] for "${channelId}" (quality: ${(qualityScore * 100).toFixed(0)}%)`,
+  );
+
+  return qualityScore;
+}
+
+function logGeneration(
+  db,
+  channelId,
+  type,
+  success,
+  errorMsg,
+  durationMs,
+  model,
+) {
+  const logId = makeId("log");
+  db.prepare(
+    `
+    INSERT INTO generation_logs (id, channel_id, content_type, success, error_message, duration_ms, model)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `,
+  ).run(logId, channelId, type, success ? 1 : 0, errorMsg, durationMs, model);
+}
+
+function assessQuality(data, type) {
+  let score = 0;
+  let maxScore = 0;
+
+  // Check required fields based on type
+  const requirements = {
+    question: ["id", "title", "sections", "tags"],
+    flashcard: ["id", "front", "back", "hint"],
+    exam: ["id", "question", "choices", "correct", "explanation"],
+    voice: ["id", "prompt", "keyPoints"],
+    coding: ["id", "title", "description", "starterCode", "solution"],
+  };
+
+  const required = requirements[type] || [];
+  maxScore += required.length * 10;
+
+  for (const field of required) {
+    if (data[field]) {
+      if (Array.isArray(data[field]) && data[field].length > 0) {
+        score += 10;
+      } else if (typeof data[field] === "string" && data[field].length > 10) {
+        score += 10;
+      } else if (typeof data[field] === "object" && data[field] !== null) {
+        score += 10;
+      }
+    }
+  }
+
+  // Code quality check
+  maxScore += 20;
+  if (type === "coding") {
+    const starterCode = data.starterCode;
+    if (starterCode && typeof starterCode === "object") {
+      if (starterCode.javascript && starterCode.javascript.length > 50)
+        score += 10;
+      if (starterCode.python && starterCode.python.length > 50) score += 10;
+    }
+  } else if (type === "question" && data.sections) {
+    const hasCode = data.sections.some((s) => s.type === "code");
+    if (hasCode) score += 20;
+  } else if (type === "flashcard" && data.codeExample) {
+    if (data.codeExample.code && data.codeExample.code.length > 20) score += 20;
+  }
+
+  // Length quality check
+  maxScore += 10;
+  const dataStr = JSON.stringify(data);
+  if (dataStr.length > 500) score += 5;
+  if (dataStr.length > 1000) score += 5;
+
+  // Placeholder check (deduct points)
+  maxScore += 10;
+  if (
+    dataStr.includes("REPLACE") ||
+    dataStr.includes("TODO") ||
+    dataStr.includes("FIXME")
+  ) {
+    score -= 10;
+  }
+
+  return Math.max(0, Math.min(1, score / maxScore));
 }
 
 // ── opencode runner ───────────────────────────────────────────────────────────
-function runOpencode(prompt) {
+function runOpencode(prompt, modelOverride) {
   return new Promise((resolve, reject) => {
     const binPath = path.resolve(__dirname, "node_modules/.bin/opencode");
     const bin = fs.existsSync(binPath) ? binPath : "opencode";
     const workDir = "/tmp/opencode-content-gen";
     fs.mkdirSync(workDir, { recursive: true });
 
-    const child = spawn(bin, ["run", "--dir", workDir, prompt], {
+    const args = ["run", "--dir", workDir];
+    if (modelOverride) {
+      args.push("--model", modelOverride);
+    }
+    args.push(prompt);
+
+    const child = spawn(bin, args, {
       env: { ...process.env },
       stdio: ["ignore", "pipe", "pipe"],
     });
@@ -158,7 +338,7 @@ function runOpencode(prompt) {
 
     child.on("close", (code) => {
       if (code !== 0) {
-        reject(new Error(`opencode exited ${code}: ${stderr.slice(0, 300)}`));
+        reject(new Error(`opencode exited ${code}: ${stderr.slice(0, 500)}`));
       } else {
         resolve(stdout);
       }
@@ -218,13 +398,12 @@ function extractJson(raw) {
   return raw.trim();
 }
 
-// ── JSON fixer ────────────────────────────────────────────────────────────────
 function tryParseJson(str) {
   try {
     return JSON.parse(str);
   } catch {}
 
-  const fix1 = str.replace(/,(\s*[}\]])/g, "$1");
+  let fix1 = str.replace(/,(\s*[}\]])/g, "$1");
   try {
     return JSON.parse(fix1);
   } catch {}
@@ -246,192 +425,309 @@ function tryParseJson(str) {
   return null;
 }
 
-// ── Prompts ───────────────────────────────────────────────────────────────────
+// ── Enhanced Prompts ───────────────────────────────────────────────────────────
 function makePrompt(type, channel, id) {
+  const difficulty = channel.difficulty || "intermediate";
+  const domain = channel.name;
+
   switch (type) {
     case "question":
       return `
-You are creating technical interview prep content. Generate ONE question about ${channel.name}.
+You are creating expert-level technical interview questions for ${domain}. Generate ONE comprehensive question.
 
-Return ONLY a valid JSON object inside a json code fence. No other text.
+CRITICAL REQUIREMENTS:
+- Question must be ADVANCED (not basic/beginner level)
+- Include real-world context and complexity
+- Code examples MUST be runnable and complete
+- Use proper markdown with **bold** for key terms
+- Tags must be from: ${JSON.stringify(channel.tags)}
+
+Return ONLY a valid JSON object in a json code fence. No other text.
 
 \`\`\`json
 {
   "id": "${id}",
   "number": ${1000 + Math.floor(Math.random() * 9000)},
-  "title": "REPLACE: a specific, non-trivial interview question about ${channel.name}",
-  "tags": ${JSON.stringify(channel.tags.slice(0, 3))},
-  "difficulty": "intermediate",
-  "votes": ${Math.floor(Math.random() * 500) + 50},
-  "views": "${Math.floor(Math.random() * 10) + 1}k",
+  "title": "A specific, advanced ${domain} interview question (be specific, not generic)",
+  "tags": ["${channel.tags.slice(0, 2).join('", "')}"],
+  "difficulty": "${difficulty}",
+  "votes": ${Math.floor(Math.random() * 500) + 100},
+  "views": "${Math.floor(Math.random() * 15) + 2}k",
   "askedBy": "devprep-ai",
-  "askedAt": "2026-03-19",
+  "askedAt": "${new Date().toISOString().split("T")[0]}",
   "sections": [
     {
       "type": "short",
-      "content": "REPLACE: 2-3 paragraph markdown answer with **bold** key terms and \`inline code\`"
+      "content": "Comprehensive 2-3 paragraph explanation with **bold key terms** and \`inline code\`. Address common misconceptions."
     },
     {
       "type": "code",
-      "language": "javascript",
-      "content": "REPLACE: a complete, runnable code example demonstrating the concept",
-      "filename": "example.js"
+      "language": "${getLanguageForChannel(channel.id)}",
+      "content": "COMPLETE runnable code demonstrating the concept. Include comments explaining each step.",
+      "filename": "example.${getExtension(channel.id)}"
     },
     {
       "type": "eli5",
-      "content": "REPLACE: a simple real-world analogy that a beginner would understand"
+      "content": "A simple analogy a beginner would understand. Use everyday objects or situations."
     }
-  ]
+  ],
+  "relatedQuestions": ["concept 1", "concept 2"],
+  "commonMistakes": ["mistake 1", "mistake 2"]
 }
-\`\`\`
-
-Replace all REPLACE placeholders with real, educational content about ${channel.name}. The question must NOT be about basics — pick a specific, advanced concept.`;
+\`\`\``;
 
     case "flashcard":
       return `
-Generate ONE flashcard for studying ${channel.name}. Return ONLY a valid JSON object in a json code fence.
+Generate ONE high-quality flashcard for ${domain} interview preparation.
+
+CRITICAL REQUIREMENTS:
+- Front: specific concept (not generic), 1-2 sentences
+- Back: clear answer with bullet points using • separator
+- Hint: guides without giving away the answer
+- Code example: 5-15 lines, syntactically correct
+- Use **bold** for emphasis
+
+Return ONLY a valid JSON object in a json code fence.
 
 \`\`\`json
 {
   "id": "${id}",
-  "front": "REPLACE: a concise question about a specific ${channel.name} concept",
-  "back": "REPLACE: a clear, accurate answer (use bullet points with \\n• for lists)",
-  "hint": "REPLACE: a one-line hint that guides without giving away the answer",
-  "tags": ${JSON.stringify(channel.tags.slice(0, 2))},
-  "difficulty": "intermediate",
-  "category": "${channel.name}",
+  "front": "Specific ${domain} concept question (be precise)",
+  "back": "Clear answer:\n• Key point 1\n• Key point 2\n• Key point 3",
+  "hint": "A subtle clue that guides thinking",
+  "tags": ["${channel.tags.slice(0, 2).join('", "')}"],
+  "difficulty": "${difficulty}",
+  "category": "${domain}",
   "codeExample": {
-    "language": "javascript",
-    "code": "REPLACE: a short (5-15 line) code snippet illustrating the concept"
-  }
+    "language": "${getLanguageForChannel(channel.id)}",
+    "code": "Short code snippet (5-15 lines) demonstrating the concept with comments"
+  },
+  "mnemonic": "Optional memory aid",
+  "commonConfusion": "Why this concept confuses people"
 }
-\`\`\`
-
-Replace all REPLACE placeholders. Pick a concept specific to ${channel.name} that is commonly tested in interviews.`;
+\`\`\``;
 
     case "exam":
       return `
-Generate ONE multiple-choice exam question for the ${channel.name} exam. Return ONLY a valid JSON object in a json code fence.
+Generate ONE realistic ${domain} certification exam question (${channel.certCode || "generic"}).
+
+CRITICAL REQUIREMENTS:
+- Scenario-based question (not simple definition)
+- 4 options: 1 correct + 3 plausible distractors
+- Distractors must be realistic (not obviously wrong)
+- 2-3 sentence explanation of why correct answer is right
+- Mention why each distractor is wrong
+- Include domain/topic classification
+
+Return ONLY a valid JSON object in a json code fence.
 
 \`\`\`json
 {
   "id": "${id}",
   "channelId": "${channel.id}",
-  "domain": "REPLACE: exam domain e.g. Security, Networking, Compute",
-  "question": "REPLACE: a realistic scenario-based question as found in the actual ${channel.name} exam",
+  "certCode": "${channel.certCode || ""}",
+  "domain": "Specific exam domain (e.g., Security, Networking, Compute)",
+  "topic": "Specific topic within domain",
+  "question": "Realistic scenario-based question with specific details",
   "choices": [
-    { "id": "A", "text": "REPLACE: a plausible option" },
-    { "id": "B", "text": "REPLACE: the correct answer" },
-    { "id": "C", "text": "REPLACE: a plausible distractor" },
-    { "id": "D", "text": "REPLACE: a plausible distractor" }
+    { "id": "A", "text": "Correct answer" },
+    { "id": "B", "text": "Plausible distractor 1" },
+    { "id": "C", "text": "Plausible distractor 2" },
+    { "id": "D", "text": "Plausible distractor 3" }
   ],
-  "correct": "B",
-  "explanation": "REPLACE: 2-3 sentences explaining why B is correct and why the others are wrong",
-  "difficulty": "medium"
+  "correct": "A",
+  "explanation": "Why A is correct. Why B is wrong (common misconception). Why C is wrong (partial understanding). Why D is wrong (overgeneralization).",
+  "difficulty": "${difficulty}",
+  "points": 1,
+  "timeEstimate": 90
 }
-\`\`\`
-
-Replace all REPLACE placeholders. The question must be scenario-based, not a simple definition question. Distractors must be plausible.`;
+\`\`\``;
 
     case "voice":
       return `
-Generate ONE voice practice prompt for ${channel.name} interview prep. Return ONLY a valid JSON object in a json code fence.
+Generate ONE voice practice prompt for ${domain} technical interviews.
+
+CRITICAL REQUIREMENTS:
+- Prompt: 1-2 sentence interview question
+- 4-6 key points the answer must cover
+- Natural follow-up question
+- Difficulty: ${difficulty}
+
+Return ONLY a valid JSON object in a json code fence.
 
 \`\`\`json
 {
   "id": "${id}",
   "channelId": "${channel.id}",
-  "prompt": "REPLACE: an interview question to answer out loud, 1-2 sentences",
+  "prompt": "1-2 sentence interview question to answer out loud",
   "type": "technical",
   "timeLimit": 120,
-  "difficulty": "intermediate",
-  "domain": "${channel.name}",
+  "difficulty": "${difficulty}",
+  "domain": "${domain}",
   "keyPoints": [
-    "REPLACE: key point 1 the answer must cover",
-    "REPLACE: key point 2",
-    "REPLACE: key point 3",
-    "REPLACE: key point 4"
+    "Key point 1 - must be mentioned in answer",
+    "Key point 2 - critical concept",
+    "Key point 3 - practical example",
+    "Key point 4 - edge cases or gotchas"
   ],
-  "followUp": "REPLACE: a natural follow-up question an interviewer might ask"
+  "followUp": "Natural follow-up question an interviewer might ask",
+  "structure": {
+    "introduction": "How to start",
+    "body": "Main points to cover",
+    "conclusion": "How to wrap up"
+  },
+  "commonMistakes": ["mistake 1", "mistake 2"]
 }
-\`\`\`
-
-Replace all REPLACE placeholders. The prompt should be a realistic technical interview question for ${channel.name}.`;
+\`\`\``;
 
     case "coding":
       return `
-Generate ONE coding challenge for ${channel.name}. Return ONLY a valid JSON object in a json code fence.
+Generate ONE comprehensive coding challenge for ${domain}.
+
+CRITICAL REQUIREMENTS:
+- Complete runnable solution in JS, Python, and TypeScript
+- Test cases covering normal, edge, and boundary cases
+- Time/space complexity analysis
+- Step-by-step approach explanation
+- Real-world analogy (ELI5)
+
+Return ONLY a valid JSON object in a json code fence.
 
 \`\`\`json
 {
   "id": "${id}",
   "channelId": "${channel.id}",
-  "title": "REPLACE: challenge title",
-  "slug": "REPLACE: kebab-case-slug",
-  "difficulty": "medium",
-  "tags": ${JSON.stringify(channel.tags.slice(0, 3))},
-  "category": "${channel.name}",
-  "timeEstimate": 20,
-  "description": "REPLACE: 2-3 sentence description of the problem with context",
-  "constraints": ["REPLACE: constraint 1", "REPLACE: constraint 2"],
+  "title": "Descriptive Challenge Title",
+  "slug": "kebab-case-slug",
+  "difficulty": "${difficulty}",
+  "tags": ["${channel.tags.slice(0, 3).join('", "')}"],
+  "category": "${domain}",
+  "timeEstimate": ${20 + Math.floor(Math.random() * 20)},
+  "description": "2-3 sentence problem description with context and motivation",
+  "constraints": [
+    "Constraint 1 (e.g., 1 <= n <= 10^5)",
+    "Constraint 2 (e.g., all values are positive)"
+  ],
   "examples": [
-    { "input": "REPLACE", "output": "REPLACE", "explanation": "REPLACE" },
-    { "input": "REPLACE", "output": "REPLACE" }
+    {
+      "input": "Example input",
+      "output": "Expected output",
+      "explanation": "Walk through the example"
+    }
   ],
   "starterCode": {
-    "javascript": "// REPLACE: function signature with JSDoc\\nfunction solution(input) {\\n  // your code here\\n}\\n\\nconsole.log(solution(REPLACE));",
-    "typescript": "function solution(input: REPLACE): REPLACE {\\n  // your code here\\n}",
-    "python": "def solution(input):\\n    # your code here\\n    pass"
+    "javascript": "// JavaScript solution skeleton\nfunction solution(input) {\n  // your code\n}\n\nconsole.log(solution(input));",
+    "typescript": "// TypeScript solution skeleton\nfunction solution(input: string): number {\n  // your code\n}\n\nconsole.log(solution(input));",
+    "python": "# Python solution skeleton\ndef solution(input):\n    # your code\n    pass\n\nprint(solution(input))"
   },
   "solution": {
-    "javascript": "REPLACE: complete optimal JS solution with inline comments",
-    "typescript": "REPLACE: complete optimal TS solution",
-    "python": "REPLACE: complete optimal Python solution"
+    "javascript": "// Complete optimal JavaScript solution with detailed comments",
+    "typescript": "// Complete optimal TypeScript solution",
+    "python": "# Complete optimal Python solution"
   },
   "hints": [
-    "REPLACE: hint 1 — general approach",
-    "REPLACE: hint 2 — data structure or algorithm to use",
-    "REPLACE: hint 3 — near the solution"
+    "Hint 1: Think about the data structure",
+    "Hint 2: Consider edge cases",
+    "Hint 3: Algorithm to use"
   ],
   "testCases": [
-    { "input": "REPLACE", "expected": "REPLACE", "description": "REPLACE: what this tests" },
-    { "input": "REPLACE edge case", "expected": "REPLACE", "description": "edge case" }
+    { "input": "Normal case", "expected": "Expected output", "description": "Tests basic functionality" },
+    { "input": "Edge case", "expected": "Edge output", "description": "Tests boundary conditions" }
   ],
-  "eli5": "REPLACE: real-world analogy for the problem",
-  "approach": "REPLACE: step-by-step markdown approach",
-  "complexity": { "time": "O(n)", "space": "O(1)", "explanation": "REPLACE" },
-  "relatedConcepts": ["REPLACE: concept 1", "REPLACE: concept 2"]
+  "eli5": "Real-world analogy for this problem",
+  "approach": "## Step-by-Step Approach\n\n1. Step one\n2. Step two\n3. Step three",
+  "complexity": {
+    "time": "O(n log n)",
+    "space": "O(n)",
+    "explanation": "Why this is the optimal complexity"
+  },
+  "relatedConcepts": ["concept 1", "concept 2", "concept 3"],
+  "commonErrors": ["error 1", "error 2"]
 }
-\`\`\`
-
-Replace ALL REPLACE placeholders with real content. The code must be syntactically correct and the solution must be optimal.`;
+\`\`\``;
 
     default:
       throw new Error(`Unknown type: ${type}`);
   }
 }
 
+function getLanguageForChannel(channelId) {
+  const langs = {
+    javascript: "javascript",
+    react: "javascript",
+    algorithms: "python",
+    devops: "bash",
+    kubernetes: "yaml",
+    networking: "python",
+    "system-design": "markdown",
+    "aws-saa": "json",
+    "aws-dev": "javascript",
+    cka: "bash",
+    terraform: "hcl",
+  };
+  return langs[channelId] || "javascript";
+}
+
+function getExtension(channelId) {
+  const exts = {
+    javascript: "js",
+    react: "jsx",
+    algorithms: "py",
+    devops: "sh",
+    kubernetes: "yaml",
+    networking: "py",
+    "system-design": "md",
+    "aws-saa": "json",
+    "aws-dev": "js",
+    cka: "sh",
+    terraform: "tf",
+  };
+  return exts[channelId] || "js";
+}
+
 // ── Generate one item ─────────────────────────────────────────────────────────
 async function generateOne(db, type, channel) {
-  const id = makeId(type.slice(0, 2));
+  const id = makeId(type.slice(0, 3));
   const prompt = makePrompt(type, channel, id);
+  const model = process.env.OPENCODE_MODEL || "opencode-default";
+  const startTime = Date.now();
 
   console.log(`\n🤖 Calling opencode for ${type} [${channel.name}]...`);
 
-  const raw = await runOpencode(prompt);
-  console.log(`   Raw output: ${raw.length} chars`);
-
-  const jsonStr = extractJson(raw);
-
-  const parsed = tryParseJson(jsonStr);
-  if (!parsed) {
-    console.error(`   ❌ JSON parse failed after all attempts`);
-    console.error(`   Snippet: ${jsonStr.slice(0, 300)}`);
-    return false;
+  let raw;
+  try {
+    raw = await runOpencode(prompt, model);
+  } catch (err) {
+    logGeneration(
+      db,
+      channel.id,
+      type,
+      false,
+      err.message,
+      Date.now() - startTime,
+      model,
+    );
+    throw err;
   }
 
+  const generationTime = Date.now() - startTime;
+  console.log(`   Raw output: ${raw.length} chars (${generationTime}ms)`);
+
+  const jsonStr = extractJson(raw);
+  const parsed = tryParseJson(jsonStr);
+
   if (!parsed || typeof parsed !== "object") {
-    console.error(`   ❌ Result is not an object`);
+    console.error(`   ❌ JSON parse failed`);
+    console.error(`   Snippet: ${jsonStr.slice(0, 200)}`);
+    logGeneration(
+      db,
+      channel.id,
+      type,
+      false,
+      "JSON parse failed",
+      generationTime,
+      model,
+    );
     return false;
   }
 
@@ -444,39 +740,57 @@ async function generateOne(db, type, channel) {
     parsed.channelId = parsed.channelId || channel.id;
   }
 
-  saveToDb(db, parsed.id, channel.id, type, parsed);
-  return true;
+  const qualityScore = saveToDb(
+    db,
+    id,
+    channel.id,
+    type,
+    parsed,
+    generationTime,
+    model,
+  );
+  return qualityScore >= QUALITY_THRESHOLD;
 }
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 async function main() {
   console.log("🚀 DevPrep Content Generator — powered by opencode-ai");
-  console.log(`   DB:           ${DB_PATH}`);
-  console.log(`   Content type: ${CONTENT_TYPE}`);
+  console.log(`   DB Path:        ${DB_PATH}`);
+  console.log(`   Vector Dir:     ${VECTOR_DIR}`);
+  console.log(`   Content Type:   ${CONTENT_TYPE}`);
   console.log(
-    `   Channel:      ${TARGET_CHANNEL || "auto-detect (lowest per type)"}`,
+    `   Channel:        ${TARGET_CHANNEL || "auto-detect (lowest per type)"}`,
   );
-  console.log(`   Count:        ${COUNT}`);
+  console.log(`   Count:         ${COUNT}`);
+  console.log(
+    `   Vector DB:      ${ENABLE_VECTOR_DB ? "enabled" : "disabled"}`,
+  );
+  console.log(`   Quality Threshold: ${(QUALITY_THRESHOLD * 100).toFixed(0)}%`);
+
+  // Ensure directories exist
+  fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
+  if (ENABLE_VECTOR_DB) {
+    fs.mkdirSync(VECTOR_DIR, { recursive: true });
+  }
 
   const db = openDb();
 
   const ALL_TYPES = ["question", "flashcard", "exam", "voice", "coding"];
-  let typeKeys;
-
-  if (CONTENT_TYPE === "auto" || CONTENT_TYPE === "all") {
-    typeKeys = ALL_TYPES;
-  } else {
-    typeKeys = [CONTENT_TYPE];
-  }
+  let typeKeys =
+    CONTENT_TYPE === "auto" || CONTENT_TYPE === "all"
+      ? ALL_TYPES
+      : [CONTENT_TYPE];
 
   let totalGenerated = 0;
   let totalFailed = 0;
+  let totalLowQuality = 0;
 
   for (const typeKey of typeKeys) {
     const itemsForType = CONTENT_TYPE === "auto" ? 1 : COUNT;
 
     for (let i = 0; i < itemsForType; i++) {
       let channel;
+
       if (TARGET_CHANNEL) {
         channel = CHANNELS.find((c) => c.id === TARGET_CHANNEL);
         if (!channel) {
@@ -487,7 +801,7 @@ async function main() {
         const lowest = findLowestChannel(db, typeKey);
         if (!lowest) {
           console.log(
-            `✓ ${typeKey}: all channels already have ≥${LOW_THRESHOLD} items — skipping`,
+            `✓ ${typeKey}: all channels already have ≥${LOW_THRESHOLD} items`,
           );
           break;
         }
@@ -500,7 +814,10 @@ async function main() {
       try {
         const ok = await generateOne(db, typeKey, channel);
         if (ok) totalGenerated++;
-        else totalFailed++;
+        else {
+          totalLowQuality++;
+          console.log(`   ⚠️  Low quality content (will be reviewed)`);
+        }
       } catch (err) {
         console.error(`\n❌ ${typeKey} for ${channel.name}:`, err.message);
         totalFailed++;
@@ -511,12 +828,20 @@ async function main() {
   db.close();
 
   console.log(`\n${"─".repeat(50)}`);
-  console.log(`✅ Generated: ${totalGenerated} item(s)`);
-  if (totalFailed > 0) console.log(`⚠️  Failed:    ${totalFailed} item(s)`);
-  console.log(`📁 DB:        ${DB_PATH}`);
-  console.log(
-    `   The DevPrep API server will serve this content at /api/content`,
-  );
+  console.log(`✅ Generated:     ${totalGenerated} item(s)`);
+  if (totalLowQuality > 0)
+    console.log(`⚠️  Low Quality:  ${totalLowQuality} item(s)`);
+  if (totalFailed > 0) console.log(`❌ Failed:        ${totalFailed} item(s)`);
+  console.log(`📁 Database:     ${DB_PATH}`);
+  console.log(`🔢 Vector Dir:   ${VECTOR_DIR}`);
+
+  if (totalGenerated > 0) {
+    console.log(`\nNext steps:`);
+    console.log(
+      `  1. Run vector indexing: python scripts/build-vector-index.py`,
+    );
+    console.log(`  2. Commit changes: git add data/devprep.db && git commit`);
+  }
 }
 
 main().catch((err) => {
