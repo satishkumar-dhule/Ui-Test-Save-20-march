@@ -1,0 +1,470 @@
+name: AI Content Generation Pipeline
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  schedule:
+    - cron: "0 3 * * *" # Daily at 3 AM UTC
+  workflow_dispatch:
+    inputs:
+      content_type:
+        description: "Content type to generate (auto, question, flashcard, exam, voice, coding)"
+        required: false
+        default: "auto"
+        type: choice
+        options:
+          - auto
+          - question
+          - flashcard
+          - exam
+          - voice
+          - coding
+          - all
+      target_channel:
+        description: "Target channel ID (leave empty for auto-detect)"
+        required: false
+        type: string
+      count:
+        description: "Number of items to generate per type"
+        required: false
+        default: "1"
+        type: string
+      opencode_model:
+        description: "OpenCode model override"
+        required: false
+        type: string
+
+env:
+  CONTENT_TYPE: ${{ inputs.content_type || 'auto' }}
+  TARGET_CHANNEL: ${{ inputs.target_channel || '' }}
+  COUNT: ${{ inputs.count || '1' }}
+  OPENCODE_MODEL: ${{ inputs.opencode_model || '' }}
+
+jobs:
+  setup:
+    name: Setup Environment
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      db_path: ${{ steps.vars.outputs.db_path }}
+      vector_dir: ${{ steps.vars.outputs.vector_dir }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: content-gen/package.json
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Set paths
+        id: vars
+        run: |
+          echo "db_path=data/devprep.db" >> $GITHUB_OUTPUT
+          echo "vector_dir=data/vectors" >> $GITHUB_OUTPUT
+          echo "workspace=$(pwd)" >> $GITHUB_OUTPUT
+
+      - name: Create data directories
+        run: |
+          mkdir -p data/vectors/questions
+          mkdir -p data/vectors/flashcards
+          mkdir -p data/vectors/coding
+          mkdir -p data/vectors/exams
+          mkdir -p data/vectors/voice
+
+      - name: Cache node_modules
+        uses: actions/cache@v4
+        with:
+          path: content-gen/node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('content-gen/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-modules-
+
+      - name: Cache vector embeddings model
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: ${{ runner.os }}-huggingface-sentence-transformers
+          restore-keys: |
+            ${{ runner.os }}-huggingface-
+
+      - name: Install Node dependencies
+        run: |
+          cd content-gen
+          npm ci
+
+      - name: Install Python dependencies
+        run: |
+          pip install sentence-transformers faiss-cpu sqlite-utils --quiet
+
+      - name: Initialize SQLite database
+        run: |
+          node content-gen/generate-content.mjs --init-only 2>/dev/null || true
+
+      - name: Upload database artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: devprep-db
+          path: data/devprep.db
+          retention-days: 1
+
+  generate-content:
+    name: Generate Content (${{ matrix.content_type }})
+    needs: setup
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      matrix:
+        content_type: [question, flashcard, exam, voice, coding]
+      fail-fast: false
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: content-gen/package.json
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          cd content-gen
+          npm ci
+          pip install sentence-transformers faiss-cpu --quiet
+
+      - name: Download database
+        uses: actions/download-artifact@v4
+        with:
+          name: devprep-db
+          path: data/
+
+      - name: Create data directories
+        run: |
+          mkdir -p data/vectors/questions
+          mkdir -p data/vectors/flashcards
+          mkdir -p data/vectors/coding
+          mkdir -p data/vectors/exams
+          mkdir -p data/vectors/voice
+
+      - name: Generate Content
+        id: generate
+        run: |
+          cd content-gen
+
+          # Set environment variables
+          if [ "${{ env.CONTENT_TYPE }}" != "auto" ]; then
+            export CONTENT_TYPE="${{ matrix.content_type }}"
+          else
+            export CONTENT_TYPE="${{ matrix.content_type }}"
+          fi
+
+          if [ -n "${{ env.TARGET_CHANNEL }}" ]; then
+            export TARGET_CHANNEL="${{ env.TARGET_CHANNEL }}"
+          fi
+
+          if [ -n "${{ env.OPENCODE_MODEL }}" ]; then
+            export OPENCODE_MODEL="${{ env.OPENCODE_MODEL }}"
+          fi
+
+          echo "Generating: CONTENT_TYPE=$CONTENT_TYPE, TARGET_CHANNEL=${TARGET_CHANNEL:-auto}, COUNT=${COUNT:-1}"
+
+          node generate-content.mjs || echo "Generation completed with status $?"
+
+      - name: Record Generation Metrics
+        if: always()
+        run: |
+          echo "Generation job status: ${{ job.status }}"
+          echo "Content type: ${{ matrix.content_type }}"
+          echo "Timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
+      - name: Upload updated database
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: devprep-db-${{ matrix.content_type }}
+          path: data/devprep.db
+          retention-days: 1
+
+  build-vector-index:
+    name: Build Vector Indices
+    needs: [setup, generate-content]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          pip install sentence-transformers faiss-cpu sqlite-utils numpy --quiet
+
+      - name: Download databases
+        uses: actions/download-artifact@v4
+        with:
+          pattern: "devprep-db-*"
+          path: data/
+          merge-multiple: true
+
+      - name: Create vector directories
+        run: |
+          mkdir -p data/vectors/questions
+          mkdir -p data/vectors/flashcards
+          mkdir -p data/vectors/coding
+          mkdir -p data/vectors/exams
+          mkdir -p data/vectors/voice
+
+      - name: Build Vector Indices
+        run: |
+          python << 'EOF'
+          import json
+          import os
+          import sqlite3
+          import numpy as np
+
+          try:
+            from sentence_transformers import SentenceTransformer
+            import faiss
+            HAS_ST = True
+          except ImportError:
+            HAS_ST = False
+            print("sentence-transformers not available, skipping vector indexing")
+
+          DB_PATH = "data/devprep.db"
+          VECTOR_DIR = "data/vectors"
+
+          if not os.path.exists(DB_PATH):
+            print(f"Database not found at {DB_PATH}")
+            exit(0)
+
+          if not HAS_ST:
+            print("Skipping vector embedding - model not available")
+            exit(0)
+
+          conn = sqlite3.connect(DB_PATH)
+          cursor = conn.cursor()
+
+          # Load model
+          print("Loading embedding model...")
+          model = SentenceTransformer('all-MiniLM-L6-v2')
+
+          content_types = ['question', 'flashcard', 'coding', 'exam', 'voice']
+
+          for content_type in content_types:
+            print(f"\nProcessing {content_type}...")
+            
+            cursor.execute(
+              "SELECT id, data FROM generated_content WHERE content_type = ? AND status = 'pending'",
+              (content_type,)
+            )
+            rows = cursor.fetchall()
+            
+            if not rows:
+              print(f"No pending {content_type} items to index")
+              continue
+            
+            # Extract text for embedding
+            texts = []
+            ids = []
+            
+            for row_id, data_json in rows:
+              try:
+                data = json.loads(data_json)
+                # Extract searchable text based on content type
+                if content_type == 'question':
+                  text = f"{data.get('title', '')} {data.get('sections', [{}])[0].get('content', '')}"
+                elif content_type == 'flashcard':
+                  text = f"{data.get('front', '')} {data.get('back', '')}"
+                elif content_type == 'coding':
+                  text = f"{data.get('title', '')} {data.get('description', '')}"
+                elif content_type == 'exam':
+                  text = f"{data.get('question', '')} {data.get('explanation', '')}"
+                elif content_type == 'voice':
+                  text = f"{data.get('prompt', '')} {' '.join(data.get('keyPoints', []))}"
+                else:
+                  text = str(data)
+                
+                texts.append(text)
+                ids.append(row_id)
+              except Exception as e:
+                print(f"Error parsing {row_id}: {e}")
+                continue
+            
+            if not texts:
+              continue
+            
+            print(f"Embedding {len(texts)} {content_type} items...")
+            embeddings = model.encode(texts, show_progress_bar=True)
+            
+            # Create FAISS index
+            dimension = embeddings.shape[1]
+            index = faiss.IndexFlatL2(dimension)
+            index.add(np.array(embeddings).astype('float32'))
+            
+            # Save index
+            index_dir = os.path.join(VECTOR_DIR, content_type + 's')
+            os.makedirs(index_dir, exist_ok=True)
+            faiss.write_index(index, os.path.join(index_dir, 'index.faiss'))
+            
+            # Save metadata
+            metadata = {
+              'ids': ids,
+              'texts': texts,
+              'dimension': dimension,
+              'model': 'all-MiniLM-L6-v2'
+            }
+            with open(os.path.join(index_dir, 'metadata.json'), 'w') as f:
+              json.dump(metadata, f)
+            
+            # Update status in database
+            for row_id in ids:
+              cursor.execute(
+                "UPDATE generated_content SET status = 'approved', embedding_id = ? WHERE id = ?",
+                (f"{content_type}s/{row_id}", row_id)
+              )
+            
+            print(f"Saved {len(texts)} embeddings to {index_dir}")
+
+          conn.commit()
+          conn.close()
+          print("\nVector indexing complete!")
+          EOF
+
+      - name: Upload vector indices
+        uses: actions/upload-artifact@v4
+        with:
+          name: vector-indices
+          path: data/vectors/
+          retention-days: 7
+
+  commit-changes:
+    name: Commit Generated Content
+    needs: [setup, generate-content, build-vector-index]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Download database
+        uses: actions/download-artifact@v4
+        with:
+          pattern: "devprep-db-*"
+          path: data/
+          merge-multiple: true
+
+      - name: Download vector indices
+        uses: actions/download-artifact@v4
+        with:
+          name: vector-indices
+          path: data/
+
+      - name: Check for changes
+        id: changed
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+
+          git add data/devprep.db data/vectors/
+
+          if git diff --cached --quiet; then
+            echo "changes=false" >> $GITHUB_OUTPUT
+            echo "No new content to commit"
+          else
+            echo "changes=true" >> $GITHUB_OUTPUT
+            git diff --cached --stat
+          fi
+
+      - name: Commit changes
+        if: steps.changed.outputs.changes == 'true'
+        run: |
+          COMMIT_MSG=$(cat << 'EOF'
+          ci: Add AI-generated content ($(date -u +%Y-%m-%d))
+
+          Generated by GitHub Actions content generation pipeline.
+          Content types: questions, flashcards, coding challenges, exams, voice prompts
+          Model: opencode-ai
+          EOF)
+
+          git commit -m "$COMMIT_MSG"
+          git push
+
+      - name: Create Summary
+        if: steps.changed.outputs.changes == 'true'
+        run: |
+          echo "## Content Generation Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Timestamp | $(date -u +%Y-%m-%dT%H:%M:%SZ) |" >> $GITHUB_STEP_SUMMARY
+          echo "| Content Type | ${{ env.CONTENT_TYPE }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Target Channel | ${TARGET_CHANNEL:-auto} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Status | Committed to main |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Vector indices rebuilt and committed." >> $GITHUB_STEP_SUMMARY
+
+  notify:
+    name: Notify Results
+    needs: [setup, generate-content, build-vector-index, commit-changes]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    if: always()
+
+    steps:
+      - name: Generate Report
+        run: |
+          echo "## Content Generation Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Setup | ${{ needs.setup.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Generate Content | ${{ needs.generate-content.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Build Vector Index | ${{ needs.build-vector-index.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Commit Changes | ${{ needs.commit-changes.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Trigger:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Run ID:** ${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
