@@ -6,6 +6,9 @@ id = "artifacts/api-server"
 [[artifacts]]
 id = "artifacts/mockup-sandbox"
 
+[[artifacts]]
+id = "artifacts/devprep"
+
 [deployment]
 router = "application"
 deploymentTarget = "autoscale"
@@ -65,7 +68,27 @@ path = "scripts/post-merge.sh"
 timeoutMs = 20000
 
 [nix]
-packages = ["gh", "docker", "containerd", "tmux", "vimHugeX"]
+channel = "stable-25_05"
+packages = [
+  "glib",
+  "nss",
+  "nspr",
+  "atk",
+  "cups",
+  "dbus",
+  "libdrm",
+  "xorg.libX11",
+  "xorg.libXcomposite",
+  "xorg.libXdamage",
+  "xorg.libXext",
+  "xorg.libXfixes",
+  "xorg.libXrandr",
+  "libgbm",
+  "libxkbcommon",
+  "pango",
+  "cairo",
+  "alsa-lib",
+]
 
 [[ports]]
 localPort = 3000
