@@ -1,11 +1,6 @@
 import { useCallback, useState } from 'react'
 import { useQuery, useQueryClient, UseQueryOptions } from '@tanstack/react-query'
-import {
-  fetchAllContent as dbFetchAllContent,
-  fetchContentByType as dbFetchContentByType,
-  fetchContentStats as dbFetchContentStats,
-  fetchChannelContent as dbFetchChannelContent,
-} from '@/services/dbApi'
+import { initDatabase, getDatabase } from '@/services/dbClient'
 import type { Question } from '@/data/questions'
 import type { Flashcard } from '@/data/flashcards'
 import type { ExamQuestion } from '@/data/exam'
@@ -40,6 +35,122 @@ interface UseRealtimeContentResult {
   lastUpdate: number | null
 }
 
+async function queryContent(params: {
+  channelId?: string
+  contentType?: ContentType
+}): Promise<GeneratedContentMap> {
+  await initDatabase()
+  const db = getDatabase()
+  if (!db) throw new Error('Database not initialized')
+
+  const conditions: string[] = [`status = 'published'`]
+  if (params.channelId) {
+    conditions.push(`channel_id = '${params.channelId.replace(/'/g, "''")}'`)
+  }
+  if (params.contentType) {
+    conditions.push(`content_type = '${params.contentType.replace(/'/g, "''")}'`)
+  }
+
+  const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
+  const result = db.exec(
+    `SELECT content_type, data FROM generated_content ${whereClause} ORDER BY created_at DESC`
+  )
+
+  const grouped: Record<string, unknown[]> = {
+    question: [],
+    flashcard: [],
+    exam: [],
+    voice: [],
+    coding: [],
+  }
+
+  if (!result[0]) return grouped as unknown as GeneratedContentMap
+
+  for (const row of result[0].values) {
+    const [type, dataStr] = row
+    if (grouped[type as string] && typeof dataStr === 'string') {
+      try {
+        grouped[type as string].push(JSON.parse(dataStr))
+      } catch {
+        console.warn(`[DevPrep] Failed to parse JSON for ${type}`)
+      }
+    }
+  }
+
+  return grouped as unknown as GeneratedContentMap
+}
+
+async function queryContentStats(): Promise<ContentStats> {
+  await initDatabase()
+  const db = getDatabase()
+  if (!db) throw new Error('Database not initialized')
+
+  const result = db.exec(`
+    SELECT 
+      COUNT(*) as total,
+      SUM(CASE WHEN content_type = 'question' THEN 1 ELSE 0 END) as question,
+      SUM(CASE WHEN content_type = 'flashcard' THEN 1 ELSE 0 END) as flashcard,
+      SUM(CASE WHEN content_type = 'exam' THEN 1 ELSE 0 END) as exam,
+      SUM(CASE WHEN content_type = 'voice' THEN 1 ELSE 0 END) as voice,
+      SUM(CASE WHEN content_type = 'coding' THEN 1 ELSE 0 END) as coding
+    FROM generated_content
+    WHERE status = 'published'
+  `)
+
+  if (!result[0]?.values[0]) {
+    return { total: 0, question: 0, flashcard: 0, exam: 0, voice: 0, coding: 0 }
+  }
+
+  const [total, question, flashcard, exam, voice, coding] = result[0].values[0]
+  return {
+    total: (total as number) || 0,
+    question: (question as number) || 0,
+    flashcard: (flashcard as number) || 0,
+    exam: (exam as number) || 0,
+    voice: (voice as number) || 0,
+    coding: (coding as number) || 0,
+  }
+}
+
+async function queryContentByType<T>(
+  type: ContentType,
+  params: {
+    channelId?: string
+    limit?: number
+  }
+): Promise<T[]> {
+  await initDatabase()
+  const db = getDatabase()
+  if (!db) throw new Error('Database not initialized')
+
+  const conditions: string[] = [`status = 'published'`, `content_type = '${type}'`]
+  if (params.channelId) {
+    conditions.push(`channel_id = '${params.channelId.replace(/'/g, "''")}'`)
+  }
+
+  const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
+  const limitClause = params.limit ? `LIMIT ${params.limit}` : ''
+
+  const result = db.exec(
+    `SELECT data FROM generated_content ${whereClause} ORDER BY created_at DESC ${limitClause}`
+  )
+
+  const items: T[] = []
+  if (result[0]) {
+    for (const row of result[0].values) {
+      const [dataStr] = row
+      if (typeof dataStr === 'string') {
+        try {
+          items.push(JSON.parse(dataStr) as T)
+        } catch {
+          console.warn(`[DevPrep] Failed to parse JSON for ${type}`)
+        }
+      }
+    }
+  }
+  return items
+}
+
 export function useRealtimeContent(
   options: UseRealtimeContentOptions = {}
 ): UseRealtimeContentResult {
@@ -50,35 +161,7 @@ export function useRealtimeContent(
   const queryKey = ['generated-content', channelId, contentType]
 
   const queryFn = useCallback(async (): Promise<GeneratedContentMap> => {
-    const allContent = await dbFetchAllContent({
-      channelId,
-      contentType,
-      status: undefined,
-    })
-
-    const result: GeneratedContentMap = {}
-    const grouped: Record<string, unknown[]> = {
-      question: [],
-      flashcard: [],
-      exam: [],
-      voice: [],
-      coding: [],
-    }
-
-    for (const record of allContent) {
-      const type = record.content_type as ContentType
-      if (grouped[type]) {
-        grouped[type].push(record.data)
-      }
-    }
-
-    if (grouped.question.length) result.question = grouped.question as Question[]
-    if (grouped.flashcard.length) result.flashcard = grouped.flashcard as Flashcard[]
-    if (grouped.exam.length) result.exam = grouped.exam as ExamQuestion[]
-    if (grouped.voice.length) result.voice = grouped.voice as VoicePrompt[]
-    if (grouped.coding.length) result.coding = grouped.coding as CodingChallenge[]
-
-    return result
+    return queryContent({ channelId, contentType })
   }, [channelId, contentType])
 
   const query = useQuery({
@@ -92,7 +175,7 @@ export function useRealtimeContent(
 
   const statsQuery = useQuery({
     queryKey: ['content-stats'],
-    queryFn: dbFetchContentStats,
+    queryFn: queryContentStats,
     staleTime: 60000,
     enabled,
   })
@@ -131,10 +214,9 @@ export function useRealtimeQuestions(options: UseRealtimeQuestionsOptions = {}):
   const query = useQuery({
     queryKey: ['realtime-questions', channelId, limit],
     queryFn: () =>
-      dbFetchContentByType<Question>('question', {
+      queryContentByType<Question>('question', {
         channelId,
         limit,
-        status: undefined,
       }),
     staleTime: 30000,
     enabled,
@@ -169,10 +251,9 @@ export function useContentType<T>(options: UseContentTypeOptions<T>): {
   const query = useQuery({
     queryKey: [`realtime-${type}`, channelId, limit],
     queryFn: () =>
-      dbFetchContentByType<T>(type, {
+      queryContentByType<T>(type, {
         channelId,
         limit,
-        status: undefined,
       }),
     staleTime: 30000,
     enabled,
@@ -198,7 +279,7 @@ export function useRealtimeStats(): {
 
   const query = useQuery({
     queryKey: ['content-stats'],
-    queryFn: dbFetchContentStats,
+    queryFn: queryContentStats,
     staleTime: 60000,
     refetchInterval: 30000,
   })

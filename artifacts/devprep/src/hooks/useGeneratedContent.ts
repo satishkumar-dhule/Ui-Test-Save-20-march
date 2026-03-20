@@ -4,7 +4,7 @@ import type { Flashcard } from '@/data/flashcards'
 import type { ExamQuestion } from '@/data/exam'
 import type { VoicePrompt } from '@/data/voicePractice'
 import type { CodingChallenge } from '@/data/coding'
-import { fetchAllContent } from '@/services/dbApi'
+import { initDatabase, getDatabase } from '@/services/dbClient'
 
 export interface GeneratedContentMap {
   question?: Question[]
@@ -53,6 +53,42 @@ interface UseGeneratedContentResult {
   refresh: () => void
 }
 
+async function queryAllContent(): Promise<GeneratedContentMap> {
+  await initDatabase()
+  const db = getDatabase()
+  if (!db) throw new Error('Database not initialized')
+
+  const result = db.exec(
+    `SELECT content_type, data FROM generated_content WHERE status = 'published' ORDER BY created_at DESC`
+  )
+
+  const grouped: Record<string, unknown[]> = {
+    question: [],
+    flashcard: [],
+    exam: [],
+    voice: [],
+    coding: [],
+  }
+
+  if (!result[0]) return grouped as unknown as GeneratedContentMap
+
+  for (const row of result[0].values) {
+    const [content_type, dataStr] = row
+    const type = content_type as string
+
+    if (grouped[type] && typeof dataStr === 'string') {
+      try {
+        const parsed = JSON.parse(dataStr)
+        grouped[type].push(parsed)
+      } catch {
+        console.warn(`[DevPrep] Failed to parse JSON for ${type}`)
+      }
+    }
+  }
+
+  return grouped as unknown as GeneratedContentMap
+}
+
 export function useGeneratedContent(): UseGeneratedContentResult {
   const [generated, setGenerated] = useState<GeneratedContentMap>({})
   const [loading, setLoading] = useState(false)
@@ -63,25 +99,9 @@ export function useGeneratedContent(): UseGeneratedContentResult {
     setError(null)
 
     try {
-      const records = await fetchAllContent({})
-      const grouped: Record<string, unknown[]> = {
-        question: [],
-        flashcard: [],
-        exam: [],
-        voice: [],
-        coding: [],
-      }
-
-      for (const record of records) {
-        const type = record.content_type
-        if (grouped[type] && record.data !== undefined && record.data !== null) {
-          grouped[type].push(record.data)
-        }
-      }
-
-      const transformed = grouped as unknown as GeneratedContentMap
-      setGenerated(transformed)
-      saveCache(transformed)
+      const content = await queryAllContent()
+      setGenerated(content)
+      saveCache(content)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Unknown error')
       console.warn('[DevPrep] Generated content unavailable:', e)

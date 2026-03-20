@@ -122,7 +122,7 @@ async function doInit(): Promise<SqlJsDatabase> {
     isInitialized = true
     initError = null
     notifyListeners()
-    return db
+    return db!
   } catch (error) {
     initError = error instanceof Error ? error : new Error(String(error))
     notifyListeners()
@@ -343,4 +343,124 @@ export function closeDatabase(): void {
     initError = null
     notifyListeners()
   }
+}
+
+export interface ContentRecord {
+  id: string
+  channel_id: string
+  content_type: string
+  data: unknown
+  quality_score: number
+  embedding_id: string | null
+  created_at: number
+  updated_at: number
+  status: string
+  generated_by: string | null
+  generation_time_ms: number | null
+}
+
+function parseRecord(row: Record<string, unknown>): ContentRecord {
+  let parsedData: unknown = row.data
+  if (typeof row.data === 'string') {
+    try {
+      parsedData = JSON.parse(row.data)
+    } catch {
+      parsedData = { raw: row.data }
+    }
+  }
+  return {
+    id: row.id as string,
+    channel_id: row.channel_id as string,
+    content_type: row.content_type as string,
+    data: parsedData,
+    quality_score: row.quality_score as number,
+    embedding_id: row.embedding_id as string | null,
+    created_at: row.created_at as number,
+    updated_at: row.updated_at as number,
+    status: row.status as string,
+    generated_by: row.generated_by as string | null,
+    generation_time_ms: row.generation_time_ms as number | null,
+  }
+}
+
+export function getContentByType(type: string): ContentRecord[] {
+  if (!db) return []
+  const stmt = db.prepare('SELECT * FROM generated_content WHERE content_type = ? AND status = ?')
+  stmt.bind([type, 'published'])
+  const results: ContentRecord[] = []
+  while (stmt.step()) {
+    results.push(parseRecord(stmt.getAsObject()))
+  }
+  stmt.free()
+  return results
+}
+
+export function getContentByChannel(channelId: string): ContentRecord[] {
+  if (!db) return []
+  const stmt = db.prepare('SELECT * FROM generated_content WHERE channel_id = ? AND status = ?')
+  stmt.bind([channelId, 'published'])
+  const results: ContentRecord[] = []
+  while (stmt.step()) {
+    results.push(parseRecord(stmt.getAsObject()))
+  }
+  stmt.free()
+  return results
+}
+
+export function getContentByTags(tags: string[]): ContentRecord[] {
+  if (!db || tags.length === 0) return []
+  const stmt = db.prepare('SELECT * FROM generated_content WHERE status = ?')
+  stmt.bind(['published'])
+  const results: ContentRecord[] = []
+  while (stmt.step()) {
+    const row = stmt.getAsObject()
+    let dataTags: string[] = []
+    try {
+      const data = typeof row.data === 'string' ? JSON.parse(row.data) : row.data
+      dataTags = (data?.tags as string[]) || []
+    } catch {
+      continue
+    }
+    if (tags.some(tag => dataTags.includes(tag))) {
+      results.push(parseRecord(row))
+    }
+  }
+  stmt.free()
+  return results
+}
+
+export function searchContent(query: string): ContentRecord[] {
+  if (!db || !query.trim()) return []
+  const lowerQuery = query.toLowerCase()
+  const stmt = db.prepare('SELECT * FROM generated_content WHERE status = ?')
+  stmt.bind(['published'])
+  const results: ContentRecord[] = []
+  while (stmt.step()) {
+    const row = stmt.getAsObject()
+    try {
+      const data = typeof row.data === 'string' ? JSON.parse(row.data) : row.data
+      const searchableText = JSON.stringify(data).toLowerCase()
+      if (searchableText.includes(lowerQuery)) {
+        results.push(parseRecord(row))
+      }
+    } catch {
+      continue
+    }
+  }
+  stmt.free()
+  return results
+}
+
+export function getAllContent(): ContentRecord[] {
+  if (!db) return []
+  const stmt = db.prepare(
+    'SELECT * FROM generated_content WHERE status = ? ORDER BY created_at DESC'
+  )
+  stmt.bind(['published'])
+  const results: ContentRecord[] = []
+  while (stmt.step()) {
+    results.push(parseRecord(stmt.getAsObject()))
+  }
+  stmt.free()
+  return results
 }
