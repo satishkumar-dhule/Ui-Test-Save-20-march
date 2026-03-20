@@ -53,26 +53,7 @@ timeoutMs = 20000
 
 [nix]
 channel = "stable-25_05"
-packages = [
-  "glib",
-  "nss",
-  "nspr",
-  "atk",
-  "cups",
-  "dbus",
-  "libdrm",
-  "xorg.libX11",
-  "xorg.libXcomposite",
-  "xorg.libXdamage",
-  "xorg.libXext",
-  "xorg.libXfixes",
-  "xorg.libXrandr",
-  "libgbm",
-  "libxkbcommon",
-  "pango",
-  "cairo",
-  "alsa-lib",
-]
+packages = ["glib", "nss", "nspr", "atk", "cups", "dbus", "libdrm", "xorg.libX11", "xorg.libXcomposite", "xorg.libXdamage", "xorg.libXext", "xorg.libXfixes", "xorg.libXrandr", "libgbm", "libxkbcommon", "pango", "cairo", "alsa-lib", "gh"]
 
 [[ports]]
 localPort = 3000
