@@ -190,7 +190,7 @@ importers:
         version: 2.8.6
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.45.1(@types/pg@8.18.0)(better-sqlite3@12.8.0)(pg@8.20.0)
+        version: 0.45.1(@types/pg@8.18.0)(better-sqlite3@12.8.0)(pg@8.20.0)(sql.js@1.14.1)
       express:
         specifier: ^5
         version: 5.2.1
@@ -481,6 +481,9 @@ importers:
       sonner:
         specifier: ^2.0.7
         version: 2.0.7(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+      sql.js:
+        specifier: ^1.12.0
+        version: 1.14.1
       tailwind-merge:
         specifier: 'catalog:'
         version: 3.5.0
@@ -1003,10 +1006,10 @@ importers:
         version: 2.8.6
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.45.1(@types/pg@8.18.0)(better-sqlite3@12.8.0)(pg@8.20.0)
+        version: 0.45.1(@types/pg@8.18.0)(better-sqlite3@12.8.0)(pg@8.20.0)(sql.js@1.14.1)
       drizzle-zod:
         specifier: ^0.8.3
-        version: 0.8.3(drizzle-orm@0.45.1(@types/pg@8.18.0)(better-sqlite3@12.8.0)(pg@8.20.0))(zod@3.25.76)
+        version: 0.8.3(drizzle-orm@0.45.1(@types/pg@8.18.0)(better-sqlite3@12.8.0)(pg@8.20.0)(sql.js@1.14.1))(zod@3.25.76)
       express:
         specifier: ^5.2.1
         version: 5.2.1
@@ -5536,6 +5539,9 @@ packages:
     resolution: {integrity: sha512-UcjcJOWknrNkF6PLX83qcHM6KHgVKNkV62Y8a5uYDVv9ydGQVwAHMKqHdJje1VTWpljG0WYpCDhrCdAOYH4TWg==}
     engines: {node: '>= 10.x'}
 
+  sql.js@1.14.1:
+    resolution: {integrity: sha512-gcj8zBWU5cFsi9WUP+4bFNXAyF1iRpA3LLyS/DP5xlrNzGmPIizUeBggKa8DbDwdqaKwUcTEnChtd2grWo/x/A==}
+
   stackback@0.0.2:
     resolution: {integrity: sha512-1XMJE5fQo1jGH6Y/7ebnwPOBEkIEnT4QF32d5R1+VXdXveM0IBMJt8zfaxX1P3QhVwrYe+576+jkANtSS2mBbw==}
 
@@ -9099,15 +9105,16 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  drizzle-orm@0.45.1(@types/pg@8.18.0)(better-sqlite3@12.8.0)(pg@8.20.0):
+  drizzle-orm@0.45.1(@types/pg@8.18.0)(better-sqlite3@12.8.0)(pg@8.20.0)(sql.js@1.14.1):
     optionalDependencies:
       '@types/pg': 8.18.0
       better-sqlite3: 12.8.0
       pg: 8.20.0
+      sql.js: 1.14.1
 
-  drizzle-zod@0.8.3(drizzle-orm@0.45.1(@types/pg@8.18.0)(better-sqlite3@12.8.0)(pg@8.20.0))(zod@3.25.76):
+  drizzle-zod@0.8.3(drizzle-orm@0.45.1(@types/pg@8.18.0)(better-sqlite3@12.8.0)(pg@8.20.0)(sql.js@1.14.1))(zod@3.25.76):
     dependencies:
-      drizzle-orm: 0.45.1(@types/pg@8.18.0)(better-sqlite3@12.8.0)(pg@8.20.0)
+      drizzle-orm: 0.45.1(@types/pg@8.18.0)(better-sqlite3@12.8.0)(pg@8.20.0)(sql.js@1.14.1)
       zod: 3.25.76
 
   dunder-proto@1.0.1:
@@ -11505,6 +11512,8 @@ snapshots:
   space-separated-tokens@2.0.2: {}
 
   split2@4.2.0: {}
+
+  sql.js@1.14.1: {}
 
   stackback@0.0.2: {}
 
