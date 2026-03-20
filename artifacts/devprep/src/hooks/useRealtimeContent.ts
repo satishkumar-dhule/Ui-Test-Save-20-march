@@ -43,7 +43,7 @@ async function queryContent(params: {
   const db = getDatabase()
   if (!db) throw new Error('Database not initialized')
 
-  const conditions: string[] = [`status = 'published'`]
+  const conditions: string[] = [`status IN ('published', 'approved')`]
   if (params.channelId) {
     conditions.push(`channel_id = '${params.channelId.replace(/'/g, "''")}'`)
   }
@@ -94,7 +94,7 @@ async function queryContentStats(): Promise<ContentStats> {
       SUM(CASE WHEN content_type = 'voice' THEN 1 ELSE 0 END) as voice,
       SUM(CASE WHEN content_type = 'coding' THEN 1 ELSE 0 END) as coding
     FROM generated_content
-    WHERE status = 'published'
+    WHERE status IN ('published', 'approved')
   `)
 
   if (!result[0]?.values[0]) {
@@ -123,7 +123,7 @@ async function queryContentByType<T>(
   const db = getDatabase()
   if (!db) throw new Error('Database not initialized')
 
-  const conditions: string[] = [`status = 'published'`, `content_type = '${type}'`]
+  const conditions: string[] = [`status IN ('published', 'approved')`, `content_type = '${type}'`]
   if (params.channelId) {
     conditions.push(`channel_id = '${params.channelId.replace(/'/g, "''")}'`)
   }

@@ -589,8 +589,8 @@ function parseRecord(row: Record<string, unknown>): ContentRecord {
 
 export function getContentByType(type: string): ContentRecord[] {
   if (!db) return []
-  const stmt = db.prepare('SELECT * FROM generated_content WHERE content_type = ? AND status = ?')
-  stmt.bind([type, 'published'])
+  const stmt = db.prepare("SELECT * FROM generated_content WHERE content_type = ? AND status IN ('published', 'approved')")
+  stmt.bind([type])
   const results: ContentRecord[] = []
   while (stmt.step()) {
     results.push(parseRecord(stmt.getAsObject()))
@@ -601,8 +601,8 @@ export function getContentByType(type: string): ContentRecord[] {
 
 export function getContentByChannel(channelId: string): ContentRecord[] {
   if (!db) return []
-  const stmt = db.prepare('SELECT * FROM generated_content WHERE channel_id = ? AND status = ?')
-  stmt.bind([channelId, 'published'])
+  const stmt = db.prepare("SELECT * FROM generated_content WHERE channel_id = ? AND status IN ('published', 'approved')")
+  stmt.bind([channelId])
   const results: ContentRecord[] = []
   while (stmt.step()) {
     results.push(parseRecord(stmt.getAsObject()))
@@ -613,8 +613,8 @@ export function getContentByChannel(channelId: string): ContentRecord[] {
 
 export function getContentByTags(tags: string[]): ContentRecord[] {
   if (!db || tags.length === 0) return []
-  const stmt = db.prepare('SELECT * FROM generated_content WHERE status = ?')
-  stmt.bind(['published'])
+  const stmt = db.prepare("SELECT * FROM generated_content WHERE status IN ('published', 'approved')")
+  stmt.bind([])
   const results: ContentRecord[] = []
   while (stmt.step()) {
     const row = stmt.getAsObject()
@@ -636,8 +636,8 @@ export function getContentByTags(tags: string[]): ContentRecord[] {
 export function searchContent(query: string): ContentRecord[] {
   if (!db || !query.trim()) return []
   const lowerQuery = query.toLowerCase()
-  const stmt = db.prepare('SELECT * FROM generated_content WHERE status = ?')
-  stmt.bind(['published'])
+  const stmt = db.prepare("SELECT * FROM generated_content WHERE status IN ('published', 'approved')")
+  stmt.bind([])
   const results: ContentRecord[] = []
   while (stmt.step()) {
     const row = stmt.getAsObject()
@@ -658,9 +658,9 @@ export function searchContent(query: string): ContentRecord[] {
 export function getAllContent(): ContentRecord[] {
   if (!db) return []
   const stmt = db.prepare(
-    'SELECT * FROM generated_content WHERE status = ? ORDER BY created_at DESC'
+    "SELECT * FROM generated_content WHERE status IN ('published', 'approved') ORDER BY created_at DESC"
   )
-  stmt.bind(['published'])
+  stmt.bind([])
   const results: ContentRecord[] = []
   while (stmt.step()) {
     results.push(parseRecord(stmt.getAsObject()))

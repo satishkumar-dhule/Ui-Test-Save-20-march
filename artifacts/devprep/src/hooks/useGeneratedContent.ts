@@ -59,7 +59,7 @@ async function queryAllContent(): Promise<GeneratedContentMap> {
   if (!db) throw new Error('Database not initialized')
 
   const result = db.exec(
-    `SELECT content_type, channel_id, data FROM generated_content WHERE status = 'published' ORDER BY created_at DESC`
+    `SELECT content_type, channel_id, data FROM generated_content WHERE status IN ('published', 'approved') ORDER BY created_at DESC`
   )
 
   const grouped: Record<string, unknown[]> = {

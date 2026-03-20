@@ -128,7 +128,7 @@ export async function fetchContentStats(): Promise<ContentStats> {
       SUM(CASE WHEN content_type = 'voice' THEN 1 ELSE 0 END) as voice,
       SUM(CASE WHEN content_type = 'coding' THEN 1 ELSE 0 END) as coding
     FROM generated_content
-    WHERE status = 'published'
+    WHERE status IN ('published', 'approved')
   `)
 
   if (!result[0]?.values[0]) {
