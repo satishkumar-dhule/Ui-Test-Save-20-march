@@ -22,20 +22,23 @@ name = "artifacts/devprep: web"
 mode = "sequential"
 author = "agent"
 
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "pnpm --filter @workspace/devprep run dev"
-cwd = "./artifacts/devprep"
-waitForPort = 20452
-router = "path"
-
-[workflows.workflow.tasks.env]
-PORT = "20452"
-BASE_PATH = "/"
-
 [workflows.workflow.metadata]
 outputType = "webview"
 artifactId = "artifacts/devprep"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "PORT=3000 pnpm --filter @workspace/devprep run dev"
+waitForPort = 3000
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "artifacts/devprep: web"
 
 [agent]
 stack = "PNPM_WORKSPACE"
