@@ -670,7 +670,7 @@ function getExtension(channelId) {
 async function generateOne(db, type, channel) {
   const id = makeId(type.slice(0, 3));
   const prompt = makePrompt(type, channel, id);
-  const model = process.env.OPENCODE_MODEL || "opencode-default";
+  const model = process.env.OPENCODE_MODEL || "";
   const startTime = Date.now();
 
   console.log(`\n🤖 Calling opencode for ${type} [${channel.name}]...`);
