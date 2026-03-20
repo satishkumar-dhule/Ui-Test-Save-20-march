@@ -1,10 +1,40 @@
 import { defineConfig } from 'vite'
+import type { Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import path from 'path'
+import fs from 'fs'
 import runtimeErrorOverlay from '@replit/vite-plugin-runtime-error-modal'
 import { VitePWA } from 'vite-plugin-pwa'
 import 'dotenv/config'
+
+function serveDatabase(): Plugin {
+  const dbPath = path.resolve(import.meta.dirname, '../../data/devprep.db')
+  return {
+    name: 'serve-database',
+    configureServer(server) {
+      server.middlewares.use('/devprep.db', (_req, res, next) => {
+        try {
+          const data = fs.readFileSync(dbPath)
+          res.setHeader('Content-Type', 'application/octet-stream')
+          res.setHeader('Content-Length', String(data.length))
+          res.setHeader('Cache-Control', 'no-cache')
+          res.end(data)
+        } catch {
+          next()
+        }
+      })
+    },
+    generateBundle() {
+      try {
+        const data = fs.readFileSync(dbPath)
+        this.emitFile({ type: 'asset', fileName: 'devprep.db', source: data })
+      } catch {
+        console.warn('[serve-database] data/devprep.db not found — skipping production asset')
+      }
+    },
+  }
+}
 
 const rawPort = process.env.PORT || '5173'
 
@@ -24,6 +54,7 @@ export default defineConfig({
     react(),
     tailwindcss(),
     runtimeErrorOverlay(),
+    serveDatabase(),
     VitePWA({
       registerType: 'prompt',
       includeAssets: ['favicon.svg', 'icon-192.png', 'icon-512.png', 'manifest.json'],

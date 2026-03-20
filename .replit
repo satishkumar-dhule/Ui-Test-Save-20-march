@@ -46,7 +46,7 @@ path = "scripts/post-merge.sh"
 timeoutMs = 20000
 
 [nix]
-packages = ["gh", "docker", "containerd", "tmux"]
+packages = ["gh", "docker", "containerd", "tmux", "vimHugeX"]
 
 [[ports]]
 localPort = 4096
@@ -55,7 +55,7 @@ exposeLocalhost = true
 
 [[ports]]
 localPort = 5173
-externalPort = 8000
+externalPort = 80
 
 [[ports]]
 localPort = 5174

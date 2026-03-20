@@ -77,31 +77,47 @@ export async function initDatabase(): Promise<SqlJsDatabase> {
 async function doInit(): Promise<SqlJsDatabase> {
   try {
     const SQL = await loadSqlJs()
-    db = new SQL.Database()
 
-    db.run(`
-      CREATE TABLE IF NOT EXISTS generated_content (
-        id TEXT PRIMARY KEY,
-        channel_id TEXT NOT NULL,
-        content_type TEXT NOT NULL,
-        data TEXT NOT NULL,
-        quality_score REAL DEFAULT 0,
-        embedding_id TEXT,
-        created_at INTEGER DEFAULT (strftime('%s', 'now')),
-        updated_at INTEGER DEFAULT (strftime('%s', 'now')),
-        status TEXT DEFAULT 'pending',
-        generated_by TEXT,
-        generation_time_ms INTEGER
-      )
-    `)
+    let loaded = false
+    try {
+      const base = import.meta.env.BASE_URL ?? '/'
+      const url = base.endsWith('/') ? `${base}devprep.db` : `${base}/devprep.db`
+      const response = await fetch(url)
+      if (response.ok) {
+        const buffer = await response.arrayBuffer()
+        if (buffer.byteLength > 0) {
+          db = new SQL.Database(new Uint8Array(buffer))
+          loaded = true
+        }
+      }
+    } catch {
+      console.warn('[DevPrep] Could not load devprep.db from server, falling back to seed data')
+    }
 
-    db.run(`CREATE INDEX IF NOT EXISTS idx_type ON generated_content(content_type)`)
-    db.run(`CREATE INDEX IF NOT EXISTS idx_channel ON generated_content(channel_id)`)
-    db.run(`CREATE INDEX IF NOT EXISTS idx_status ON generated_content(status)`)
-    db.run(`CREATE INDEX IF NOT EXISTS idx_quality ON generated_content(quality_score)`)
-    db.run(`CREATE INDEX IF NOT EXISTS idx_created_at ON generated_content(created_at)`)
-
-    await seedDatabase(db)
+    if (!loaded) {
+      db = new SQL.Database()
+      db.run(`
+        CREATE TABLE IF NOT EXISTS generated_content (
+          id TEXT PRIMARY KEY,
+          channel_id TEXT NOT NULL,
+          content_type TEXT NOT NULL,
+          data TEXT NOT NULL,
+          quality_score REAL DEFAULT 0,
+          embedding_id TEXT,
+          created_at INTEGER DEFAULT (strftime('%s', 'now')),
+          updated_at INTEGER DEFAULT (strftime('%s', 'now')),
+          status TEXT DEFAULT 'pending',
+          generated_by TEXT,
+          generation_time_ms INTEGER
+        )
+      `)
+      db.run(`CREATE INDEX IF NOT EXISTS idx_type ON generated_content(content_type)`)
+      db.run(`CREATE INDEX IF NOT EXISTS idx_channel ON generated_content(channel_id)`)
+      db.run(`CREATE INDEX IF NOT EXISTS idx_status ON generated_content(status)`)
+      db.run(`CREATE INDEX IF NOT EXISTS idx_quality ON generated_content(quality_score)`)
+      db.run(`CREATE INDEX IF NOT EXISTS idx_created_at ON generated_content(created_at)`)
+      await seedDatabase(db)
+    }
 
     isInitialized = true
     initError = null
