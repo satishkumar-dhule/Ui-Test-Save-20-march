@@ -75,26 +75,6 @@ waitForPort = 8081
 PORT = "8081"
 BASE_PATH = "/__mockup"
 
-[[workflows.workflow]]
-name = "artifacts/controls-demo: web"
-author = "agent"
-mode = "sequential"
-
-[workflows.workflow.metadata]
-outputType = "webview"
-artifactId = "artifacts/controls-demo"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "pnpm --filter @workspace/controls-demo run dev"
-cwd = "./artifacts/controls-demo"
-waitForPort = 22588
-router = "path"
-
-[workflows.workflow.tasks.env]
-PORT = "22588"
-BASE_PATH = "/"
-
 [agent]
 stack = "PNPM_WORKSPACE"
 expertMode = true

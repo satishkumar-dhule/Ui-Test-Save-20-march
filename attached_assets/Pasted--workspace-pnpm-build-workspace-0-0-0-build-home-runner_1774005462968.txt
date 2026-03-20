@@ -1,0 +1,66 @@
+~/workspace$ pnpm build
+
+> workspace@0.0.0 build /home/runner/workspace
+> pnpm run typecheck && pnpm -r --if-present run build
+
+
+> workspace@0.0.0 typecheck /home/runner/workspace
+> pnpm run typecheck:libs && pnpm -r --filter "./artifacts/**" --filter "./scripts" --if-present run typecheck
+
+
+> workspace@0.0.0 typecheck:libs /home/runner/workspace
+> tsc --build
+
+Scope: 5 of 12 workspace projects
+artifacts/api-server typecheck$ tsc -p tsconfig.json --noEmit
+└─ Done in 3.2s
+artifacts/controls-demo typecheck$ tsc -p tsconfig.json --noEmit
+│ src/__tests__/components/ErrorBoundary.test.tsx(18,3): error TS2304: Cannot find name 'afterEach'.
+│ src/components/OfflineBanner.tsx(1,31): error TS2307: Cannot find module 'virtual:pwa-register' or its corresponding type declarations.
+│ src/hooks/useErrorReporting.ts(75,20): error TS5076: '??' and '||' operations cannot be mixed without parentheses.
+│ src/hooks/useErrorReporting.ts(101,35): error TS2307: Cannot find module '@sentry/browser' or its corresponding type declarations.
+│ src/hooks/useMonitoring.ts(271,48): error TS2554: Expected 0 arguments, but got 1.
+│ src/hooks/useMonitoring.ts(271,49): error TS7006: Parameter 'list' implicitly has an 'any' type.
+│ src/hooks/useMonitoring.ts(288,24): error TS2554: Expected 0 arguments, but got 1.
+│ src/hooks/useMonitoring.ts(296,48): error TS2554: Expected 0 arguments, but got 1.
+│ src/hooks/useMonitoring.ts(296,49): error TS7006: Parameter 'list' implicitly has an 'any' type.
+│ src/hooks/useMonitoring.ts(300,30): error TS2304: Cannot find name 'EventTiming'.
+│ src/hooks/useMonitoring.ts(301,49): error TS2304: Cannot find name 'EventTiming'.
+│ src/hooks/useMonitoring.ts(302,30): error TS2304: Cannot find name 'EventTiming'.
+│ src/hooks/useMonitoring.ts(312,24): error TS2554: Expected 0 arguments, but got 1.
+│ src/hooks/useMonitoring.ts(321,23): error TS2304: Cannot find name 'LayoutShift'.
+│ src/hooks/useMonitoring.ts(323,48): error TS2554: Expected 0 arguments, but got 1.
+│ src/hooks/useMonitoring.ts(323,49): error TS7006: Parameter 'list' implicitly has an 'any' type.
+│ src/hooks/useMonitoring.ts(325,40): error TS2304: Cannot find name 'LayoutShift'.
+│ src/hooks/useMonitoring.ts(347,24): error TS2554: Expected 0 arguments, but got 1.
+│ src/hooks/useMonitoring.ts(355,48): error TS2554: Expected 0 arguments, but got 1.
+│ src/hooks/useMonitoring.ts(355,49): error TS7006: Parameter 'list' implicitly has an 'any' type.
+│ src/hooks/useMonitoring.ts(371,24): error TS2554: Expected 0 arguments, but got 1.
+│ src/hooks/useMonitoring.ts(456,29): error TS2552: Cannot find name 'Navigation'. Did you mean 'Navigator'?
+│ src/hooks/useMonitoring.ts(478,22): error TS2352: Conversion of type 'Event' to type 'NavigationEvent & { destination: { url: string; }; }' may be …
+│   Type 'Event' is missing the following properties from type 'NavigationEvent': from, to, timestamp
+│ src/hooks/useMonitoring.ts(482,64): error TS2339: Property 'navigationType' does not exist on type 'NavigationEvent & { destination: { url: string;…
+│ src/lib/search.ts(31,24): error TS2339: Property 'question' does not exist on type 'Question'.
+│ src/lib/search.ts(31,59): error TS2339: Property 'answer' does not exist on type 'Question'.
+│ src/lib/search.ts(35,18): error TS2339: Property 'question' does not exist on type 'Question'.
+│ src/lib/search.ts(35,43): error TS2339: Property 'question' does not exist on type 'Question'.
+│ src/lib/search.ts(35,75): error TS2339: Property 'question' does not exist on type 'Question'.
+│ src/lib/search.ts(36,20): error TS2339: Property 'answer' does not exist on type 'Question'.
+│ src/lib/search.ts(36,44): error TS2339: Property 'answer' does not exist on type 'Question'.
+│ src/lib/search.ts(36,75): error TS2339: Property 'answer' does not exist on type 'Question'.
+│ src/lib/search.ts(67,46): error TS2339: Property 'options' does not exist on type 'ExamQuestion'.
+│ src/lib/search.ts(67,60): error TS7006: Parameter 'o' implicitly has an 'any' type.
+│ src/lib/search.ts(72,32): error TS2339: Property 'options' does not exist on type 'ExamQuestion'.
+└─ Failed in 8.9s at /home/runner/workspace/artifacts/controls-demo
+artifacts/devprep typecheck$ tsc -p tsconfig.json --noEmit
+└─ Running...
+artifacts/mockup-sandbox typecheck$ tsc -p tsconfig.json --noEmit
+└─ Done in 7.5s
+scripts typecheck$ tsc -p tsconfig.json --noEmit
+└─ Done in 1.5s
+/home/runner/workspace/artifacts/controls-demo:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @workspace/controls-demo@0.0.0 typecheck: `tsc -p tsconfig.json --noEmit`
+Exit status 2
+ ELIFECYCLE  Command failed with exit code 2.
+ ELIFECYCLE  Command failed with exit code 2.
+~/workspace$ 
