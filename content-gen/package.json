@@ -10,10 +10,17 @@
     "generate:flashcard": "CONTENT_TYPE=flashcard node generate-content.mjs",
     "generate:coding": "CONTENT_TYPE=coding node generate-content.mjs",
     "generate:exam": "CONTENT_TYPE=exam node generate-content.mjs",
-    "generate:voice": "CONTENT_TYPE=voice node generate-content.mjs"
+    "generate:voice": "CONTENT_TYPE=voice node generate-content.mjs",
+    "test": "vitest"
   },
   "dependencies": {
     "better-sqlite3": "^12.8.0",
-    "opencode-ai": "^1.2.27"
+    "opencode-ai": "^1.2.27",
+    "ws": "^8.19.0"
+  },
+  "devDependencies": {
+    "@types/ws": "^8.18.1",
+    "@vitest/coverage-v8": "^4.1.0",
+    "vitest": "^4.1.0"
   }
 }

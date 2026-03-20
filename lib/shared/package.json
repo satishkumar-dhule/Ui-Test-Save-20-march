@@ -22,6 +22,10 @@
     "@types/node": "catalog:"
   },
   "dependencies": {
-    "react": "catalog:"
+    "better-sqlite3": "^12.8.0",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "react": "catalog:",
+    "ws": "^8.19.0"
   }
 }

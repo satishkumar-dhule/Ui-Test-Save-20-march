@@ -1,4 +1,4 @@
-import { Sun, Moon, Search } from 'lucide-react'
+import { Sun, Moon, Search, Activity } from 'lucide-react'
 import type { Channel } from '@/data/channels'
 
 interface AppHeaderProps {
@@ -6,6 +6,7 @@ interface AppHeaderProps {
   theme: 'dark' | 'light'
   onThemeToggle: () => void
   onSearchOpen: () => void
+  onRealtimeDashboard?: () => void
 }
 
 /**
@@ -16,6 +17,7 @@ export function AppHeader({
   theme,
   onThemeToggle,
   onSearchOpen,
+  onRealtimeDashboard,
 }: AppHeaderProps) {
   return (
     <div
@@ -54,6 +56,17 @@ export function AppHeader({
 
       {/* Controls */}
       <div className="flex items-center gap-2">
+        {onRealtimeDashboard && (
+          <button
+            onClick={onRealtimeDashboard}
+            className="px-3 py-1.5 rounded-md flex items-center gap-1.5 text-xs font-medium bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+            title="Realtime Dashboard"
+            aria-label="Realtime Dashboard"
+          >
+            <Activity size={14} />
+            <span className="hidden sm:inline">Live</span>
+          </button>
+        )}
         <button
           data-testid="search-button"
           onClick={onSearchOpen}

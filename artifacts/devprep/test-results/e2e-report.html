@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DevPrep E2E Test Report</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family:
+          system-ui,
+          -apple-system,
+          sans-serif;
+        padding: 20px;
+        background: #f5f5f5;
+        color: #333;
+      }
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+      h1 {
+        color: #1a1a1a;
+        margin-bottom: 10px;
+        font-size: 2rem;
+      }
+      .subtitle {
+        color: #666;
+        margin-bottom: 30px;
+      }
+      .passed {
+        color: #22c55e;
+      }
+      .failed {
+        color: #ef4444;
+      }
+      .warning {
+        color: #f59e0b;
+      }
+
+      .summary-bar {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+      }
+      .summary-card {
+        background: white;
+        padding: 20px 30px;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        min-width: 150px;
+      }
+      .summary-card .number {
+        font-size: 2.5rem;
+        font-weight: bold;
+      }
+      .summary-card .label {
+        color: #666;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .section {
+        margin: 20px 0;
+        padding: 25px;
+        border: 1px solid #e5e5e5;
+        border-radius: 8px;
+        background: white;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+      .section h2 {
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #eee;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .section h3 {
+        margin: 15px 0 10px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 15px 0;
+      }
+      th,
+      td {
+        padding: 12px 15px;
+        text-align: left;
+        border-bottom: 1px solid #eee;
+      }
+      th {
+        background: #f9f9f9;
+        font-weight: 600;
+      }
+      tr:hover {
+        background: #fafafa;
+      }
+
+      .status-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+      }
+      .status-badge.pass {
+        background: #dcfce7;
+        color: #166534;
+      }
+      .status-badge.fail {
+        background: #fee2e2;
+        color: #991b1b;
+      }
+      .status-badge.fixed {
+        background: #fef3c7;
+        color: #92400e;
+      }
+
+      .bug-card {
+        background: #fafafa;
+        border-left: 4px solid #ef4444;
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 4px;
+      }
+      .bug-card.resolved {
+        border-left-color: #22c55e;
+        background: #f0fdf4;
+      }
+      .bug-card h4 {
+        margin-bottom: 8px;
+      }
+      .bug-card .code {
+        background: #f3f4f6;
+        padding: 10px;
+        border-radius: 4px;
+        font-family: 'Monaco', 'Menlo', monospace;
+        font-size: 0.85rem;
+        overflow-x: auto;
+        margin: 10px 0;
+      }
+
+      .fix-info {
+        background: #eff6ff;
+        border: 1px solid #bfdbfe;
+        padding: 15px;
+        border-radius: 6px;
+        margin: 10px 0;
+      }
+
+      .api-table td:nth-child(3) {
+        font-family: monospace;
+      }
+
+      .footer {
+        text-align: center;
+        padding: 20px;
+        color: #666;
+        font-size: 0.85rem;
+        margin-top: 40px;
+      }
+
+      .timestamp {
+        color: #888;
+        font-size: 0.9rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>DevPrep E2E Test Report</h1>
+      <p class="subtitle">DevOps Content Display Verification - End-to-End Test Results</p>
+      <p class="timestamp">Generated: March 20, 2026</p>
+
+      <div class="summary-bar">
+        <div class="summary-card">
+          <div class="number passed">10</div>
+          <div class="label">Total Tests</div>
+        </div>
+        <div class="summary-card">
+          <div class="number passed">10</div>
+          <div class="label">Passed</div>
+        </div>
+        <div class="summary-card">
+          <div class="number failed">2</div>
+          <div class="label">Bugs Found</div>
+        </div>
+        <div class="summary-card">
+          <div class="number passed">2</div>
+          <div class="label">Bugs Fixed</div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2><span class="passed">&#10003;</span> Test Execution Summary</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Test ID</th>
+              <th>Test Name</th>
+              <th>Status</th>
+              <th>Result</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td>Page loads without errors</td>
+              <td><span class="status-badge pass">PASSED</span></td>
+              <td>No console errors detected</td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>Navigate to DevOps channel</td>
+              <td><span class="status-badge pass">PASSED</span></td>
+              <td>Channel selection works correctly</td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td>Verify DevOps content sections exist</td>
+              <td><span class="status-badge pass">PASSED</span></td>
+              <td>All 5 sections visible: Questions, Flashcards, Exam, Voice, Coding</td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td>Verify section counts for DevOps</td>
+              <td><span class="status-badge pass">PASSED</span></td>
+              <td>Content counts display correctly</td>
+            </tr>
+            <tr>
+              <td>5</td>
+              <td>API returns DevOps content</td>
+              <td><span class="status-badge pass">PASSED</span></td>
+              <td>API returns 5 content types with 5 records</td>
+            </tr>
+            <tr>
+              <td>6</td>
+              <td>Generated content merged with static data</td>
+              <td><span class="status-badge pass">PASSED</span></td>
+              <td>Question cards render correctly</td>
+            </tr>
+            <tr>
+              <td>7</td>
+              <td>Click through each content section</td>
+              <td><span class="status-badge pass">PASSED</span></td>
+              <td>All sections navigable with screenshots captured</td>
+            </tr>
+            <tr>
+              <td>API-1</td>
+              <td>API health check</td>
+              <td><span class="status-badge pass">PASSED</span></td>
+              <td>Health endpoint returns 200 OK</td>
+            </tr>
+            <tr>
+              <td>API-2</td>
+              <td>API returns all content types for devops</td>
+              <td><span class="status-badge pass">PASSED</span></td>
+              <td>All 5 content types returned</td>
+            </tr>
+            <tr>
+              <td>API-3</td>
+              <td>Each content type has proper data structure</td>
+              <td><span class="status-badge pass">PASSED</span></td>
+              <td>All records have valid structure</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="section">
+        <h2><span class="failed">&#9888;</span> Bugs Identified and Fixed</h2>
+
+        <div class="bug-card resolved">
+          <h4>Bug #1: JSON Parse Error (CRITICAL)</h4>
+          <p><strong>Severity:</strong> Critical</p>
+          <p>
+            <strong>Symptom:</strong> Entire API request failed with HTTP 500 when any record had
+            malformed JSON
+          </p>
+          <p>
+            <strong>Impact:</strong> Frontend received no content despite 5 devops records existing
+            in DB
+          </p>
+          <p><strong>Root Cause:</strong> Missing try-catch around JSON.parse() in server code</p>
+
+          <h3>Fix Applied</h3>
+          <p><strong>File:</strong> <code>artifacts/devprep/server/src/index.ts</code></p>
+          <p>Wrapped JSON.parse() in try-catch per-record in three locations:</p>
+          <div class="code">
+            /api/content (lines 160-171) /api/content/:type (lines 233-244)
+            /api/channels/:channelId/content (lines 267-278)
+          </div>
+          <p>
+            <strong>Result:</strong> <span class="status-badge pass">RESOLVED</span> - Invalid
+            records are now skipped, valid records returned
+          </p>
+        </div>
+
+        <div class="bug-card resolved">
+          <h4>Bug #2: Undefined Tags Crash</h4>
+          <p><strong>Severity:</strong> Medium</p>
+          <p><strong>Symptom:</strong> Application crashed when tag filters were undefined</p>
+          <p><strong>Impact:</strong> Frontend would fail when accessing tag-related properties</p>
+
+          <h3>Fix Applied</h3>
+          <p><strong>File:</strong> <code>artifacts/devprep/src/App.tsx</code></p>
+          <p>Added null-safety checks for <code>.tags?.some()</code> to prevent crashes</p>
+          <p><strong>Result:</strong> <span class="status-badge pass">RESOLVED</span></p>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2><span class="passed">&#10003;</span> API Verification Results</h2>
+        <table class="api-table">
+          <thead>
+            <tr>
+              <th>Endpoint</th>
+              <th>Method</th>
+              <th>Expected</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>/api/health</td>
+              <td>GET</td>
+              <td>{ ok: true }</td>
+              <td><span class="status-badge pass">200 OK</span></td>
+            </tr>
+            <tr>
+              <td>/api/content</td>
+              <td>GET</td>
+              <td>{ ok: true, data: [...] }</td>
+              <td><span class="status-badge pass">200 OK</span></td>
+            </tr>
+            <tr>
+              <td>/api/content/question</td>
+              <td>GET</td>
+              <td>Questions only</td>
+              <td><span class="status-badge pass">200 OK</span></td>
+            </tr>
+            <tr>
+              <td>/api/content/flashcard</td>
+              <td>GET</td>
+              <td>Flashcards only</td>
+              <td><span class="status-badge pass">200 OK</span></td>
+            </tr>
+            <tr>
+              <td>/api/channels/devops/content</td>
+              <td>GET</td>
+              <td>5 records</td>
+              <td><span class="status-badge pass">200 OK</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="fix-info">
+          <h3>Vite Proxy Configuration</h3>
+          <p>Proxy correctly configured: <code>/api</code> → <code>http://localhost:3001</code></p>
+          <p>API response format matches frontend expectations</p>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2><span class="passed">&#10003;</span> DevOps Content Display Verification</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Content Type</th>
+              <th>Filter Method</th>
+              <th>Records Found</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>question</td>
+              <td>tags: ["devops","docker","ci-cd","linux"]</td>
+              <td>Multiple</td>
+              <td><span class="status-badge pass">VERIFIED</span></td>
+            </tr>
+            <tr>
+              <td>flashcard</td>
+              <td>tags: ["devops","docker","ci-cd","linux"]</td>
+              <td>Multiple</td>
+              <td><span class="status-badge pass">VERIFIED</span></td>
+            </tr>
+            <tr>
+              <td>exam</td>
+              <td>channelId === "devops"</td>
+              <td>Present</td>
+              <td><span class="status-badge pass">VERIFIED</span></td>
+            </tr>
+            <tr>
+              <td>voice</td>
+              <td>channelId === "devops"</td>
+              <td>Present</td>
+              <td><span class="status-badge pass">VERIFIED</span></td>
+            </tr>
+            <tr>
+              <td>coding</td>
+              <td>tags OR channelId</td>
+              <td>Present</td>
+              <td><span class="status-badge pass">VERIFIED</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Data Flow Verification</h3>
+        <ol style="margin-left: 20px; line-height: 1.8">
+          <li>Frontend requests <code>/api/channels/devops/content</code></li>
+          <li>
+            Vite proxy forwards to <code>http://localhost:3001/api/channels/devops/content</code>
+          </li>
+          <li>Server queries SQLite database for devops records</li>
+          <li>Server transforms JSON data and returns <code>{ ok: true, data: [...] }</code></li>
+          <li>Frontend hook groups content by <code>content_type</code></li>
+          <li>UI renders 5 tabs with content counts</li>
+        </ol>
+      </div>
+
+      <div class="section">
+        <h2><span class="passed">&#10003;</span> QA Agent Results Summary</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Agent</th>
+              <th>Task</th>
+              <th>Status</th>
+              <th>Details</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>QA 1</td>
+              <td>API endpoint testing</td>
+              <td><span class="status-badge pass">PASSED</span></td>
+              <td>All 5 endpoints return 200, devops has 5 records</td>
+            </tr>
+            <tr>
+              <td>QA 2</td>
+              <td>Frontend navigation test</td>
+              <td><span class="status-badge pass">PASSED</span></td>
+              <td>Proxy works, data flow traced</td>
+            </tr>
+            <tr>
+              <td>QA 3</td>
+              <td>Content display verification</td>
+              <td><span class="status-badge fixed">FIXED</span></td>
+              <td>Tag filter null-check added</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="section">
+        <h2><span class="passed">&#10003;</span> Test Coverage Summary</h2>
+        <p><strong>Total Tests Executed:</strong> 10</p>
+        <p><strong>Pass Rate:</strong> 100%</p>
+        <p><strong>Bugs Fixed:</strong> 2</p>
+        <p><strong>Critical Issues Resolved:</strong> 1 (JSON Parse Error)</p>
+        <p><strong>Medium Issues Resolved:</strong> 1 (Tag null-safety)</p>
+      </div>
+
+      <div class="footer">
+        <p>DevPrep E2E Test Report | Generated by QA Agent 3</p>
+        <p>
+          Report Location: /home/runner/workspace/artifacts/devprep/test-results/e2e-report.html
+        </p>
+      </div>
+    </div>
+  </body>
+</html>
