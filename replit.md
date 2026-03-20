@@ -10,12 +10,18 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - **Node.js version**: 24
 - **Package manager**: pnpm
 - **TypeScript version**: 5.9
-- **Frontend**: React 19, Vite, Tailwind CSS v4
-- **API framework**: Express 5
-- **Database**: PostgreSQL + Drizzle ORM
+- **Frontend**: React 19, Vite, Tailwind CSS v4 (runs standalone — no backend needed)
+- **Database**: SQLite via sql.js (loaded in-browser from `/devprep.db`; seeds if unavailable)
 - **Validation**: Zod (`zod/v4`), `drizzle-zod`
-- **API codegen**: Orval (from OpenAPI spec)
+- **E2E Testing**: Playwright with screenshot capture (`e2e/tests/devprep/screenshots.spec.ts`)
 - **Build**: esbuild (CJS bundle)
+
+## Key Architecture Decisions
+
+- **No API server**: The frontend reads the SQLite DB directly in the browser via sql.js. The `dbClient.ts` service fetches `/devprep.db` served by Vite, falls back to seeded data.
+- **Search is in-browser**: `searchContent()` from `dbClient.ts` performs full-text search over the local DB.
+- **Content API**: `contentApi.ts` uses `tryDbFirst` — DB layer via `dbApi.ts`, no HTTP fallback needed.
+- **Analytics stability**: `analyticsRef` pattern used in App.tsx to avoid infinite render loops from unstable `useAnalytics()` references.
 
 ## Structure
 

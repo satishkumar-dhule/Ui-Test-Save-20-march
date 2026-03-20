@@ -13,7 +13,7 @@ export default defineConfig({
   ],
   outputDir: "test-results/artifacts",
   use: {
-    baseURL: process.env.BASE_URL || "http://localhost:80",
+    baseURL: process.env.BASE_URL || "http://localhost:3000",
     trace: "on-first-retry",
     screenshot: "on",
     video: "off",
@@ -21,7 +21,12 @@ export default defineConfig({
   projects: [
     {
       name: "chromium",
-      use: { ...devices["Desktop Chrome"] },
+      use: {
+        ...devices["Desktop Chrome"],
+        launchOptions: {
+          args: ["--no-sandbox", "--disable-setuid-sandbox"],
+        },
+      },
     },
   ],
 });

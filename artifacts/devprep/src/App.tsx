@@ -6,6 +6,7 @@ import { examQuestions as staticExam } from '@/data/exam'
 import { voicePrompts as staticVoice } from '@/data/voicePractice'
 import { codingChallenges as staticCoding } from '@/data/coding'
 import { useGeneratedContent } from '@/hooks/useGeneratedContent'
+import { searchContent } from '@/services/dbClient'
 import { useMergeContent } from '@/hooks/useMergeContent'
 import { useAnalytics } from '@/hooks/useAnalytics'
 import { useSearchShortcut } from '@/hooks/useSearchShortcut'
@@ -94,9 +95,9 @@ export default function App() {
 
   useEffect(() => {
     if (isSearchOpen) {
-      analytics.trackSearchOpened()
+      analyticsRef.current.trackSearchOpened()
     }
-  }, [isSearchOpen, analytics])
+  }, [isSearchOpen])
 
   // =========================================================================
   // Derived Data
@@ -107,8 +108,8 @@ export default function App() {
   )
 
   const selectedChannels = useMemo(() => channels.filter(c => selectedIds.has(c.id)), [selectedIds])
-  const selectedTechChannels = selectedChannels.filter(c => c.type === 'tech')
-  const selectedCertChannels = selectedChannels.filter(c => c.type === 'cert')
+  const selectedTechChannels = useMemo(() => selectedChannels.filter(c => c.type === 'tech'), [selectedChannels])
+  const selectedCertChannels = useMemo(() => selectedChannels.filter(c => c.type === 'cert'), [selectedChannels])
 
   // Filter content based on current channel's tag filter
   const filteredQuestions = useMemo(() => {
@@ -202,6 +203,16 @@ export default function App() {
     [handleChannelSwitch, analytics]
   )
 
+  const handleChannelSwitchRef = useRef(handleChannelSwitch)
+  useEffect(() => {
+    handleChannelSwitchRef.current = handleChannelSwitch
+  }, [handleChannelSwitch])
+
+  const analyticsRef = useRef(analytics)
+  useEffect(() => {
+    analyticsRef.current = analytics
+  })
+
   // Auto-switch channel type filter when available channels change
   useEffect(() => {
     const availableChannels =
@@ -217,28 +228,22 @@ export default function App() {
     }
     const currentChannel = availableChannels.find(c => c.id === channelId)
     if (!currentChannel) {
-      handleChannelSwitch(availableChannels[0].id)
+      handleChannelSwitchRef.current(availableChannels[0].id)
     }
-  }, [
-    channelTypeFilter,
-    selectedTechChannels,
-    selectedCertChannels,
-    channelId,
-    handleChannelSwitch,
-  ])
+  }, [channelTypeFilter, selectedTechChannels, selectedCertChannels, channelId])
 
   // Track visit duration
   useEffect(() => {
     if (visitStartRef.current) {
       const duration = Date.now() - visitStartRef.current.time
-      analytics.trackVisitedQuest(
+      analyticsRef.current.trackVisitedQuest(
         visitStartRef.current.channelId,
         visitStartRef.current.section,
         duration
       )
     }
     visitStartRef.current = { channelId, section, time: Date.now() }
-  }, [channelId, section, analytics])
+  }, [channelId, section])
 
   // =========================================================================
   // Search Handler
@@ -263,25 +268,28 @@ export default function App() {
       searchTimeoutRef.current = setTimeout(async () => {
         const currentQuery = searchQueryRef.current
         try {
-          const response = await fetch(`/api/search?q=${encodeURIComponent(currentQuery)}`)
-          if (searchQueryRef.current !== currentQuery) {
-            return
-          }
+          const records = searchContent(currentQuery)
+          if (searchQueryRef.current !== currentQuery) return
 
-          const data = await response.json()
-          if (searchQueryRef.current !== currentQuery) {
-            return
-          }
+          const results: SearchResult[] = records.map(r => ({
+            id: r.id,
+            type: r.content_type as SearchResult['type'],
+            title:
+              typeof r.data === 'object' && r.data !== null
+                ? (String(
+                    (r.data as Record<string, unknown>).title ||
+                      (r.data as Record<string, unknown>).front ||
+                      (r.data as Record<string, unknown>).question ||
+                      r.id
+                  ))
+                : r.id,
+            preview: JSON.stringify(r.data).slice(0, 120),
+          }))
 
-          if (data.ok && Array.isArray(data.data)) {
-            setSearchResults(data.data)
-            analytics.trackSearchQuery(currentQuery)
-          } else if (!data.ok && data.error) {
-            console.error('Search API error:', data.error)
-            setSearchResults([])
-          }
+          setSearchResults(results)
+          analytics.trackSearchQuery(currentQuery)
         } catch (err) {
-          console.error('Search fetch error:', err)
+          console.error('Search error:', err)
           if (searchQueryRef.current === currentQuery) {
             setSearchResults([])
           }
