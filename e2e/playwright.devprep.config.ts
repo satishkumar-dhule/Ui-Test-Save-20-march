@@ -1,8 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const chromiumBin =
-  process.env.CHROMIUM_BIN || "/home/runner/.nix-profile/bin/chromium";
-
 export default defineConfig({
   testDir: "./tests",
   fullyParallel: true,
@@ -14,7 +11,6 @@ export default defineConfig({
     baseURL: process.env.BASE_URL || "http://localhost:5173",
     trace: "on-first-retry",
     launchOptions: {
-      executablePath: chromiumBin,
       args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-gpu"],
     },
   },

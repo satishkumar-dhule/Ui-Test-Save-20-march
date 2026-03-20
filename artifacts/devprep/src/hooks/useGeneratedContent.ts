@@ -59,7 +59,7 @@ async function queryAllContent(): Promise<GeneratedContentMap> {
   if (!db) throw new Error('Database not initialized')
 
   const result = db.exec(
-    `SELECT content_type, data FROM generated_content WHERE status = 'published' ORDER BY created_at DESC`
+    `SELECT content_type, channel_id, data FROM generated_content WHERE status = 'published' ORDER BY created_at DESC`
   )
 
   const grouped: Record<string, unknown[]> = {
@@ -73,12 +73,15 @@ async function queryAllContent(): Promise<GeneratedContentMap> {
   if (!result[0]) return grouped as unknown as GeneratedContentMap
 
   for (const row of result[0].values) {
-    const [content_type, dataStr] = row
+    const [content_type, channel_id, dataStr] = row as [string, string, string]
     const type = content_type as string
 
     if (grouped[type] && typeof dataStr === 'string') {
       try {
         const parsed = JSON.parse(dataStr)
+        if (parsed && typeof parsed === 'object') {
+          ;(parsed as Record<string, unknown>).channelId = channel_id
+        }
         grouped[type].push(parsed)
       } catch {
         console.warn(`[DevPrep] Failed to parse JSON for ${type}`)

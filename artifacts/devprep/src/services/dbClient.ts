@@ -327,6 +327,72 @@ function getSeedData(): Array<{
       quality_score: 0.9,
       status: 'published',
     },
+    {
+      id: 'q-k8s-001',
+      channel_id: 'kubernetes',
+      content_type: 'question',
+      data: {
+        id: 'q-k8s-001',
+        title: 'Explain Kubernetes Pods and their lifecycle',
+        tags: ['kubernetes', 'k8s', 'pods'],
+        difficulty: 'intermediate',
+        sections: [],
+      },
+      quality_score: 0.94,
+      status: 'published',
+    },
+    {
+      id: 'q-k8s-002',
+      channel_id: 'kubernetes',
+      content_type: 'question',
+      data: {
+        id: 'q-k8s-002',
+        title: 'What is a Kubernetes Deployment and how does it manage replicas?',
+        tags: ['kubernetes', 'k8s', 'deployment', 'orchestration'],
+        difficulty: 'intermediate',
+        sections: [],
+      },
+      quality_score: 0.92,
+      status: 'published',
+    },
+    {
+      id: 'fc-k8s-001',
+      channel_id: 'kubernetes',
+      content_type: 'flashcard',
+      data: {
+        id: 'fc-k8s-001',
+        front: 'What is the difference between a Pod and a Deployment in Kubernetes?',
+        back: 'A Pod is the smallest deployable unit that represents a single instance of a running process. A Deployment manages Pods and provides declarative updates, replica management, and rolling upgrades.',
+        tags: ['kubernetes', 'k8s', 'pods', 'deployment'],
+      },
+      quality_score: 0.88,
+      status: 'published',
+    },
+    {
+      id: 'fc-k8s-002',
+      channel_id: 'kubernetes',
+      content_type: 'flashcard',
+      data: {
+        id: 'fc-k8s-002',
+        front: 'What is a Kubernetes Service and why do we need it?',
+        back: 'A Service provides stable networking and load balancing for Pods. Since Pods are ephemeral and get new IPs, Services provide a stable IP and DNS name to access the Pods.',
+        tags: ['kubernetes', 'k8s', 'services', 'networking'],
+      },
+      quality_score: 0.86,
+      status: 'published',
+    },
+    {
+      id: 'ex-k8s-001',
+      channel_id: 'kubernetes',
+      content_type: 'exam',
+      data: {
+        id: 'ex-k8s-001',
+        title: 'Kubernetes Core Concepts Assessment',
+        questions: ['pods', 'services', 'deployments', 'namespaces'],
+      },
+      quality_score: 0.9,
+      status: 'published',
+    },
   ]
 }
 
