@@ -541,6 +541,17 @@ const certChannels = [
     tags: ["aws", "cloud", "serverless", "lambda", "dynamodb"],
   },
   {
+    id: "aws-ai",
+    name: "AWS AI Practitioner",
+    shortName: "AWS AI",
+    emoji: "🤖",
+    color: "#ff9900",
+    certCode: "AIF-C01",
+    description:
+      "Fundamentals of AI/ML, generative AI, foundation models, and responsible AI on AWS",
+    tags: ["aws", "ai", "ml", "generative-ai", "bedrock", "sagemaker"],
+  },
+  {
     id: "aws-sysops",
     name: "AWS SysOps Administrator",
     shortName: "AWS SysOps",
