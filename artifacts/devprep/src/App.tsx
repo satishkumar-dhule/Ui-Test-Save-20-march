@@ -388,7 +388,7 @@ export default function App() {
   // =========================================================================
   // Render
   // =========================================================================
-  if (showOnboarding) {
+  if (showOnboarding && selectedIdsArr.length === 0) {
     return (
       <>
         <div className="h-screen flex flex-col overflow-hidden">
