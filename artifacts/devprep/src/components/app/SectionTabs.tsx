@@ -53,7 +53,7 @@ export function SectionTabs({ section, sectionCounts, onSectionChange }: Section
 
   return (
     <div
-      className="relative flex-shrink-0 flex items-center border-b border-border/50 px-4 bg-background overflow-x-hidden min-h-[56px]"
+      className="relative flex-shrink-0 flex items-center border-b border-border/50 px-4 bg-background overflow-x-hidden min-h-[44px]"
       data-testid="section-tabs"
     >
       <div className="flex-1 overflow-x-auto pb-1" ref={tabsRef}>

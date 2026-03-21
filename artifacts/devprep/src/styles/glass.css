@@ -1036,16 +1036,14 @@
 
 /* Vision Pro navigation elements */
 .glass-vision-nav {
-  background: var(--glass-opacity-light);
+  background: hsl(var(--card) / 0.9);
   backdrop-filter: blur(var(--glass-blur-vision-light));
   -webkit-backdrop-filter: blur(var(--glass-blur-vision-light));
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: var(--glass-shadow-vision-medium);
+  border-bottom: 1px solid hsl(var(--border));
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.12);
   position: relative;
   overflow: hidden;
-  transform-style: preserve-3d;
-  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s ease;
-  border-radius: 1rem;
+  border-radius: 0;
 }
 
 /* Vision Pro tab styling */

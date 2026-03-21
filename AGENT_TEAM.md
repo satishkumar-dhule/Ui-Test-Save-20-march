@@ -470,7 +470,7 @@ Features:
 [2026-03-20T09:00:00Z] | QA_PERF_AGENT | CHECKPOINT | Load testing - concurrent queries stable
 [2026-03-20T09:05:00Z] | QA_PERF_AGENT | COMPLETE | Performance tests complete - system production-ready
 
-```
+````
 
 ---
 
@@ -535,4 +535,71 @@ Features:
 ---
 
 **All agents MUST abide by AGENT_FRAMEWORK.md. All work tracked here.**
+
+---
+
+## E2E QA + Engineering Agent Teams
+
+### Overview
+
+The project now has two coordinated agent teams working together:
+
+1. **E2E QA Team** (5 Engineers) - Runs E2E tests and creates work items for bugs
+2. **Engineering Team** (10 Specialists) - Fixes bugs with state-of-the-art coordination
+
+### Quick Start
+
+```bash
+# Spawn all agents and see status
+bun run spawn-agents.ts status
+
+# Run E2E tests (5 QA engineers)
+bun run spawn-agents.ts test
+
+# Process work items → engineering tasks
+bun run spawn-agents.ts process
+
+# Run full cycle (test → work items → fixes → verify)
+bun run spawn-agents.ts full
+````
+
+### Architecture
+
+See `/home/runner/workspace/agent-team/e2e-qa-team.md` for detailed architecture documentation.
+
+### Team Members
+
+**E2E QA Team:**
+| ID | Name | Role |
+|----|------|------|
+| E2E-001 | Emily Rodriguez | Lead E2E Tester |
+| E2E-002 | Michael Chen | UI Tester |
+| E2E-003 | Sarah Park | API Tester |
+| E2E-004 | David Kim | Performance QA |
+| E2E-005 | Jessica Brown | Security Tester |
+
+**Engineering Team:**
+| ID | Name | Role |
+|----|------|------|
+| ENG-001 | Alex Thompson | UI/UX Lead |
+| ENG-002 | Maria Garcia | UI/UX Expert |
+| ENG-003 | James Wilson | Frontend Dev #1 |
+| ENG-004 | Lisa Chen | Frontend Dev #2 |
+| ENG-005 | Robert Martinez | Backend Lead |
+| ENG-006 | Jennifer Lee | Backend Dev |
+| ENG-007 | Emma Brown | DevOps Lead |
+| ENG-008 | Michael Park | Security Engineer |
+| ENG-009 | Sarah Taylor | Testing Lead |
+| ENG-010 | Chris Anderson | API Expert |
+
+### Coordination Features
+
+- Real-time status updates
+- Smart bug-to-engineer matching
+- Peer review workflow
+- Dependency tracking
+- Auto-verification on fix
+
+```
+
 ```
