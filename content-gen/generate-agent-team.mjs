@@ -34,6 +34,7 @@ const SAVE_HELPER = path.join(__dirname, "save-content.mjs");
 const DB_PATH = process.env.DB_PATH || path.join(WORKSPACE, "data", "devprep.db");
 const COUNT = parseInt(process.env.COUNT || "1", 10);
 const DIRECT = process.env.DIRECT === "true";
+const MODEL = process.env.MODEL || "opencode/mimo-v2-pro-free";
 
 const CHANNELS = [
   "javascript", "react", "algorithms", "devops", "kubernetes",
@@ -111,6 +112,7 @@ function runAgent(agentName, message, label) {
     const args = [
       "run",
       "--agent", agentName,
+      "--model", MODEL,
       "--dir", WORKSPACE,
       message,
     ];
