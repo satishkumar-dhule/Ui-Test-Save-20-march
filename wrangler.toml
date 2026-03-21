@@ -1,0 +1,10 @@
+# Cloudflare Pages config for DevPrep frontend
+# Deploy: wrangler pages deploy artifacts/devprep/dist/public
+
+name = "devprep"
+compatibility_date = "2024-12-01"
+pages_build_output_dir = "artifacts/devprep/dist/public"
+
+# Build command for CI/CD
+# [build]
+# command = "cd artifacts/devprep && bun run build"

@@ -19,12 +19,17 @@
     "generate:parallel:fast": "cd content-gen && CONCURRENCY=15 bun run generate-all-parallel.mjs",
     "e2e": "bun run --filter @workspace/e2e test",
     "e2e:headed": "bun run --filter @workspace/e2e test:headed",
-    "e2e:ui": "bun run --filter @workspace/e2e test:ui"
+    "e2e:ui": "bun run --filter @workspace/e2e test:ui",
+    "deploy:cf": "bun x wrangler pages deploy artifacts/devprep/dist/public",
+    "deploy:cf:build": "bun run build && bun run deploy:cf",
+    "deploy:cf:preview": "bun x wrangler pages deploy artifacts/devprep/dist/public --branch preview",
+    "cf:dev": "bun x wrangler pages dev artifacts/devprep/dist/public"
   },
   "private": true,
   "devDependencies": {
     "prettier": "^3.8.1",
-    "typescript": "~5.9.2"
+    "typescript": "~5.9.2",
+    "wrangler": "^4.0.0"
   },
   "dependencies": {
     "bash-language-server": "^5.6.0",
