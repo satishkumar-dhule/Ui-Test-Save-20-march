@@ -21,7 +21,6 @@ import {
   AppProviders,
   NavigationDrawer,
   BottomNav,
-  ResponsiveContainer,
 } from '@/components/app'
 
 import { OnboardingPage } from '@/pages/OnboardingPage'
@@ -457,10 +456,9 @@ export default function App() {
   return (
     <AppProviders theme={theme}>
       <div
-        className="min-h-screen flex flex-col bg-background text-foreground relative"
+        className="h-screen flex flex-col bg-background text-foreground relative overflow-hidden"
         style={{
           paddingTop: 'env(safe-area-inset-top, 0px)',
-          paddingBottom: 'env(safe-area-inset-bottom, 0px)',
         }}
         data-testid="app-root"
       >
@@ -545,23 +543,21 @@ export default function App() {
             />
 
             {/* Main Content Area */}
-            <main className="flex-1 flex flex-col min-h-0 pb-16 md:pb-0">
-              <ResponsiveContainer variant="full" padding="none" className="flex-1 flex flex-col">
-                <AppContent
-                  section={section}
-                  channelId={channelId}
-                  filteredQuestions={filteredQuestions}
-                  filteredFlashcards={filteredFlashcards}
-                  filteredExamQs={filteredExamQs}
-                  filteredVoicePs={filteredVoicePs}
-                  filteredCoding={filteredCoding}
-                  onQuestionAnswered={stableTrackQAAnswered}
-                  onFlashcardUpdate={stableUpdateFlashcard}
-                  onCodingUpdate={stableUpdateCoding}
-                  onExamComplete={stableExamComplete}
-                  onVoicePractice={stableVoicePractice}
-                />
-              </ResponsiveContainer>
+            <main className="flex-1 flex flex-col min-h-0 pb-16 md:pb-0 overflow-hidden">
+              <AppContent
+                section={section}
+                channelId={channelId}
+                filteredQuestions={filteredQuestions}
+                filteredFlashcards={filteredFlashcards}
+                filteredExamQs={filteredExamQs}
+                filteredVoicePs={filteredVoicePs}
+                filteredCoding={filteredCoding}
+                onQuestionAnswered={stableTrackQAAnswered}
+                onFlashcardUpdate={stableUpdateFlashcard}
+                onCodingUpdate={stableUpdateCoding}
+                onExamComplete={stableExamComplete}
+                onVoicePractice={stableVoicePractice}
+              />
             </main>
           </>
         )}

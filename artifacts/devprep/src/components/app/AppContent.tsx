@@ -10,22 +10,18 @@ import { MockExamPage } from '@/pages/MockExamPage'
 import { VoicePracticePage } from '@/pages/VoicePracticePage'
 import { CodingPage } from '@/pages/CodingPage'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
-import { SpatialPageLayout } from './SpatialLayout'
 
-// Type alias for status values
 type CodingStatus = 'not_started' | 'in_progress' | 'completed'
 type FlashcardStatus = 'unseen' | 'reviewing' | 'known' | 'hard'
 
 interface AppContentProps {
   section: Section
   channelId: string
-  // Filtered content
   filteredQuestions: Question[]
   filteredFlashcards: Flashcard[]
   filteredExamQs: ExamQuestion[]
   filteredVoicePs: VoicePrompt[]
   filteredCoding: CodingChallenge[]
-  // Analytics callbacks - matching the exact signatures expected by pages
   onQuestionAnswered: (questionId: string) => void
   onFlashcardUpdate: (cardId: string, status: FlashcardStatus) => void
   onCodingUpdate: (challengeId: string, status: CodingStatus) => void
@@ -34,7 +30,8 @@ interface AppContentProps {
 }
 
 /**
- * Main content area that renders the appropriate section based on current tab
+ * Main content area that renders the appropriate section.
+ * Each page manages its own internal layout and scrolling.
  */
 export function AppContent({
   section,
@@ -53,48 +50,42 @@ export function AppContent({
   return (
     <ErrorBoundary>
       <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-        <div className="flex-1 overflow-y-auto overflow-x-hidden">
-          <SpatialPageLayout variant="default" padding="md">
-            <div className="space-mobile-y">
-              {section === 'qa' && (
-                <QAPage
-                  questions={filteredQuestions}
-                  channelId={channelId}
-                  onQuestionAnswered={onQuestionAnswered}
-                />
-              )}
-              {section === 'flashcards' && (
-                <FlashcardsPage
-                  flashcards={filteredFlashcards}
-                  categories={[...new Set(filteredFlashcards.map(f => f.category))]}
-                  channelId={channelId}
-                  onFlashcardUpdate={onFlashcardUpdate}
-                />
-              )}
-              {section === 'coding' && (
-                <CodingPage
-                  challenges={filteredCoding}
-                  channelId={channelId}
-                  onCodingUpdate={onCodingUpdate}
-                />
-              )}
-              {section === 'exam' && (
-                <MockExamPage
-                  questions={filteredExamQs}
-                  channelId={channelId}
-                  onExamComplete={onExamComplete}
-                />
-              )}
-              {section === 'voice' && (
-                <VoicePracticePage
-                  prompts={filteredVoicePs}
-                  channelId={channelId}
-                  onVoicePractice={onVoicePractice}
-                />
-              )}
-            </div>
-          </SpatialPageLayout>
-        </div>
+        {section === 'qa' && (
+          <QAPage
+            questions={filteredQuestions}
+            channelId={channelId}
+            onQuestionAnswered={onQuestionAnswered}
+          />
+        )}
+        {section === 'flashcards' && (
+          <FlashcardsPage
+            flashcards={filteredFlashcards}
+            categories={[...new Set(filteredFlashcards.map(f => f.category))]}
+            channelId={channelId}
+            onFlashcardUpdate={onFlashcardUpdate}
+          />
+        )}
+        {section === 'coding' && (
+          <CodingPage
+            challenges={filteredCoding}
+            channelId={channelId}
+            onCodingUpdate={onCodingUpdate}
+          />
+        )}
+        {section === 'exam' && (
+          <MockExamPage
+            questions={filteredExamQs}
+            channelId={channelId}
+            onExamComplete={onExamComplete}
+          />
+        )}
+        {section === 'voice' && (
+          <VoicePracticePage
+            prompts={filteredVoicePs}
+            channelId={channelId}
+            onVoicePractice={onVoicePractice}
+          />
+        )}
       </div>
     </ErrorBoundary>
   )
