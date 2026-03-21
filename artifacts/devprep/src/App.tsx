@@ -356,6 +356,35 @@ export default function App() {
     setSearchResults([])
   }, [])
 
+  // Stable analytics callbacks — routed through analyticsRef so the function
+  // identity never changes, preventing child useEffect deps from re-firing.
+  const stableTrackQAAnswered = useCallback((id: string) => {
+    analyticsRef.current.trackQAAnswered(id)
+  }, [])
+
+  const stableUpdateFlashcard = useCallback((id: string, status: 'unseen' | 'reviewing' | 'known' | 'hard') => {
+    analyticsRef.current.updateFlashcardProgress(id, status)
+  }, [])
+
+  const stableUpdateCoding = useCallback((id: string, status: 'not_started' | 'in_progress' | 'completed') => {
+    analyticsRef.current.updateCodingProgress(id, channelId, status)
+  }, [channelId])
+
+  const stableExamComplete = useCallback((score: number, total: number, passed: boolean, durationMs: number) => {
+    analyticsRef.current.trackExamAttempt({
+      channelId,
+      channelName: currentChannel?.name || channelId,
+      score,
+      totalQuestions: total,
+      passed,
+      durationMs,
+    })
+  }, [channelId, currentChannel?.name])
+
+  const stableVoicePractice = useCallback((promptId: string, rating: number) => {
+    analyticsRef.current.trackVoicePractice(promptId, channelId, rating)
+  }, [channelId])
+
   // =========================================================================
   // Render
   // =========================================================================
