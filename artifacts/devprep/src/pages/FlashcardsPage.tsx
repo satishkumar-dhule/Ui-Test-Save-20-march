@@ -8,6 +8,7 @@ import {
   Menu,
 } from "lucide-react";
 import type { Flashcard, CardStatus } from "@/data/flashcards";
+import { MarkdownText } from "@/components/MarkdownText";
 import { progressApi } from "@/services/progressApi";
 import {
   Skeleton,
@@ -530,21 +531,30 @@ export function FlashcardsPage({
                   </p>
                 </div>
                 {/* Back */}
-                <div className="flip-card-back rounded-xl border border-border bg-card flex flex-col p-6 gap-3">
+                <div className="flip-card-back rounded-xl border border-border bg-card flex flex-col p-5 gap-3 overflow-y-auto">
                   <span
-                    className="text-[10px] font-bold uppercase tracking-widest"
+                    className="text-[10px] font-bold uppercase tracking-widest shrink-0"
                     style={{ color: "hsl(var(--primary))" }}
                   >
                     ANSWER
                   </span>
-                  <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">
-                    {active?.back}
-                  </p>
-                  {active?.codeExample && (
-                    <pre className="text-xs font-mono p-3 rounded-lg bg-muted text-foreground overflow-x-auto">
-                      {active.codeExample.code}
-                    </pre>
-                  )}
+                  <div className="overflow-y-auto">
+                    <MarkdownText content={active?.back ?? ""} />
+                    {active?.codeExample && (
+                      <pre className="mt-3 text-xs font-mono p-3 rounded-lg border border-border overflow-x-auto" style={{ background: "hsl(var(--muted) / 0.6)" }}>
+                        <code>
+                          {typeof active.codeExample === "string"
+                            ? active.codeExample
+                            : (active.codeExample as unknown as { code: string }).code}
+                        </code>
+                      </pre>
+                    )}
+                    {active?.mnemonic && (
+                      <div className="mt-3 px-3 py-2 rounded-lg border border-border/50 text-xs text-muted-foreground italic" style={{ background: "hsl(var(--primary) / 0.04)" }}>
+                        💡 {active.mnemonic}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </button>
             </div>

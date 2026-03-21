@@ -215,7 +215,7 @@ export default function App() {
   const analyticsRef = useRef(analytics)
   useEffect(() => {
     analyticsRef.current = analytics
-  })
+  }, [analytics])
 
   // Stable primitive ID strings to avoid re-firing the effect on every array reference change
   const selectedTechIds = useMemo(
@@ -279,7 +279,7 @@ export default function App() {
 
       setSearchLoading(true)
 
-      searchTimeoutRef.current = setTimeout(async () => {
+      searchTimeoutRef.current = setTimeout(() => {
         const currentQuery = searchQueryRef.current
         try {
           const records = searchContent(currentQuery)
@@ -301,7 +301,7 @@ export default function App() {
           }))
 
           setSearchResults(results)
-          analytics.trackSearchQuery(currentQuery)
+          analyticsRef.current.trackSearchQuery(currentQuery)
         } catch (err) {
           console.error('Search error:', err)
           if (searchQueryRef.current === currentQuery) {
@@ -314,7 +314,7 @@ export default function App() {
         }
       }, 300)
     },
-    [analytics]
+    []
   )
 
   useEffect(() => {
@@ -477,22 +477,11 @@ export default function App() {
               filteredExamQs={filteredExamQs}
               filteredVoicePs={filteredVoicePs}
               filteredCoding={filteredCoding}
-              onQuestionAnswered={analytics.trackQAAnswered}
-              onFlashcardUpdate={analytics.updateFlashcardProgress}
-              onCodingUpdate={(id, status) => analytics.updateCodingProgress(id, channelId, status)}
-              onExamComplete={(score, total, passed, durationMs) => {
-                analytics.trackExamAttempt({
-                  channelId,
-                  channelName: currentChannel?.name || channelId,
-                  score,
-                  totalQuestions: total,
-                  passed,
-                  durationMs,
-                })
-              }}
-              onVoicePractice={(promptId, rating) =>
-                analytics.trackVoicePractice(promptId, channelId, rating)
-              }
+              onQuestionAnswered={stableTrackQAAnswered}
+              onFlashcardUpdate={stableUpdateFlashcard}
+              onCodingUpdate={stableUpdateCoding}
+              onExamComplete={stableExamComplete}
+              onVoicePractice={stableVoicePractice}
             />
           </>
         )}

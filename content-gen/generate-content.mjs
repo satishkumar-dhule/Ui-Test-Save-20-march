@@ -172,6 +172,9 @@ function logGeneration(
   ).run(logId, channelId, type, success ? 1 : 0, errorMsg, durationMs, model);
 }
 
+const FLASHCARD_FRONT_MAX = 120;
+const FLASHCARD_BACK_MAX = 600;
+
 function assessQuality(data, type) {
   let score = 0;
   const requirements = {
@@ -191,7 +194,17 @@ function assessQuality(data, type) {
   if (dataStr.length > 300) score += 1;
   if (dataStr.length > 800) score += 1;
 
-  if (type === "coding") {
+  if (type === "flashcard") {
+    const front = data.front || "";
+    const back = data.back || "";
+    if (front.length > 0 && front.length <= FLASHCARD_FRONT_MAX) score += 1;
+    const hasBullets = /^[-*]\s/m.test(back) || /^\d+\.\s/m.test(back);
+    if (hasBullets) score += 2;
+    if (/`/.test(back)) score += 1;
+    if (back.length > 300 && !hasBullets && !back.includes("\n")) score -= 2;
+    if (back.length > FLASHCARD_BACK_MAX) score -= 1;
+    if (data.mnemonic) score += 1;
+  } else if (type === "coding") {
     const starterCode = data.starterCode;
     if (starterCode && typeof starterCode === "object") {
       if (starterCode.javascript && starterCode.javascript.length > 30)
@@ -204,8 +217,6 @@ function assessQuality(data, type) {
       (s) => s.type === "code" && s.content && s.content.length > 30,
     );
     if (hasCode) score += 1;
-  } else if (type === "flashcard" && data.codeExample) {
-    score += 1;
   }
 
   if (dataStr.includes("REPLACE") || dataStr.includes("TODO")) {
@@ -384,30 +395,35 @@ Return ONLY a valid JSON object in a json code fence. No other text.
       return `
 Generate ONE high-quality flashcard for ${domain} interview preparation.
 
-CRITICAL REQUIREMENTS:
-- Front: specific concept (not generic), 1-2 sentences
-- Back: clear answer with bullet points using • separator
-- Hint: guides without giving away the answer
-- Code example: 5-15 lines, syntactically correct
-- Use **bold** for emphasis
+STRICT FORMAT REQUIREMENTS:
+- front: concise question, MAX 100 characters
+- back: MUST use markdown bullet lists (- item) or numbered lists (1. item).
+  NO long prose paragraphs. 3-6 bullets, max 400 characters total.
+  Optional: fenced code block using \`\`\`lang ... \`\`\` syntax inside the back field.
+- hint: one sentence (max 80 chars), guides without revealing the answer
+- mnemonic: short memory trick (max 80 chars) — optional
+- commonConfusion: one sentence misconception (max 100 chars) — optional
+- Use **bold** for key terms; use \`backtick\` for inline code/commands
 
-Return ONLY a valid JSON object in a json code fence.
+BAD back (do NOT write prose paragraphs):
+"MVCC works by creating new row versions instead of locking. This allows readers to never block writers..."
+
+GOOD back (use bullet list format):
+"- **MVCC** creates a new row version on UPDATE instead of locking\n- Readers never block writers; writers never block readers\n- Dead tuples cleaned by \`VACUUM\`"
+
+Return ONLY valid JSON in a json code fence.
 
 \`\`\`json
 {
   "id": "${id}",
-  "front": "Specific ${domain} concept question (be precise)",
-  "back": "Clear answer:\n• Key point 1\n• Key point 2\n• Key point 3",
-  "hint": "A subtle clue that guides thinking",
-  "tags": ["${channel.tags.slice(0, 2).join('", "')}"],
+  "front": "Concise ${domain} concept question (max 100 chars)",
+  "back": "- **Key concept**: brief explanation\\n- Second point with \`code\` example\\n- Third point",
+  "hint": "One-line clue (max 80 chars)",
+  "tags": ["${channel.tags.slice(0, 2).join('\", \"')}"],
   "difficulty": "${difficulty}",
   "category": "${domain}",
-  "codeExample": {
-    "language": "${getLanguageForChannel(channel.id)}",
-    "code": "Short code snippet (5-15 lines) demonstrating the concept with comments"
-  },
-  "mnemonic": "Optional memory aid",
-  "commonConfusion": "Why this concept confuses people"
+  "mnemonic": "Short memory aid (optional)",
+  "commonConfusion": "Common misconception (optional, max 100 chars)"
 }
 \`\`\``;
 

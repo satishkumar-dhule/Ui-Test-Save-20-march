@@ -151,6 +151,10 @@ if (!data || typeof data !== "object") {
 }
 
 // ── Quality Assessment ────────────────────────────────────────────────────────
+// Flashcard quality constraints
+const FLASHCARD_FRONT_MAX = 120;   // characters
+const FLASHCARD_BACK_MAX = 600;    // characters (allows code blocks)
+
 function assessQuality(data, type) {
   const requirements = {
     question: ["id", "title", "sections"],
@@ -164,6 +168,25 @@ function assessQuality(data, type) {
   const str = JSON.stringify(data);
   if (str.length > 300) score++;
   if (str.length > 800) score++;
+
+  if (type === "flashcard") {
+    const front = data.front || "";
+    const back = data.back || "";
+    // Reward concise front
+    if (front.length > 0 && front.length <= FLASHCARD_FRONT_MAX) score++;
+    // Reward structured back (bullet lists or numbered lists)
+    const hasBullets = /^[-*]\s/m.test(back) || /^\d+\.\s/m.test(back);
+    if (hasBullets) score += 2;
+    // Reward code examples (either inline backtick or fenced block in back)
+    if (/`/.test(back)) score++;
+    // Penalize long unstructured prose (no newlines, > 300 chars)
+    if (back.length > 300 && !hasBullets && !back.includes("\n")) score -= 2;
+    // Penalize over-length back
+    if (back.length > FLASHCARD_BACK_MAX) score--;
+    // Bonus for mnemonic
+    if (data.mnemonic) score++;
+  }
+
   if (type === "coding" && data.starterCode) {
     if (data.starterCode?.javascript?.length > 30) score++;
     if (data.starterCode?.python?.length > 30) score++;
@@ -174,7 +197,6 @@ function assessQuality(data, type) {
     data.sections?.some((s) => s.type === "code" && s.content?.length > 30)
   )
     score++;
-  if (type === "flashcard" && data.codeExample) score++;
   if (str.includes("REPLACE") || str.includes("TODO")) score--;
   return Math.max(0, Math.min(1, score / (required.length + 5)));
 }

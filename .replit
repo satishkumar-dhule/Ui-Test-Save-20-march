@@ -53,7 +53,7 @@ timeoutMs = 20000
 
 [nix]
 channel = "stable-25_05"
-packages = ["glib", "nss", "nspr", "atk", "cups", "dbus", "libdrm", "xorg.libX11", "xorg.libXcomposite", "xorg.libXdamage", "xorg.libXext", "xorg.libXfixes", "xorg.libXrandr", "libgbm", "libxkbcommon", "pango", "cairo", "alsa-lib", "gh"]
+packages = ["glib", "nss", "nspr", "atk", "cups", "dbus", "libdrm", "xorg.libX11", "xorg.libXcomposite", "xorg.libXdamage", "xorg.libXext", "xorg.libXfixes", "xorg.libXrandr", "libgbm", "libxkbcommon", "pango", "cairo", "alsa-lib", "gh", "chromium", "chromium-xorg-conf", "firefox", "firefox-esr"]
 
 [[ports]]
 localPort = 3001
