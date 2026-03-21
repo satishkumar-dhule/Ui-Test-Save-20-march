@@ -19,6 +19,10 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 ## Key Architecture Decisions
 
 - **No API server**: The frontend reads the SQLite DB directly in the browser via sql.js. The `dbClient.ts` service fetches `/devprep.db` served by Vite, falls back to seeded data.
+- **DB is source of truth**: `data/devprep.db` has two tables — `generated_content` (questions, flashcards, etc.) and `channels` (50 tech + 25 cert). Run `node scripts/seed-channels.mjs` to populate/update channels.
+- **Channel loading**: `useChannels()` hook (`hooks/useChannels.ts`) reads channels from DB after it loads; falls back to static `data/channels.ts` immediately. `OnboardingModal` and `App.tsx` both use this hook.
+- **Channel list**: `getChannelsFromDb()` in `dbClient.ts` queries the `channels` table (id, name, short_name, emoji, color, type, cert_code, description, tag_filter, is_active, sort_order).
+- **Question format**: includes `diagram` section (`{type, title, description, svgContent}`) for most questions, and `related` section (`{type, topics:[{title, description, tag}]}`). Both rendered in `QAPage.tsx`.
 - **Search is in-browser**: `searchContent()` from `dbClient.ts` performs full-text search over the local DB.
 - **Content API**: `contentApi.ts` uses `tryDbFirst` — DB layer via `dbApi.ts`, no HTTP fallback needed.
 - **Analytics stability**: `analyticsRef` pattern used in App.tsx to avoid infinite render loops from unstable `useAnalytics()` references.

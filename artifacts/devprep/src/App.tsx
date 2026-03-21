@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react'
-import { channels } from '@/data/channels'
+import { channels as staticChannels } from '@/data/channels'
+import { useChannels } from '@/hooks/useChannels'
 import { questions as staticQuestions } from '@/data/questions'
 import { flashcards as staticFlashcards } from '@/data/flashcards'
 import { examQuestions as staticExam } from '@/data/exam'
@@ -25,6 +26,9 @@ export type Section = 'qa' | 'flashcards' | 'exam' | 'voice' | 'coding'
 export default function App() {
   const [currentView, setCurrentView] = useState<'main' | 'realtime'>('main')
 
+  // DB-driven channels (falls back to static until DB loads)
+  const channels = useChannels()
+
   // =========================================================================
   // Core State
   // =========================================================================
@@ -36,7 +40,7 @@ export default function App() {
     'devprep:channelTypeFilter',
     (() => {
       const certIds = selectedIdsArr.filter(id => {
-        const ch = channels.find(c => c.id === id)
+        const ch = staticChannels.find(c => c.id === id)
         return ch?.type === 'cert'
       })
       return certIds.length > 0 ? 'cert' : 'tech'

@@ -527,6 +527,46 @@ export function getDatabase(): SqlJsDatabase | null {
   return db
 }
 
+export interface ChannelRecord {
+  id: string
+  name: string
+  shortName: string
+  emoji: string
+  color: string
+  type: 'tech' | 'cert'
+  certCode?: string
+  description: string
+  tagFilter: string[]
+}
+
+export function getChannelsFromDb(): ChannelRecord[] | null {
+  if (!db) return null
+  try {
+    const result = db.exec(`
+      SELECT id, name, short_name, emoji, color, type, cert_code, description, tag_filter
+      FROM channels
+      WHERE is_active = 1
+      ORDER BY type ASC, sort_order ASC, name ASC
+    `)
+    if (!result[0] || result[0].values.length === 0) return null
+    return result[0].values.map(row => ({
+      id: row[0] as string,
+      name: row[1] as string,
+      shortName: row[2] as string,
+      emoji: row[3] as string,
+      color: row[4] as string,
+      type: row[5] as 'tech' | 'cert',
+      certCode: (row[6] as string | null) || undefined,
+      description: (row[7] as string) || '',
+      tagFilter: (() => {
+        try { return JSON.parse((row[8] as string) || '[]') } catch { return [] }
+      })(),
+    }))
+  } catch {
+    return null
+  }
+}
+
 export function closeDatabase(): void {
   if (db) {
     db.close()

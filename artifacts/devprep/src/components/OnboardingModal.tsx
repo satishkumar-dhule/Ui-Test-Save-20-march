@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect } from "react";
-import { channels, techChannels, certChannels } from "@/data/channels";
+import { useState, useMemo, useRef, useEffect } from "react";
 import type { Channel } from "@/data/channels";
+import { useChannels } from "@/hooks/useChannels";
 
 function CheckIcon({ size = 12, color }: { size?: number; color: string }) {
   return (
@@ -118,6 +118,10 @@ export function OnboardingModal({
   onDone,
   initialSelected,
 }: OnboardingModalProps) {
+  const channels = useChannels()
+  const techChannels = useMemo(() => channels.filter(c => c.type === 'tech'), [channels])
+  const certChannels = useMemo(() => channels.filter(c => c.type === 'cert'), [channels])
+
   const [selected, setSelected] = useState<Set<string>>(
     initialSelected || new Set(["javascript"]),
   );
