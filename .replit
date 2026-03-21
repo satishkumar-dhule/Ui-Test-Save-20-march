@@ -31,8 +31,8 @@ artifactId = "artifacts/devprep"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "PORT=3000 pnpm --filter @workspace/devprep run dev"
-waitForPort = 3000
+args = "PORT=5173 pnpm --filter @workspace/devprep run dev"
+waitForPort = 5173
 
 [[workflows.workflow]]
 name = "Project"
