@@ -132,23 +132,38 @@ function runAgent(agentName, message, label) {
     });
 
     let output = "";
+
+    // Heartbeat so the terminal doesn't look frozen
+    const heartbeat = setInterval(() => {
+      process.stdout.write(`  [${agentName}] still running...\n`);
+    }, 15000);
+
     child.stdout.on("data", (d) => {
       const chunk = d.toString();
       output += chunk;
-      // Stream useful lines to console
+      // Stream all non-empty lines
       const lines = chunk.split("\n");
       for (const line of lines) {
-        if (line.includes("✅") || line.includes("❌") || line.includes("Saved") || line.includes("Error")) {
-          console.log(`  [${agentName}] ${line.trim()}`);
+        const trimmed = line.trim();
+        if (trimmed) {
+          console.log(`  [${agentName}] ${trimmed}`);
         }
       }
     });
     child.stderr.on("data", (d) => {
       const chunk = d.toString();
       output += chunk;
+      const lines = chunk.split("\n");
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (trimmed) {
+          console.error(`  [${agentName}:err] ${trimmed}`);
+        }
+      }
     });
 
     child.on("close", (code) => {
+      clearInterval(heartbeat);
       if (code === 0) {
         console.log(`  ✅ Agent ${agentName} completed`);
         resolve({ agent: agentName, label, output });
@@ -159,6 +174,7 @@ function runAgent(agentName, message, label) {
     });
 
     child.on("error", (err) => {
+      clearInterval(heartbeat);
       reject(new Error(`Cannot start ${agentName}: ${err.message}`));
     });
   });
