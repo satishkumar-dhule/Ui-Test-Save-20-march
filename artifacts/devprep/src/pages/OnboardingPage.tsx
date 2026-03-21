@@ -159,7 +159,7 @@ export function OnboardingPage({ onDone, initialSelected }: OnboardingPageProps)
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="fixed inset-0 z-[100] bg-background overflow-y-auto">
       {/* Hero Section */}
       <div className="border-b border-border" style={{ background: 'hsl(var(--sidebar))' }}>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12 sm:py-16 text-center">
@@ -199,7 +199,7 @@ export function OnboardingPage({ onDone, initialSelected }: OnboardingPageProps)
       </div>
 
       {/* Main Content */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 min-h-full pb-24">
         {/* Job Role Quick Presets */}
         <section aria-labelledby="job-role-heading" className="mb-8">
           <div className="flex items-center gap-2 mb-4">
@@ -441,9 +441,9 @@ export function OnboardingPage({ onDone, initialSelected }: OnboardingPageProps)
         </section>
       </div>
 
-      {/* Fixed Bottom Bar */}
+      {/* Sticky Bottom Bar */}
       <div
-        className="fixed bottom-0 left-0 right-0 border-t border-border px-4 py-4 sm:px-6"
+        className="sticky bottom-0 left-0 right-0 border-t border-border px-4 py-4 sm:px-6 z-10"
         style={{
           background: 'hsl(var(--card) / 0.95)',
           backdropFilter: 'blur(8px)',
