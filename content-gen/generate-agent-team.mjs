@@ -23,16 +23,16 @@ import { spawn } from "child_process";
 import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs";
-import { createRequire } from "module";
+import { Database } from "bun:sqlite";
 import { loadChannelsFromDb } from "./db-channels.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const require = createRequire(import.meta.url);
 
 const WORKSPACE = path.resolve(__dirname, "..");
 const AGENTS_DIR = path.join(WORKSPACE, ".opencode", "agents");
 const SAVE_HELPER = path.join(__dirname, "save-content.mjs");
-const DB_PATH = process.env.DB_PATH || path.join(WORKSPACE, "data", "devprep.db");
+const DB_PATH =
+  process.env.DB_PATH || path.join(WORKSPACE, "data", "devprep.db");
 const COUNT = parseInt(process.env.COUNT || "1", 10);
 const DIRECT = process.env.DIRECT === "true";
 const MODEL = process.env.MODEL || "opencode/mimo-v2-pro-free";
@@ -40,19 +40,21 @@ const MODEL = process.env.MODEL || "opencode/mimo-v2-pro-free";
 // Loaded from DB — single source of truth
 const dbChannels = loadChannelsFromDb(DB_PATH);
 if (!dbChannels || dbChannels.length === 0) {
-  console.error("❌ Could not load channels from DB. Make sure data/devprep.db has a populated 'channels' table.");
+  console.error(
+    "❌ Could not load channels from DB. Make sure data/devprep.db has a populated 'channels' table.",
+  );
   process.exit(1);
 }
-const CHANNELS = dbChannels.map(c => c.id);
+const CHANNELS = dbChannels.map((c) => c.id);
 
 const CONTENT_TYPES = ["question", "flashcard", "exam", "voice", "coding"];
 
 const AGENT_MAP = {
-  question:  "devprep-question-expert",
+  question: "devprep-question-expert",
   flashcard: "devprep-flashcard-expert",
-  exam:      "devprep-exam-expert",
-  voice:     "devprep-voice-expert",
-  coding:    "devprep-coding-expert",
+  exam: "devprep-exam-expert",
+  voice: "devprep-voice-expert",
+  coding: "devprep-coding-expert",
 };
 
 // ── Ensure agents are synced to .opencode/agents/ ────────────────────────────
@@ -78,7 +80,6 @@ function syncAgents() {
 // ── Get current DB stats ──────────────────────────────────────────────────────
 function getDbStats() {
   try {
-    const Database = require("better-sqlite3");
     const db = new Database(DB_PATH, { readonly: true });
     const rows = db
       .prepare(
@@ -104,7 +105,9 @@ function printStats(label, stats) {
   console.log(`  ${label}: ${total} total items`);
   for (const ch of CHANNELS) {
     const types = stats[ch] || {};
-    const bar = CONTENT_TYPES.map((t) => (types[t] ? `${t[0]}:${types[t]}` : `${t[0]}:0`)).join("  ");
+    const bar = CONTENT_TYPES.map((t) =>
+      types[t] ? `${t[0]}:${types[t]}` : `${t[0]}:0`,
+    ).join("  ");
     console.log(`    ${ch.padEnd(16)} ${bar}`);
   }
 }
@@ -115,9 +118,12 @@ function runAgent(agentName, message, label) {
     const opencode = path.resolve(WORKSPACE, "node_modules/.bin/opencode");
     const args = [
       "run",
-      "--agent", agentName,
-      "--model", MODEL,
-      "--dir", WORKSPACE,
+      "--agent",
+      agentName,
+      "--model",
+      MODEL,
+      "--dir",
+      WORKSPACE,
       message,
     ];
 
@@ -211,9 +217,9 @@ Save helper: ${SAVE_HELPER}
 DB: ${DB_PATH}
 
 STEP 1 - Check current DB state with bash:
-node -e "
-const DB=require('${WORKSPACE}/node_modules/better-sqlite3');
-try{const db=new DB('${DB_PATH}',{readonly:true});const rows=db.prepare('SELECT channel_id,content_type,COUNT(*) as n FROM generated_content GROUP BY channel_id,content_type').all();console.log(JSON.stringify(rows));db.close();}catch(e){console.log('[]',e.message);}
+bun -e "
+const{Database}=require('bun:sqlite');
+try{const db=new Database('${DB_PATH}',{readonly:true});const rows=db.prepare('SELECT channel_id,content_type,COUNT(*) as n FROM generated_content GROUP BY channel_id,content_type').all();console.log(JSON.stringify(rows));db.close();}catch(e){console.log('[]',e.message);}
 "
 
 STEP 2 - Use the task tool to launch ALL 5 specialist agents in parallel (do not wait for one before starting the others):
@@ -236,7 +242,9 @@ async function main() {
   console.log(`\n${"═".repeat(64)}`);
   console.log("  DevPrep Agent Team Content Generator");
   console.log(`${"─".repeat(64)}`);
-  console.log(`  Mode         : ${DIRECT ? "Direct (5 parallel agents)" : "Coordinator → 5 specialists"}`);
+  console.log(
+    `  Mode         : ${DIRECT ? "Direct (5 parallel agents)" : "Coordinator → 5 specialists"}`,
+  );
   console.log(`  Channels     : ${CHANNELS.length} (${CHANNELS.join(", ")})`);
   console.log(`  Content types: ${CONTENT_TYPES.join(", ")}`);
   console.log(`  Items/pair   : ${COUNT}`);
@@ -258,8 +266,11 @@ async function main() {
     // Launch all 5 specialists in parallel without a coordinator
     console.log("  Launching 5 specialist agents in parallel...\n");
     const jobs = CONTENT_TYPES.map((type) =>
-      runAgent(AGENT_MAP[type], buildSpecialistMessage(type), `${type} for all channels`)
-        .catch((err) => ({ agent: AGENT_MAP[type], error: err.message }))
+      runAgent(
+        AGENT_MAP[type],
+        buildSpecialistMessage(type),
+        `${type} for all channels`,
+      ).catch((err) => ({ agent: AGENT_MAP[type], error: err.message })),
     );
 
     const results = await Promise.all(jobs);
@@ -273,13 +284,20 @@ async function main() {
     // Run coordinator which spawns subagents via the task tool
     console.log("  Launching coordinator agent...\n");
     try {
-      await runAgent("devprep-coordinator", buildCoordinatorMessage(), "coordinator");
+      await runAgent(
+        "devprep-coordinator",
+        buildCoordinatorMessage(),
+        "coordinator",
+      );
     } catch (err) {
       console.error(`\n  ❌ Coordinator failed: ${err.message}`);
       console.log("\n  Falling back to direct mode...");
       const jobs = CONTENT_TYPES.map((type) =>
-        runAgent(AGENT_MAP[type], buildSpecialistMessage(type), `${type} for all channels`)
-          .catch((err) => ({ agent: AGENT_MAP[type], error: err.message }))
+        runAgent(
+          AGENT_MAP[type],
+          buildSpecialistMessage(type),
+          `${type} for all channels`,
+        ).catch((err) => ({ agent: AGENT_MAP[type], error: err.message })),
       );
       await Promise.all(jobs);
     }

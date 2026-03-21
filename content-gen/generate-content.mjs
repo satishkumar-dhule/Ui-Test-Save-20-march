@@ -14,7 +14,7 @@
  */
 
 import { spawn } from "child_process";
-import { createRequire } from "module";
+import { Database } from "bun:sqlite";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -26,7 +26,6 @@ const DB_PATH =
   process.env.DB_PATH || path.resolve(__dirname, "../data/devprep.db");
 const VECTOR_DIR =
   process.env.VECTOR_DIR || path.resolve(__dirname, "../data/vectors");
-const require = createRequire(import.meta.url);
 
 // ── Config ────────────────────────────────────────────────────────────────────
 const TARGET_CHANNEL = process.env.TARGET_CHANNEL || "";
@@ -36,13 +35,10 @@ const LOW_THRESHOLD = 5;
 const ENABLE_VECTOR_DB = process.env.ENABLE_VECTOR_DB !== "false";
 const QUALITY_THRESHOLD = 0.5;
 
-// ── SQLite setup ──────────────────────────────────────────────────────────────
-const Database = require("better-sqlite3");
-
 function openDb() {
   fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
   const db = new Database(DB_PATH);
-  db.pragma("journal_mode = WAL");
+  db.exec("PRAGMA journal_mode = WAL");
   db.exec(`
     CREATE TABLE IF NOT EXISTS generated_content (
       id TEXT PRIMARY KEY,
@@ -91,7 +87,9 @@ function openDb() {
 const CHANNELS = (() => {
   const ch = loadChannelsFromDb(DB_PATH);
   if (!ch || ch.length === 0) {
-    console.error("❌ No channels found in DB. Make sure data/devprep.db has a populated 'channels' table.");
+    console.error(
+      "❌ No channels found in DB. Make sure data/devprep.db has a populated 'channels' table.",
+    );
     process.exit(1);
   }
   return ch;
@@ -784,7 +782,13 @@ Important: The total count across all items must equal ${totalCount}. Each item 
   }
 
   // Validate each task
-  const validTypes = new Set(["question", "flashcard", "exam", "voice", "coding"]);
+  const validTypes = new Set([
+    "question",
+    "flashcard",
+    "exam",
+    "voice",
+    "coding",
+  ]);
   const validChannels = new Set(CHANNELS.map((c) => c.id));
   const tasks = parsed
     .filter(
@@ -832,7 +836,9 @@ function buildFallbackPlan(db) {
   }
 
   const typeKeys =
-    CONTENT_TYPE === "auto" || CONTENT_TYPE === "all" ? ALL_TYPES : [CONTENT_TYPE];
+    CONTENT_TYPE === "auto" || CONTENT_TYPE === "all"
+      ? ALL_TYPES
+      : [CONTENT_TYPE];
 
   for (const typeKey of typeKeys) {
     let channel;
@@ -940,7 +946,9 @@ async function main() {
       }
     } else {
       totalFailed++;
-      console.error(`   ❌ Agent failed: ${result.reason?.message || result.reason}`);
+      console.error(
+        `   ❌ Agent failed: ${result.reason?.message || result.reason}`,
+      );
     }
   }
 

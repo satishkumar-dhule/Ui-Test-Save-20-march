@@ -4,21 +4,24 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import path from 'path'
 import fs from 'fs'
-import { createRequire } from 'module'
+// Runtime-agnostic SQLite: prefer bun:sqlite when available, fallback to better-sqlite3
+let Database: any
+try {
+  Database = (await import('bun:sqlite')).Database
+} catch {
+  Database = (await import('better-sqlite3')).default
+}
 import runtimeErrorOverlay from '@replit/vite-plugin-runtime-error-modal'
 import { VitePWA } from 'vite-plugin-pwa'
 import 'dotenv/config'
 
-const require = createRequire(import.meta.url)
-
 function checkpointDb(dbPath: string): void {
   try {
-    const Database = require('better-sqlite3')
     const db = new Database(dbPath)
-    db.pragma('wal_checkpoint(TRUNCATE)')
+    db.exec('PRAGMA wal_checkpoint(TRUNCATE)')
     db.close()
   } catch {
-    // DB may not exist yet or better-sqlite3 not available — skip
+    // DB may not exist yet — skip
   }
 }
 

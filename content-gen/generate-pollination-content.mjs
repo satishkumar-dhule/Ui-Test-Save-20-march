@@ -14,7 +14,7 @@
  *   PARALLEL=true COUNT=5 node generate-pollination-content.mjs       # parallel generation
  */
 
-import { createRequire } from "module";
+import { Database } from "bun:sqlite";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -22,7 +22,6 @@ import crypto from "crypto";
 import https from "https";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const require = createRequire(import.meta.url);
 const DB_PATH =
   process.env.DB_PATH || path.resolve(__dirname, "../data/devprep.db");
 const VECTOR_DIR =
@@ -157,12 +156,11 @@ async function pollinationsChat(messages, model = "openai") {
 }
 
 // ── SQLite setup ──────────────────────────────────────────────────────────────
-const Database = require("better-sqlite3");
 
 function openDb() {
   fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
   const db = new Database(DB_PATH);
-  db.pragma("journal_mode = WAL");
+  db.exec("PRAGMA journal_mode = WAL");
   db.exec(`
     CREATE TABLE IF NOT EXISTS generated_content (
       id TEXT PRIMARY KEY,

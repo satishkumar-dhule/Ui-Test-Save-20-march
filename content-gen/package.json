@@ -5,16 +5,19 @@
   "private": true,
   "description": "Generates DevPrep study content via opencode-ai and stores it in SQLite",
   "scripts": {
-    "generate": "node generate-content.mjs",
-    "generate:question": "CONTENT_TYPE=question node generate-content.mjs",
-    "generate:flashcard": "CONTENT_TYPE=flashcard node generate-content.mjs",
-    "generate:coding": "CONTENT_TYPE=coding node generate-content.mjs",
-    "generate:exam": "CONTENT_TYPE=exam node generate-content.mjs",
-    "generate:voice": "CONTENT_TYPE=voice node generate-content.mjs",
-    "test": "vitest"
+    "generate": "bun run generate-content.mjs",
+    "generate:question": "CONTENT_TYPE=question bun run generate-content.mjs",
+    "generate:flashcard": "CONTENT_TYPE=flashcard bun run generate-content.mjs",
+    "generate:coding": "CONTENT_TYPE=coding bun run generate-content.mjs",
+    "generate:exam": "CONTENT_TYPE=exam bun run generate-content.mjs",
+    "generate:voice": "CONTENT_TYPE=voice bun run generate-content.mjs",
+    "generate:parallel": "bun run generate-all-parallel.mjs",
+    "generate:parallel:dry": "DRY_RUN=true bun run generate-all-parallel.mjs",
+    "generate:parallel:batch": "COUNT=2 bun run generate-all-parallel.mjs",
+    "generate:parallel:fast": "CONCURRENCY=15 bun run generate-all-parallel.mjs",
+    "test": "bun test"
   },
   "dependencies": {
-    "better-sqlite3": "^12.8.0",
     "opencode-ai": "^1.2.27",
     "ws": "^8.19.0"
   },

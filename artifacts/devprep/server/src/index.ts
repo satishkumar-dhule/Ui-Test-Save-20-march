@@ -3,11 +3,12 @@ import { createServer } from 'http'
 import { WebSocketServer, WebSocket } from 'ws'
 import path from 'path'
 import fs from 'fs'
-import Database from 'better-sqlite3'
+import { Database } from 'bun:sqlite'
 import { DatabaseWatcher } from './dbWatcher.js'
 
 const PORT = process.env.API_PORT || 3001
-const DB_PATH = process.env.DB_PATH || path.resolve(process.cwd(), '../../../data/devprep.db')
+const DB_PATH =
+  process.env.DB_PATH || path.resolve(import.meta.dirname, '../../../../data/devprep.db')
 
 interface ContentRecord {
   id: string
@@ -39,7 +40,7 @@ const wss = new WebSocketServer({ server })
 
 app.use(express.json())
 
-let db: Database.Database
+let db: Database
 
 function initializeDatabase(): void {
   const dir = path.dirname(DB_PATH)
@@ -47,8 +48,8 @@ function initializeDatabase(): void {
     fs.mkdirSync(dir, { recursive: true })
   }
   db = new Database(DB_PATH)
-  db.pragma('journal_mode = WAL')
-  db.pragma('busy_timeout = 5000')
+  db.exec('PRAGMA journal_mode = WAL')
+  db.exec('PRAGMA busy_timeout = 5000')
 
   db.exec(`
     CREATE TABLE IF NOT EXISTS generated_content (

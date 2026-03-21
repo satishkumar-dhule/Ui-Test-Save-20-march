@@ -3,20 +3,23 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "preinstall": "sh -c 'rm -f package-lock.json yarn.lock; case \"$npm_config_user_agent\" in pnpm/*) ;; *) echo \"Use pnpm instead\" >&2; exit 1 ;; esac'",
-    "build": "pnpm run typecheck && pnpm -r --if-present run build",
-    "typecheck:libs": "tsc --build",
-    "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck",
-    "generate:content": "cd content-gen && node generate-content.mjs",
-    "generate:question": "cd content-gen && CONTENT_TYPE=question node generate-content.mjs",
-    "generate:flashcard": "cd content-gen && CONTENT_TYPE=flashcard node generate-content.mjs",
-    "generate:coding": "cd content-gen && CONTENT_TYPE=coding node generate-content.mjs",
-    "generate:exam": "cd content-gen && CONTENT_TYPE=exam node generate-content.mjs",
-    "generate:voice": "cd content-gen && CONTENT_TYPE=voice node generate-content.mjs",
-    "generate:all": "cd content-gen && TARGET_CHANNEL=javascript COUNT=1 node generate-content.mjs",
-    "e2e": "pnpm --filter @workspace/e2e run test",
-    "e2e:headed": "pnpm --filter @workspace/e2e run test:headed",
-    "e2e:ui": "pnpm --filter @workspace/e2e run test:ui"
+    "build": "bun run typecheck && bun run --filter @workspace/devprep build",
+    "typecheck:libs": "bun x tsc --build",
+    "typecheck": "bun run typecheck:libs && bun run --filter @workspace/devprep typecheck && bun run --filter @workspace/scripts typecheck",
+    "generate:content": "cd content-gen && bun run generate-content.mjs",
+    "generate:question": "cd content-gen && CONTENT_TYPE=question bun run generate-content.mjs",
+    "generate:flashcard": "cd content-gen && CONTENT_TYPE=flashcard bun run generate-content.mjs",
+    "generate:coding": "cd content-gen && CONTENT_TYPE=coding bun run generate-content.mjs",
+    "generate:exam": "cd content-gen && CONTENT_TYPE=exam bun run generate-content.mjs",
+    "generate:voice": "cd content-gen && CONTENT_TYPE=voice bun run generate-content.mjs",
+    "generate:all": "cd content-gen && TARGET_CHANNEL=javascript COUNT=1 bun run generate-content.mjs",
+    "generate:parallel": "cd content-gen && bun run generate-all-parallel.mjs",
+    "generate:parallel:dry": "cd content-gen && DRY_RUN=true bun run generate-all-parallel.mjs",
+    "generate:parallel:batch": "cd content-gen && COUNT=2 bun run generate-all-parallel.mjs",
+    "generate:parallel:fast": "cd content-gen && CONCURRENCY=15 bun run generate-all-parallel.mjs",
+    "e2e": "bun run --filter @workspace/e2e test",
+    "e2e:headed": "bun run --filter @workspace/e2e test:headed",
+    "e2e:ui": "bun run --filter @workspace/e2e test:ui"
   },
   "private": true,
   "devDependencies": {
@@ -24,7 +27,7 @@
     "typescript": "~5.9.2"
   },
   "dependencies": {
-    "better-sqlite3": "^12.8.0",
+    "bash-language-server": "^5.6.0",
     "opencode-ai": "^1.2.27",
     "yaml-language-server": ""
   },
@@ -35,30 +38,7 @@
       "lib/integrations/*",
       "scripts",
       "e2e"
-    ],
-    "catalog": {
-      "@replit/vite-plugin-cartographer": "^0.5.0",
-      "@replit/vite-plugin-dev-banner": "^0.1.1",
-      "@replit/vite-plugin-runtime-error-modal": "^0.0.6",
-      "@tailwindcss/vite": "^4.1.14",
-      "@tanstack/react-query": "^5.90.21",
-      "@types/node": "^25.3.3",
-      "@types/react": "^19.2.0",
-      "@types/react-dom": "^19.2.0",
-      "@vitejs/plugin-react": "^5.0.4",
-      "class-variance-authority": "^0.7.1",
-      "clsx": "^2.1.1",
-      "drizzle-orm": "^0.45.1",
-      "framer-motion": "^12.23.24",
-      "lucide-react": "^0.545.0",
-      "react": "19.1.0",
-      "react-dom": "19.1.0",
-      "tailwind-merge": "^3.3.1",
-      "tailwindcss": "^4.1.14",
-      "tsx": "^4.21.0",
-      "vite": "^7.3.0",
-      "zod": "^3.25.76"
-    }
+    ]
   },
   "overrides": {
     "esbuild>@esbuild/darwin-arm64": "-",

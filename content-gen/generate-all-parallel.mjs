@@ -15,15 +15,14 @@
 import { spawn } from "child_process";
 import path from "path";
 import { fileURLToPath } from "url";
-import { createRequire } from "module";
 import fs from "fs";
 import { loadChannelsFromDb } from "./db-channels.mjs";
+import { Database } from "bun:sqlite";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const require = createRequire(import.meta.url);
 
 // ── Config ────────────────────────────────────────────────────────────────────
-const CONCURRENCY = parseInt(process.env.CONCURRENCY || "30", 10);
+const CONCURRENCY = parseInt(process.env.CONCURRENCY || "15", 10);
 const COUNT = parseInt(process.env.COUNT || "1", 10);
 const DRY_RUN = process.env.DRY_RUN === "true";
 const GENERATOR = path.resolve(__dirname, "generate-content.mjs");
@@ -33,7 +32,9 @@ const DB_PATH =
 // ── Channels — loaded from DB (single source of truth) ────────────────────────
 const dbChannels = loadChannelsFromDb(DB_PATH);
 if (!dbChannels) {
-  console.error("❌ Could not load channels from DB. Make sure data/devprep.db exists and has a 'channels' table.");
+  console.error(
+    "❌ Could not load channels from DB. Make sure data/devprep.db exists and has a 'channels' table.",
+  );
   process.exit(1);
 }
 const CHANNELS = dbChannels;
@@ -43,38 +44,38 @@ const CONTENT_TYPES = ["question", "flashcard", "exam", "voice", "coding"];
 // ── Named Agent Pool ──────────────────────────────────────────────────────────
 const AGENT_POOL = [
   // Copy 1
-  { id: "A01",  name: "Alex Chen",         emoji: "🔵" },
-  { id: "A02",  name: "Maya Patel",        emoji: "🟢" },
-  { id: "A03",  name: "Jordan Kim",        emoji: "🟡" },
-  { id: "A04",  name: "Sam Rivera",        emoji: "🟠" },
-  { id: "A05",  name: "Casey Morgan",      emoji: "🔴" },
-  { id: "A06",  name: "Taylor Brooks",     emoji: "🟣" },
-  { id: "A07",  name: "Riley Scott",       emoji: "⚪" },
-  { id: "A08",  name: "Drew Hassan",       emoji: "🟤" },
-  { id: "A09",  name: "Quinn Nakamura",    emoji: "🔶" },
-  { id: "A10",  name: "Blake Osei",        emoji: "🔷" },
+  { id: "A01", name: "Alex Chen", emoji: "🔵" },
+  { id: "A02", name: "Maya Patel", emoji: "🟢" },
+  { id: "A03", name: "Jordan Kim", emoji: "🟡" },
+  { id: "A04", name: "Sam Rivera", emoji: "🟠" },
+  { id: "A05", name: "Casey Morgan", emoji: "🔴" },
+  { id: "A06", name: "Taylor Brooks", emoji: "🟣" },
+  { id: "A07", name: "Riley Scott", emoji: "⚪" },
+  { id: "A08", name: "Drew Hassan", emoji: "🟤" },
+  { id: "A09", name: "Quinn Nakamura", emoji: "🔶" },
+  { id: "A10", name: "Blake Osei", emoji: "🔷" },
   // Copy 2
-  { id: "A11",  name: "Alex Chen II",      emoji: "🔵" },
-  { id: "A12",  name: "Maya Patel II",     emoji: "🟢" },
-  { id: "A13",  name: "Jordan Kim II",     emoji: "🟡" },
-  { id: "A14",  name: "Sam Rivera II",     emoji: "🟠" },
-  { id: "A15",  name: "Casey Morgan II",   emoji: "🔴" },
-  { id: "A16",  name: "Taylor Brooks II",  emoji: "🟣" },
-  { id: "A17",  name: "Riley Scott II",    emoji: "⚪" },
-  { id: "A18",  name: "Drew Hassan II",    emoji: "🟤" },
-  { id: "A19",  name: "Quinn Nakamura II", emoji: "🔶" },
-  { id: "A20",  name: "Blake Osei II",     emoji: "🔷" },
+  { id: "A11", name: "Alex Chen II", emoji: "🔵" },
+  { id: "A12", name: "Maya Patel II", emoji: "🟢" },
+  { id: "A13", name: "Jordan Kim II", emoji: "🟡" },
+  { id: "A14", name: "Sam Rivera II", emoji: "🟠" },
+  { id: "A15", name: "Casey Morgan II", emoji: "🔴" },
+  { id: "A16", name: "Taylor Brooks II", emoji: "🟣" },
+  { id: "A17", name: "Riley Scott II", emoji: "⚪" },
+  { id: "A18", name: "Drew Hassan II", emoji: "🟤" },
+  { id: "A19", name: "Quinn Nakamura II", emoji: "🔶" },
+  { id: "A20", name: "Blake Osei II", emoji: "🔷" },
   // Copy 3
-  { id: "A21",  name: "Alex Chen III",     emoji: "🔵" },
-  { id: "A22",  name: "Maya Patel III",    emoji: "🟢" },
-  { id: "A23",  name: "Jordan Kim III",    emoji: "🟡" },
-  { id: "A24",  name: "Sam Rivera III",    emoji: "🟠" },
-  { id: "A25",  name: "Casey Morgan III",  emoji: "🔴" },
-  { id: "A26",  name: "Taylor Brooks III", emoji: "🟣" },
-  { id: "A27",  name: "Riley Scott III",   emoji: "⚪" },
-  { id: "A28",  name: "Drew Hassan III",   emoji: "🟤" },
-  { id: "A29",  name: "Quinn Nakamura III",emoji: "🔶" },
-  { id: "A30",  name: "Blake Osei III",    emoji: "🔷" },
+  { id: "A21", name: "Alex Chen III", emoji: "🔵" },
+  { id: "A22", name: "Maya Patel III", emoji: "🟢" },
+  { id: "A23", name: "Jordan Kim III", emoji: "🟡" },
+  { id: "A24", name: "Sam Rivera III", emoji: "🟠" },
+  { id: "A25", name: "Casey Morgan III", emoji: "🔴" },
+  { id: "A26", name: "Taylor Brooks III", emoji: "🟣" },
+  { id: "A27", name: "Riley Scott III", emoji: "⚪" },
+  { id: "A28", name: "Drew Hassan III", emoji: "🟤" },
+  { id: "A29", name: "Quinn Nakamura III", emoji: "🔶" },
+  { id: "A30", name: "Blake Osei III", emoji: "🔷" },
 ];
 
 // ── Task ─────────────────────────────────────────────────────────────────────
@@ -96,7 +97,7 @@ const state = {
   done: 0,
   failed: 0,
   inFlight: new Map(), // taskKey -> { agent, channel, type, startMs }
-  results: [],         // { channel, type, success, durationMs, error? }
+  results: [], // { channel, type, success, durationMs, error? }
 };
 
 function taskKey(channel, type) {
@@ -117,7 +118,7 @@ function renderDashboard() {
     for (const [key, job] of state.inFlight) {
       const elapsed = ((now - job.startMs) / 1000).toFixed(0);
       lines.push(
-        `    ${job.agent.emoji} ${job.agent.name.padEnd(16)} ${job.channel.name.padEnd(26)} ${job.type.padEnd(10)} ${elapsed}s`
+        `    ${job.agent.emoji} ${job.agent.name.padEnd(16)} ${job.channel.name.padEnd(26)} ${job.type.padEnd(10)} ${elapsed}s`,
       );
     }
   }
@@ -159,20 +160,30 @@ function runWorker(channel, type, agent) {
       state.inFlight.delete(key);
 
       const success = code === 0;
-      state.results.push({ channel, type, success, durationMs, stdout, stderr });
+      state.results.push({
+        channel,
+        type,
+        success,
+        durationMs,
+        stdout,
+        stderr,
+      });
 
       if (success) {
         state.done++;
       } else {
         state.failed++;
-        const errLine = (stderr + stdout)
-          .split("\n")
-          .find((l) => l.includes("Error") || l.includes("❌")) || "";
+        const errLine =
+          (stderr + stdout)
+            .split("\n")
+            .find((l) => l.includes("Error") || l.includes("❌")) || "";
         state.results[state.results.length - 1].error = errLine.trim();
       }
 
       renderDashboard();
-      success ? resolve({ channel, type, durationMs }) : reject(new Error(`Worker exited ${code} for ${channel.id}:${type}`));
+      success
+        ? resolve({ channel, type, durationMs })
+        : reject(new Error(`Worker exited ${code} for ${channel.id}:${type}`));
     });
 
     child.on("error", (err) => {
@@ -214,11 +225,15 @@ async function runWithConcurrency(tasks, concurrency) {
             busySlots.delete(agent.id);
             dispatch();
             if (settled.length === tasks.length) resolve(settled);
-          }
+          },
         );
       }
 
-      if (queue.length === 0 && busySlots.size === 0 && settled.length === tasks.length) {
+      if (
+        queue.length === 0 &&
+        busySlots.size === 0 &&
+        settled.length === tasks.length
+      ) {
         resolve(settled);
       }
     }
@@ -241,7 +256,9 @@ function printSummary() {
     console.log("  Failed tasks:");
     for (const r of state.results) {
       if (!r.success) {
-        console.log(`    ❌ ${r.channel.name.padEnd(28)} ${r.type.padEnd(10)} ${r.error || "unknown error"}`);
+        console.log(
+          `    ❌ ${r.channel.name.padEnd(28)} ${r.type.padEnd(10)} ${r.error || "unknown error"}`,
+        );
       }
     }
     console.log(`${"─".repeat(64)}`);
@@ -250,7 +267,9 @@ function printSummary() {
   // Per-channel summary
   console.log("  Results by channel:");
   for (const channel of CHANNELS) {
-    const channelResults = state.results.filter((r) => r.channel.id === channel.id);
+    const channelResults = state.results.filter(
+      (r) => r.channel.id === channel.id,
+    );
     const ok = channelResults.filter((r) => r.success).length;
     const total = channelResults.length;
     const bar = CONTENT_TYPES.map((t) => {
@@ -269,11 +288,12 @@ function printSummary() {
 // ── DB Count Helper ───────────────────────────────────────────────────────────
 function getDbCounts() {
   try {
-    const Database = require("better-sqlite3");
     const db = new Database(DB_PATH, { readonly: true });
-    const rows = db.prepare(
-      "SELECT channel_id, content_type, COUNT(*) as n FROM generated_content GROUP BY channel_id, content_type"
-    ).all();
+    const rows = db
+      .prepare(
+        "SELECT channel_id, content_type, COUNT(*) as n FROM generated_content GROUP BY channel_id, content_type",
+      )
+      .all();
     db.close();
     return rows;
   } catch {
@@ -285,7 +305,9 @@ function printDbStats(label) {
   const rows = getDbCounts();
   if (rows.length === 0) return;
   const total = rows.reduce((s, r) => s + r.n, 0);
-  console.log(`  ${label}: ${total} items across ${rows.length} channel/type pairs`);
+  console.log(
+    `  ${label}: ${total} items across ${rows.length} channel/type pairs`,
+  );
 }
 
 // ── Main ──────────────────────────────────────────────────────────────────────
@@ -300,7 +322,9 @@ async function main() {
   console.log(`${"─".repeat(64)}`);
   console.log(`  Channels     : ${CHANNELS.length}`);
   console.log(`  Content types: ${CONTENT_TYPES.join(", ")}`);
-  console.log(`  Tasks        : ${tasks.length} (${CHANNELS.length} × ${CONTENT_TYPES.length})`);
+  console.log(
+    `  Tasks        : ${tasks.length} (${CHANNELS.length} × ${CONTENT_TYPES.length})`,
+  );
   console.log(`  Count/task   : ${COUNT}`);
   console.log(`  Concurrency  : ${effectiveConcurrency} parallel agents`);
   console.log(`  Generator    : ${GENERATOR}`);

@@ -9,15 +9,13 @@
  *   node content-gen/save-content.mjs --channel react --type flashcard --json '{"id":"..."}'
  */
 
-import { createRequire } from "module";
+import { Database } from "bun:sqlite";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import crypto from "crypto";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const require = createRequire(import.meta.url);
-const Database = require("better-sqlite3");
 
 const DB_PATH =
   process.env.DB_PATH || path.resolve(__dirname, "../data/devprep.db");
@@ -152,8 +150,8 @@ if (!data || typeof data !== "object") {
 
 // ── Quality Assessment ────────────────────────────────────────────────────────
 // Flashcard quality constraints
-const FLASHCARD_FRONT_MAX = 120;   // characters
-const FLASHCARD_BACK_MAX = 600;    // characters (allows code blocks)
+const FLASHCARD_FRONT_MAX = 120; // characters
+const FLASHCARD_BACK_MAX = 600; // characters (allows code blocks)
 
 function assessQuality(data, type) {
   const requirements = {
@@ -209,7 +207,7 @@ if (!data.id) {
 // ── Save ──────────────────────────────────────────────────────────────────────
 fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
 const db = new Database(DB_PATH);
-db.pragma("journal_mode = WAL");
+db.exec("PRAGMA journal_mode = WAL");
 db.exec(`
   CREATE TABLE IF NOT EXISTS generated_content (
     id TEXT PRIMARY KEY,
@@ -271,7 +269,7 @@ db.prepare(
 );
 
 // Flush WAL into main .db file so the browser's sql.js can see new data
-db.pragma("wal_checkpoint(TRUNCATE)");
+db.exec("PRAGMA wal_checkpoint(TRUNCATE)");
 db.close();
 
 console.log(

@@ -3,12 +3,11 @@
  * Falls back to a minimal hardcoded list only if the DB has no channels table.
  */
 
-import { createRequire } from "module";
 import path from "path";
 import { fileURLToPath } from "url";
+import { Database } from "bun:sqlite";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const require = createRequire(import.meta.url);
 
 const DEFAULT_DB_PATH = path.resolve(__dirname, "../data/devprep.db");
 
@@ -18,11 +17,12 @@ const DEFAULT_DB_PATH = path.resolve(__dirname, "../data/devprep.db");
  */
 export function loadChannelsFromDb(dbPath = DEFAULT_DB_PATH) {
   try {
-    const Database = require("better-sqlite3");
     const db = new Database(dbPath, { readonly: true });
 
     const hasChannels = db
-      .prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='channels'")
+      .prepare(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='channels'",
+      )
       .get();
 
     if (!hasChannels) {
@@ -35,7 +35,7 @@ export function loadChannelsFromDb(dbPath = DEFAULT_DB_PATH) {
         `SELECT id, name, short_name, tag_filter, cert_code, type
          FROM channels
          WHERE is_active = 1
-         ORDER BY type ASC, sort_order ASC, name ASC`
+         ORDER BY type ASC, sort_order ASC, name ASC`,
       )
       .all();
 
@@ -48,13 +48,19 @@ export function loadChannelsFromDb(dbPath = DEFAULT_DB_PATH) {
       name: r.name,
       shortName: r.short_name || r.name,
       tags: (() => {
-        try { return JSON.parse(r.tag_filter || "[]"); } catch { return []; }
+        try {
+          return JSON.parse(r.tag_filter || "[]");
+        } catch {
+          return [];
+        }
       })(),
       certCode: r.cert_code || undefined,
       difficulty: "intermediate",
     }));
   } catch (err) {
-    console.warn(`[db-channels] Could not read channels from DB: ${err.message}`);
+    console.warn(
+      `[db-channels] Could not read channels from DB: ${err.message}`,
+    );
     return null;
   }
 }
