@@ -8,6 +8,92 @@ export interface Channel {
   certCode?: string
   description: string
   tagFilter?: string[]
+  jobRole?: JobRole[]
+  skillLevel?: SkillLevel[]
+}
+
+export type JobRole =
+  | 'frontend'
+  | 'backend'
+  | 'devops'
+  | 'data-ai'
+  | 'mobile'
+  | 'fullstack'
+  | 'security'
+  | 'engineering-manager'
+  | 'systems'
+export type SkillLevel = 'beginner' | 'intermediate' | 'advanced'
+
+export const JOB_ROLES: { id: JobRole; label: string; emoji: string; description: string }[] = [
+  {
+    id: 'frontend',
+    label: 'Frontend Developer',
+    emoji: '🎨',
+    description: 'UI, UX, React, Vue, Angular',
+  },
+  {
+    id: 'backend',
+    label: 'Backend Developer',
+    emoji: '⚙️',
+    description: 'APIs, databases, server logic',
+  },
+  {
+    id: 'fullstack',
+    label: 'Full Stack Developer',
+    emoji: '🚀',
+    description: 'End-to-end development',
+  },
+  { id: 'devops', label: 'DevOps / SRE', emoji: '🔧', description: 'Infrastructure, CI/CD, cloud' },
+  {
+    id: 'data-ai',
+    label: 'Data / ML Engineer',
+    emoji: '🤖',
+    description: 'Data pipelines, ML, analytics',
+  },
+  {
+    id: 'mobile',
+    label: 'Mobile Developer',
+    emoji: '📱',
+    description: 'iOS, Android, React Native',
+  },
+  {
+    id: 'security',
+    label: 'Security Engineer',
+    emoji: '🔐',
+    description: 'AppSec, pentesting, compliance',
+  },
+  {
+    id: 'engineering-manager',
+    label: 'Engineering Manager',
+    emoji: '👔',
+    description: 'System design, leadership, architecture',
+  },
+  {
+    id: 'systems',
+    label: 'Systems Programming',
+    emoji: '⚡',
+    description: 'Low-level, OS, compilers, performance',
+  },
+]
+
+export const SKILL_LEVELS: { id: SkillLevel; label: string; emoji: string; description: string }[] =
+  [
+    { id: 'beginner', label: 'Beginner', emoji: '🌱', description: 'Just getting started' },
+    { id: 'intermediate', label: 'Intermediate', emoji: '📈', description: 'Building expertise' },
+    { id: 'advanced', label: 'Advanced', emoji: '🏆', description: 'Expert level' },
+  ]
+
+// Channel to job role mapping for quick presets
+export const JOB_ROLE_PRESETS: Record<JobRole, string[]> = {
+  frontend: ['javascript', 'typescript', 'react', 'vue', 'angular'],
+  backend: ['javascript', 'typescript', 'python', 'java', 'go', 'rust', 'node'],
+  fullstack: ['javascript', 'typescript', 'react', 'node', 'python', 'sql'],
+  devops: ['devops', 'kubernetes', 'terraform', 'docker', 'aws-saa', 'linux', 'networking'],
+  'data-ai': ['python', 'sql', 'postgresql', 'algorithms', 'aws-ai'],
+  mobile: ['javascript', 'typescript', 'react-native', 'flutter'],
+  security: ['networking', 'linux', 'aws-saa'],
+  'engineering-manager': ['system-design', 'algorithms', 'networking'],
+  systems: ['rust', 'go', 'algorithms'],
 }
 
 // Initial fallback list — shown while the DB loads.
@@ -20,8 +106,22 @@ export const channels: Channel[] = [
     emoji: '⚡',
     color: '#f7df1e',
     type: 'tech',
-    description: 'Core JS concepts, async, closures, prototype chain',
+    description: 'Core JS concepts, async, closures, prototype chain, ES2024+',
     tagFilter: ['javascript', 'async', 'closures', 'prototype', 'types', 'generators'],
+    jobRole: ['frontend', 'backend', 'fullstack'],
+    skillLevel: ['beginner', 'intermediate', 'advanced'],
+  },
+  {
+    id: 'typescript',
+    name: 'TypeScript',
+    shortName: 'TS',
+    emoji: '💎',
+    color: '#3178c6',
+    type: 'tech',
+    description: 'Static typing, generics, decorators, compiler config',
+    tagFilter: ['typescript', 'types', 'generics', 'decorators'],
+    jobRole: ['frontend', 'backend', 'fullstack'],
+    skillLevel: ['intermediate', 'advanced'],
   },
   {
     id: 'react',
@@ -32,6 +132,92 @@ export const channels: Channel[] = [
     type: 'tech',
     description: 'Hooks, state management, reconciliation, performance',
     tagFilter: ['react', 'hooks', 'state', 'performance'],
+    jobRole: ['frontend', 'fullstack'],
+    skillLevel: ['beginner', 'intermediate', 'advanced'],
+  },
+  {
+    id: 'vue',
+    name: 'Vue.js',
+    shortName: 'Vue',
+    emoji: '💚',
+    color: '#42b883',
+    type: 'tech',
+    description: 'Composition API, reactivity, Vuex/Pinia, Nuxt',
+    tagFilter: ['vue', 'composition-api', 'pinia', 'nuxt'],
+    jobRole: ['frontend', 'fullstack'],
+    skillLevel: ['beginner', 'intermediate'],
+  },
+  {
+    id: 'angular',
+    name: 'Angular',
+    shortName: 'Angular',
+    emoji: '🅰️',
+    color: '#dd0031',
+    type: 'tech',
+    description: 'Modules, DI, RxJS, Angular CLI, change detection',
+    tagFilter: ['angular', 'rxjs', 'di', 'modules'],
+    jobRole: ['frontend', 'fullstack'],
+    skillLevel: ['intermediate', 'advanced'],
+  },
+  {
+    id: 'node',
+    name: 'Node.js',
+    shortName: 'Node',
+    emoji: '🟢',
+    color: '#68a063',
+    type: 'tech',
+    description: 'Event loop, streams, Express/Fastify, worker threads',
+    tagFilter: ['node', 'express', 'fastify', 'event-loop'],
+    jobRole: ['backend', 'fullstack'],
+    skillLevel: ['beginner', 'intermediate', 'advanced'],
+  },
+  {
+    id: 'python',
+    name: 'Python',
+    shortName: 'Python',
+    emoji: '🐍',
+    color: '#3776ab',
+    type: 'tech',
+    description: 'Data types, decorators, async, GIL, packaging, type hints',
+    tagFilter: ['python', 'async', 'decorators', 'typing'],
+    jobRole: ['backend', 'data-ai', 'fullstack'],
+    skillLevel: ['beginner', 'intermediate', 'advanced'],
+  },
+  {
+    id: 'java',
+    name: 'Java',
+    shortName: 'Java',
+    emoji: '☕',
+    color: '#f89820',
+    type: 'tech',
+    description: 'JVM internals, GC, concurrency, streams API, Spring',
+    tagFilter: ['java', 'jvm', 'spring', 'gc', 'concurrency'],
+    jobRole: ['backend'],
+    skillLevel: ['intermediate', 'advanced'],
+  },
+  {
+    id: 'go',
+    name: 'Go',
+    shortName: 'Go',
+    emoji: '🐹',
+    color: '#00add8',
+    type: 'tech',
+    description: 'Goroutines, channels, interfaces, memory model, stdlib',
+    tagFilter: ['go', 'goroutines', 'channels', 'interfaces'],
+    jobRole: ['backend', 'devops'],
+    skillLevel: ['intermediate', 'advanced'],
+  },
+  {
+    id: 'rust',
+    name: 'Rust',
+    shortName: 'Rust',
+    emoji: '🦀',
+    color: '#dea584',
+    type: 'tech',
+    description: 'Ownership, borrowing, lifetimes, async/await, cargo',
+    tagFilter: ['rust', 'ownership', 'borrowing', 'lifetimes'],
+    jobRole: ['backend', 'systems'],
+    skillLevel: ['advanced'],
   },
   {
     id: 'algorithms',
@@ -42,36 +228,8 @@ export const channels: Channel[] = [
     type: 'tech',
     description: 'Big-O, sorting, dynamic programming, trees & graphs',
     tagFilter: ['algorithms', 'sorting', 'big-o', 'dynamic-programming', 'trees', 'graphs'],
-  },
-  {
-    id: 'devops',
-    name: 'DevOps',
-    shortName: 'DevOps',
-    emoji: '🔧',
-    color: '#ffa657',
-    type: 'tech',
-    description: 'Docker, CI/CD pipelines, Linux fundamentals',
-    tagFilter: ['devops', 'docker', 'ci-cd', 'linux'],
-  },
-  {
-    id: 'kubernetes',
-    name: 'Kubernetes',
-    shortName: 'K8s',
-    emoji: '☸️',
-    color: '#326ce5',
-    type: 'tech',
-    description: 'Container orchestration, deployments, services',
-    tagFilter: ['kubernetes', 'k8s', 'containers', 'orchestration'],
-  },
-  {
-    id: 'networking',
-    name: 'Networking',
-    shortName: 'Net',
-    emoji: '📡',
-    color: '#3fb950',
-    type: 'tech',
-    description: 'HTTP, REST, DNS, TCP/IP, network protocols',
-    tagFilter: ['networking', 'http', 'rest', 'dns'],
+    jobRole: ['frontend', 'backend', 'fullstack', 'engineering-manager'],
+    skillLevel: ['intermediate', 'advanced'],
   },
   {
     id: 'system-design',
@@ -80,8 +238,82 @@ export const channels: Channel[] = [
     emoji: '🏗️',
     color: '#bc8cff',
     type: 'tech',
-    description: 'Distributed systems, CAP theorem, scalability',
+    description: 'Distributed systems, CAP theorem, scalability, microservices',
     tagFilter: ['cs', 'distributed', 'concurrency', 'memory', 'oop', 'data-structures'],
+    jobRole: ['backend', 'fullstack', 'devops', 'engineering-manager'],
+    skillLevel: ['intermediate', 'advanced'],
+  },
+  {
+    id: 'devops',
+    name: 'DevOps',
+    shortName: 'DevOps',
+    emoji: '🔧',
+    color: '#ffa657',
+    type: 'tech',
+    description: 'Docker, CI/CD pipelines, Linux fundamentals, automation',
+    tagFilter: ['devops', 'docker', 'ci-cd', 'linux'],
+    jobRole: ['devops', 'backend', 'engineering-manager'],
+    skillLevel: ['beginner', 'intermediate', 'advanced'],
+  },
+  {
+    id: 'kubernetes',
+    name: 'Kubernetes',
+    shortName: 'K8s',
+    emoji: '☸️',
+    color: '#326ce5',
+    type: 'tech',
+    description: 'Container orchestration, deployments, services, Helm',
+    tagFilter: ['kubernetes', 'k8s', 'containers', 'orchestration'],
+    jobRole: ['devops'],
+    skillLevel: ['intermediate', 'advanced'],
+  },
+  {
+    id: 'networking',
+    name: 'Networking',
+    shortName: 'Net',
+    emoji: '📡',
+    color: '#3fb950',
+    type: 'tech',
+    description: 'HTTP, REST, DNS, TCP/IP, network protocols, load balancing',
+    tagFilter: ['networking', 'http', 'rest', 'dns'],
+    jobRole: ['backend', 'devops', 'security'],
+    skillLevel: ['intermediate', 'advanced'],
+  },
+  {
+    id: 'sql',
+    name: 'SQL',
+    shortName: 'SQL',
+    emoji: '🗃️',
+    color: '#f6c547',
+    type: 'tech',
+    description: 'Query optimization, joins, indexes, window functions',
+    tagFilter: ['sql', 'query', 'joins', 'indexes'],
+    jobRole: ['backend', 'data-ai', 'fullstack'],
+    skillLevel: ['beginner', 'intermediate', 'advanced'],
+  },
+  {
+    id: 'postgresql',
+    name: 'PostgreSQL',
+    shortName: 'Postgres',
+    emoji: '🐘',
+    color: '#336791',
+    type: 'tech',
+    description: 'MVCC, indexing strategies, JSONB, partitioning, extensions',
+    tagFilter: ['postgresql', 'postgres', 'mvcc', 'jsonb'],
+    jobRole: ['backend', 'data-ai'],
+    skillLevel: ['intermediate', 'advanced'],
+  },
+  {
+    id: 'docker',
+    name: 'Docker',
+    shortName: 'Docker',
+    emoji: '🐳',
+    color: '#2496ed',
+    type: 'tech',
+    description: 'Containers, images, compose, networking, volumes',
+    tagFilter: ['docker', 'containers', 'compose', 'images'],
+    jobRole: ['devops', 'backend'],
+    skillLevel: ['beginner', 'intermediate'],
   },
   {
     id: 'aws-saa',
@@ -93,6 +325,8 @@ export const channels: Channel[] = [
     certCode: 'SAA-C03',
     description: 'Design resilient, high-performing, secure AWS architectures',
     tagFilter: ['aws', 'cloud'],
+    jobRole: ['backend', 'devops', 'engineering-manager'],
+    skillLevel: ['intermediate', 'advanced'],
   },
   {
     id: 'aws-dev',
@@ -104,6 +338,8 @@ export const channels: Channel[] = [
     certCode: 'DVA-C02',
     description: 'Develop and deploy cloud-native applications on AWS',
     tagFilter: ['aws', 'cloud', 'serverless'],
+    jobRole: ['backend', 'fullstack'],
+    skillLevel: ['intermediate'],
   },
   {
     id: 'aws-ai',
@@ -116,6 +352,8 @@ export const channels: Channel[] = [
     description:
       'Fundamentals of AI/ML, generative AI, foundation models, and responsible AI on AWS',
     tagFilter: ['aws', 'ai', 'ml', 'generative-ai', 'bedrock', 'sagemaker'],
+    jobRole: ['data-ai'],
+    skillLevel: ['beginner', 'intermediate'],
   },
   {
     id: 'cka',
@@ -127,6 +365,8 @@ export const channels: Channel[] = [
     certCode: 'CKA',
     description: 'Administer Kubernetes clusters in production environments',
     tagFilter: ['kubernetes', 'k8s'],
+    jobRole: ['devops'],
+    skillLevel: ['advanced'],
   },
   {
     id: 'terraform',
@@ -138,6 +378,8 @@ export const channels: Channel[] = [
     certCode: 'TA-002-P',
     description: 'Infrastructure as Code with HashiCorp Terraform',
     tagFilter: ['terraform', 'iac', 'devops'],
+    jobRole: ['devops'],
+    skillLevel: ['intermediate', 'advanced'],
   },
 ]
 

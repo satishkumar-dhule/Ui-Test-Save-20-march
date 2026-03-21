@@ -14,6 +14,7 @@ import { useSearchShortcut } from '@/hooks/useSearchShortcut'
 import { useLocalStorage } from '@/hooks/useLocalStorage'
 import { AppHeader, ChannelSelector, SectionTabs, AppContent, AppProviders } from '@/components/app'
 import { OnboardingModal } from '@/components/OnboardingModal'
+import { OnboardingPage } from '@/pages/OnboardingPage'
 import { SearchModal } from '@/components/SearchModal'
 import { Spinner } from '@/components/ui/spinner'
 import { NewContentBanner, useNewContentBanner } from '@/components/NewContentBanner'
@@ -111,9 +112,18 @@ export default function App() {
     [channelId, channels]
   )
 
-  const selectedChannels = useMemo(() => channels.filter(c => selectedIds.has(c.id)), [selectedIds, channels])
-  const selectedTechChannels = useMemo(() => selectedChannels.filter(c => c.type === 'tech'), [selectedChannels])
-  const selectedCertChannels = useMemo(() => selectedChannels.filter(c => c.type === 'cert'), [selectedChannels])
+  const selectedChannels = useMemo(
+    () => channels.filter(c => selectedIds.has(c.id)),
+    [selectedIds, channels]
+  )
+  const selectedTechChannels = useMemo(
+    () => selectedChannels.filter(c => c.type === 'tech'),
+    [selectedChannels]
+  )
+  const selectedCertChannels = useMemo(
+    () => selectedChannels.filter(c => c.type === 'cert'),
+    [selectedChannels]
+  )
 
   // Filter content based on current channel's tag filter
   const filteredQuestions = useMemo(() => {
@@ -262,60 +272,57 @@ export default function App() {
   // =========================================================================
   // Search Handler
   // =========================================================================
-  const handleSearch = useCallback(
-    async (query: string) => {
-      setSearchQuery(query)
-      searchQueryRef.current = query
+  const handleSearch = useCallback(async (query: string) => {
+    setSearchQuery(query)
+    searchQueryRef.current = query
 
-      if (searchTimeoutRef.current) {
-        clearTimeout(searchTimeoutRef.current)
-      }
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current)
+    }
 
-      if (!query.trim()) {
-        setSearchResults([])
-        setSearchLoading(false)
-        return
-      }
+    if (!query.trim()) {
+      setSearchResults([])
+      setSearchLoading(false)
+      return
+    }
 
-      setSearchLoading(true)
+    setSearchLoading(true)
 
-      searchTimeoutRef.current = setTimeout(() => {
-        const currentQuery = searchQueryRef.current
-        try {
-          const records = searchContent(currentQuery)
-          if (searchQueryRef.current !== currentQuery) return
+    searchTimeoutRef.current = setTimeout(() => {
+      const currentQuery = searchQueryRef.current
+      try {
+        const records = searchContent(currentQuery)
+        if (searchQueryRef.current !== currentQuery) return
 
-          const results: SearchResult[] = records.map(r => ({
-            id: r.id,
-            type: r.content_type as SearchResult['type'],
-            title:
-              typeof r.data === 'object' && r.data !== null
-                ? (String(
-                    (r.data as Record<string, unknown>).title ||
-                      (r.data as Record<string, unknown>).front ||
-                      (r.data as Record<string, unknown>).question ||
-                      r.id
-                  ))
-                : r.id,
-            preview: JSON.stringify(r.data).slice(0, 120),
-          }))
+        const results: SearchResult[] = records.map(r => ({
+          id: r.id,
+          type: r.content_type as SearchResult['type'],
+          title:
+            typeof r.data === 'object' && r.data !== null
+              ? String(
+                  (r.data as Record<string, unknown>).title ||
+                    (r.data as Record<string, unknown>).front ||
+                    (r.data as Record<string, unknown>).question ||
+                    r.id
+                )
+              : r.id,
+          preview: JSON.stringify(r.data).slice(0, 120),
+        }))
 
-          setSearchResults(results)
-          analyticsRef.current.trackSearchQuery(currentQuery)
-        } catch (err) {
-          console.error('Search error:', err)
-          if (searchQueryRef.current === currentQuery) {
-            setSearchResults([])
-          }
-        } finally {
-          if (searchQueryRef.current === currentQuery) {
-            setSearchLoading(false)
-          }
+        setSearchResults(results)
+        analyticsRef.current.trackSearchQuery(currentQuery)
+      } catch (err) {
+        console.error('Search error:', err)
+        if (searchQueryRef.current === currentQuery) {
+          setSearchResults([])
         }
-      }, 300)
-    },
-    []
-  )
+      } finally {
+        if (searchQueryRef.current === currentQuery) {
+          setSearchLoading(false)
+        }
+      }
+    }, 300)
+  }, [])
 
   useEffect(() => {
     return () => {
@@ -362,41 +369,46 @@ export default function App() {
     analyticsRef.current.trackQAAnswered(id)
   }, [])
 
-  const stableUpdateFlashcard = useCallback((id: string, status: 'unseen' | 'reviewing' | 'known' | 'hard') => {
-    analyticsRef.current.updateFlashcardProgress(id, status)
-  }, [])
+  const stableUpdateFlashcard = useCallback(
+    (id: string, status: 'unseen' | 'reviewing' | 'known' | 'hard') => {
+      analyticsRef.current.updateFlashcardProgress(id, status)
+    },
+    []
+  )
 
-  const stableUpdateCoding = useCallback((id: string, status: 'not_started' | 'in_progress' | 'completed') => {
-    analyticsRef.current.updateCodingProgress(id, channelId, status)
-  }, [channelId])
+  const stableUpdateCoding = useCallback(
+    (id: string, status: 'not_started' | 'in_progress' | 'completed') => {
+      analyticsRef.current.updateCodingProgress(id, channelId, status)
+    },
+    [channelId]
+  )
 
-  const stableExamComplete = useCallback((score: number, total: number, passed: boolean, durationMs: number) => {
-    analyticsRef.current.trackExamAttempt({
-      channelId,
-      channelName: currentChannel?.name || channelId,
-      score,
-      totalQuestions: total,
-      passed,
-      durationMs,
-    })
-  }, [channelId, currentChannel?.name])
+  const stableExamComplete = useCallback(
+    (score: number, total: number, passed: boolean, durationMs: number) => {
+      analyticsRef.current.trackExamAttempt({
+        channelId,
+        channelName: currentChannel?.name || channelId,
+        score,
+        totalQuestions: total,
+        passed,
+        durationMs,
+      })
+    },
+    [channelId, currentChannel?.name]
+  )
 
-  const stableVoicePractice = useCallback((promptId: string, rating: number) => {
-    analyticsRef.current.trackVoicePractice(promptId, channelId, rating)
-  }, [channelId])
+  const stableVoicePractice = useCallback(
+    (promptId: string, rating: number) => {
+      analyticsRef.current.trackVoicePractice(promptId, channelId, rating)
+    },
+    [channelId]
+  )
 
   // =========================================================================
   // Render
   // =========================================================================
   if (showOnboarding && selectedIdsArr.length === 0) {
-    return (
-      <>
-        <div className="h-screen flex flex-col overflow-hidden">
-          <div className="flex-1 flex items-center justify-center bg-background" />
-        </div>
-        <OnboardingModal onDone={handleOnboardingDone} theme={theme} />
-      </>
-    )
+    return <OnboardingPage onDone={handleOnboardingDone} />
   }
 
   const handleNewContentView = (content: GeneratedContentItem) => {
@@ -499,11 +511,7 @@ export default function App() {
         )}
 
         {showOnboarding && (
-          <OnboardingModal
-            onDone={handleOnboardingDone}
-            initialSelected={selectedIds}
-            theme={theme}
-          />
+          <OnboardingPage onDone={handleOnboardingDone} initialSelected={selectedIds} />
         )}
 
         <SearchModal

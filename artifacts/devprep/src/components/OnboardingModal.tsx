@@ -1,6 +1,6 @@
-import { useState, useMemo, useRef, useEffect } from "react";
-import type { Channel } from "@/data/channels";
-import { useChannels } from "@/hooks/useChannels";
+import { useState, useMemo, useRef, useEffect } from 'react'
+import type { Channel } from '@/data/channels'
+import { useChannels } from '@/hooks/useChannels'
 
 function CheckIcon({ size = 12, color }: { size?: number; color: string }) {
   return (
@@ -17,34 +17,34 @@ function CheckIcon({ size = 12, color }: { size?: number; color: string }) {
     >
       <polyline points="2,8 6,12 14,4" />
     </svg>
-  );
+  )
 }
 
-function ChannelCard({
+export function ChannelCard({
   channel,
   selected,
   onToggle,
 }: {
-  channel: Channel;
-  selected: boolean;
-  onToggle: () => void;
+  channel: Channel
+  selected: boolean
+  onToggle: () => void
 }) {
-  const cardRef = useRef<HTMLButtonElement>(null);
+  const cardRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     const handleKeyDown = (e: React.KeyboardEvent) => {
-      if (e.key === "Enter" || e.key === " ") {
+      if (e.key === 'Enter' || e.key === ' ') {
         if (document.activeElement === cardRef.current) {
-          e.preventDefault();
-          onToggle();
+          e.preventDefault()
+          onToggle()
         }
       }
-    };
+    }
 
-    const card = cardRef.current;
-    card?.addEventListener("keydown", handleKeyDown as any);
-    return () => card?.removeEventListener("keydown", handleKeyDown as any);
-  }, [onToggle]);
+    const card = cardRef.current
+    card?.addEventListener('keydown', handleKeyDown as any)
+    return () => card?.removeEventListener('keydown', handleKeyDown as any)
+  }, [onToggle])
 
   return (
     <button
@@ -53,8 +53,8 @@ function ChannelCard({
       data-testid={`onboarding-channel-${channel.id}`}
       className="flex items-start gap-3 p-3 rounded-lg border text-left w-full transition-all duration-150 cursor-pointer btn-micro touch-target"
       style={{
-        borderColor: selected ? channel.color + "66" : undefined,
-        background: selected ? channel.color + "0f" : undefined,
+        borderColor: selected ? channel.color + '66' : undefined,
+        background: selected ? channel.color + '0f' : undefined,
         boxShadow: selected ? `0 0 0 1px ${channel.color}33` : undefined,
       }}
       role="checkbox"
@@ -65,7 +65,7 @@ function ChannelCard({
       <div
         className="w-9 h-9 rounded-lg flex items-center justify-center text-lg shrink-0"
         style={{
-          background: channel.color + "22",
+          background: channel.color + '22',
           border: `1px solid ${channel.color}44`,
         }}
         aria-hidden="true"
@@ -82,7 +82,7 @@ function ChannelCard({
               className="text-[10px] font-bold px-1.5 rounded-full"
               style={{
                 color: channel.color,
-                background: channel.color + "20",
+                background: channel.color + '20',
                 border: `1px solid ${channel.color}44`,
               }}
             >
@@ -97,21 +97,21 @@ function ChannelCard({
       <div
         className="w-4 h-4 rounded flex items-center justify-center shrink-0 mt-0.5 transition-all duration-150"
         style={{
-          border: `1.5px solid ${selected ? channel.color : "hsl(var(--border))"}`,
-          background: selected ? channel.color : "transparent",
+          border: `1.5px solid ${selected ? channel.color : 'hsl(var(--border))'}`,
+          background: selected ? channel.color : 'transparent',
         }}
         aria-hidden="true"
       >
         {selected && <CheckIcon color="#fff" />}
       </div>
     </button>
-  );
+  )
 }
 
 interface OnboardingModalProps {
-  onDone: (selected: Set<string>) => void;
-  initialSelected?: Set<string>;
-  theme?: "dark" | "light";
+  onDone: (selected: Set<string>) => void
+  initialSelected?: Set<string>
+  theme?: 'dark' | 'light'
 }
 
 const DRAFT_KEY = 'devprep:onboarding-draft'
@@ -126,66 +126,67 @@ function loadDraft(): Set<string> | null {
   return null
 }
 
-export function OnboardingModal({
-  onDone,
-  initialSelected,
-}: OnboardingModalProps) {
+export function OnboardingModal({ onDone, initialSelected }: OnboardingModalProps) {
   const channels = useChannels()
   const techChannels = useMemo(() => channels.filter(c => c.type === 'tech'), [channels])
   const certChannels = useMemo(() => channels.filter(c => c.type === 'cert'), [channels])
 
-  const [selected, setSelected] = useState<Set<string>>(
-    () => (initialSelected && initialSelected.size > 0 ? initialSelected : loadDraft() ?? new Set(["javascript"])),
-  );
-  const modalRef = useRef<HTMLDivElement>(null);
-  const doneButtonRef = useRef<HTMLButtonElement>(null);
+  const [selected, setSelected] = useState<Set<string>>(() =>
+    initialSelected && initialSelected.size > 0
+      ? initialSelected
+      : (loadDraft() ?? new Set(['javascript']))
+  )
+  const modalRef = useRef<HTMLDivElement>(null)
+  const doneButtonRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
-    doneButtonRef.current?.focus();
-  }, []);
+    doneButtonRef.current?.focus()
+  }, [])
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        e.preventDefault();
+      if (e.key === 'Escape') {
+        e.preventDefault()
       }
-    };
+    }
 
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, []);
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [])
 
   // Persist in-progress selections to localStorage so a refresh doesn't lose work
   useEffect(() => {
     try {
       localStorage.setItem(DRAFT_KEY, JSON.stringify([...selected]))
     } catch {}
-  }, [selected]);
+  }, [selected])
 
   const toggle = (id: string) => {
-    setSelected((prev) => {
-      const next = new Set(prev);
+    setSelected(prev => {
+      const next = new Set(prev)
       if (next.has(id)) {
-        next.delete(id);
+        next.delete(id)
       } else {
-        next.add(id);
+        next.add(id)
       }
-      return next;
-    });
-  };
+      return next
+    })
+  }
 
   const handleDone = () => {
-    try { localStorage.removeItem(DRAFT_KEY) } catch {}
+    try {
+      localStorage.removeItem(DRAFT_KEY)
+    } catch {}
     onDone(new Set(selected))
-  };
+  }
 
-  const techSelected = techChannels.filter((c) => selected.has(c.id)).length;
-  const certSelected = certChannels.filter((c) => selected.has(c.id)).length;
+  const techSelected = techChannels.filter(c => selected.has(c.id)).length
+  const certSelected = certChannels.filter(c => selected.has(c.id)).length
 
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: "rgba(1,4,9,0.88)", backdropFilter: "blur(6px)" }}
+      style={{ background: 'rgba(1,4,9,0.88)', backdropFilter: 'blur(6px)' }}
       role="dialog"
       aria-modal="true"
       aria-labelledby="onboarding-title"
@@ -195,31 +196,25 @@ export function OnboardingModal({
         ref={modalRef}
         className="w-full max-w-2xl max-h-[88vh] flex flex-col rounded-xl border border-border overflow-hidden"
         style={{
-          background: "hsl(var(--card))",
-          boxShadow: "0 24px 60px rgba(0,0,0,0.6)",
+          background: 'hsl(var(--card))',
+          boxShadow: '0 24px 60px rgba(0,0,0,0.6)',
         }}
         data-testid="onboarding-modal"
       >
         {/* Hero header */}
         <div
           className="px-6 pt-8 pb-6 border-b border-border text-center"
-          style={{ background: "hsl(var(--sidebar))" }}
+          style={{ background: 'hsl(var(--sidebar))' }}
         >
           <div className="text-4xl mb-3" aria-hidden="true">
             🎯
           </div>
-          <h1
-            id="onboarding-title"
-            className="text-xl font-bold text-foreground mb-1"
-          >
+          <h1 id="onboarding-title" className="text-xl font-bold text-foreground mb-1">
             Welcome to DevPrep
           </h1>
-          <p
-            id="onboarding-description"
-            className="text-sm text-muted-foreground max-w-md mx-auto"
-          >
-            Choose the tech topics and certifications you want to prep for.
-            You'll only see content for your selected tracks.
+          <p id="onboarding-description" className="text-sm text-muted-foreground max-w-md mx-auto">
+            Choose the tech topics and certifications you want to prep for. You'll only see content
+            for your selected tracks.
           </p>
         </div>
 
@@ -244,7 +239,7 @@ export function OnboardingModal({
               )}
             </div>
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-              {techChannels.map((ch) => (
+              {techChannels.map(ch => (
                 <ChannelCard
                   key={ch.id}
                   channel={ch}
@@ -268,8 +263,8 @@ export function OnboardingModal({
                 <span
                   className="text-[10px] font-bold px-1.5 rounded-full"
                   style={{
-                    background: "hsl(var(--chart-3) / 0.15)",
-                    color: "hsl(var(--chart-3))",
+                    background: 'hsl(var(--chart-3) / 0.15)',
+                    color: 'hsl(var(--chart-3))',
                   }}
                   aria-live="polite"
                 >
@@ -278,7 +273,7 @@ export function OnboardingModal({
               )}
             </div>
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-              {certChannels.map((ch) => (
+              {certChannels.map(ch => (
                 <ChannelCard
                   key={ch.id}
                   channel={ch}
@@ -293,12 +288,12 @@ export function OnboardingModal({
         {/* Footer */}
         <div
           className="px-6 py-4 border-t border-border flex items-center justify-between gap-4"
-          style={{ background: "hsl(var(--sidebar))" }}
+          style={{ background: 'hsl(var(--sidebar))' }}
         >
           <span className="text-sm text-muted-foreground" aria-live="polite">
             {selected.size === 0
-              ? "Select at least one track to continue"
-              : `${selected.size} track${selected.size === 1 ? "" : "s"} selected`}
+              ? 'Select at least one track to continue'
+              : `${selected.size} track${selected.size === 1 ? '' : 's'} selected`}
           </span>
           <button
             ref={doneButtonRef}
@@ -307,8 +302,8 @@ export function OnboardingModal({
             onClick={handleDone}
             className="px-5 py-2.5 rounded-lg text-sm font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed btn-micro touch-target"
             style={{
-              background: "hsl(var(--primary))",
-              color: "hsl(var(--primary-foreground))",
+              background: 'hsl(var(--primary))',
+              color: 'hsl(var(--primary-foreground))',
             }}
             aria-disabled={selected.size === 0}
           >
@@ -317,5 +312,5 @@ export function OnboardingModal({
         </div>
       </div>
     </div>
-  );
+  )
 }
