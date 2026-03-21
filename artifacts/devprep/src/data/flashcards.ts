@@ -8,6 +8,8 @@ export interface Flashcard {
   category: string
   codeExample?: { language: string; code: string }
   mnemonic?: string
+  /** Set at runtime for generated content from DB */
+  channelId?: string
 }
 
 export type CardStatus = 'unseen' | 'known' | 'reviewing' | 'hard'

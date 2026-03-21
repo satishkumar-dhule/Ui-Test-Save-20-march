@@ -253,7 +253,7 @@ function SectionBlock({ section }: { section: AnswerSection }) {
       <div>
         {chip('Related Topics', 'related')}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {section.topics.map((t, i) => (
+          {(section.topics || []).map((t, i) => (
             <div
               key={i}
               className="p-3 rounded-lg border border-border bg-card hover:bg-muted/30 transition-colors"
@@ -555,7 +555,7 @@ export function QAPage({
                   >
                     {active.difficulty}
                   </span>
-                  {active.sections.map((s, i) => (
+                  {(active.sections || []).map((s, i) => (
                     <span
                       key={i}
                       className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded-full"
@@ -576,7 +576,7 @@ export function QAPage({
                   <span>{active.askedAt}</span>
                 </div>
                 <div className="flex flex-wrap gap-1.5 mt-3">
-                  {active.tags.map(t => (
+                  {(active.tags || []).map(t => (
                     <span
                       key={t}
                       className="text-[10px] px-1.5 py-0.5 rounded-sm bg-muted text-muted-foreground font-mono"
@@ -588,7 +588,7 @@ export function QAPage({
               </div>
 
               {/* Sections */}
-              {active.sections.map((s, i) => (
+              {(active.sections || []).map((s, i) => (
                 <div key={i}>
                   <SectionBlock section={s} />
                 </div>

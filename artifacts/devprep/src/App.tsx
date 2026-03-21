@@ -125,18 +125,26 @@ export default function App() {
     [selectedChannels]
   )
 
-  // Filter content based on current channel's tag filter
+  // Filter content by channelId to prevent cross-channel contamination.
+  // - Generated content (has channelId): must match current channel exactly
+  // - Static content (no channelId): shown based on tag filter (backward compat)
   const filteredQuestions = useMemo(() => {
     const filter = currentChannel?.tagFilter
-    if (!filter) return allQuestions
-    return allQuestions.filter(q => q.tags?.some(t => filter.includes(t)) ?? false)
-  }, [currentChannel, allQuestions])
+    return allQuestions.filter(q => {
+      if (q.channelId) return q.channelId === channelId
+      if (!filter) return true
+      return q.tags?.some(t => filter.includes(t)) ?? false
+    })
+  }, [currentChannel, channelId, allQuestions])
 
   const filteredFlashcards = useMemo(() => {
     const filter = currentChannel?.tagFilter
-    if (!filter) return allFlashcards
-    return allFlashcards.filter(f => f.tags?.some(t => filter.includes(t)) ?? false)
-  }, [currentChannel, allFlashcards])
+    return allFlashcards.filter(f => {
+      if (f.channelId) return f.channelId === channelId
+      if (!filter) return true
+      return f.tags?.some(t => filter.includes(t)) ?? false
+    })
+  }, [currentChannel, channelId, allFlashcards])
 
   const filteredExamQs = useMemo(
     () => allExam.filter(q => q.channelId === channelId),
@@ -148,11 +156,10 @@ export default function App() {
     [allVoice, channelId]
   )
 
-  const filteredCoding = useMemo(() => {
-    const filter = currentChannel?.tagFilter
-    if (!filter) return allCoding
-    return allCoding.filter(c => c.tags?.some(t => filter.includes(t)) ?? c.channelId === channelId)
-  }, [currentChannel, channelId, allCoding])
+  const filteredCoding = useMemo(
+    () => allCoding.filter(c => c.channelId === channelId),
+    [allCoding, channelId]
+  )
 
   const sectionCounts: Record<Section, number> = {
     qa: filteredQuestions.length,
