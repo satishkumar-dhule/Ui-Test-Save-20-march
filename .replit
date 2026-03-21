@@ -25,14 +25,14 @@ name = "artifacts/devprep: web"
 mode = "sequential"
 author = "agent"
 
-[workflows.workflow.metadata]
-outputType = "webview"
-artifactId = "artifacts/devprep"
-
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "PORT=5173 pnpm --filter @workspace/devprep run dev"
 waitForPort = 5173
+
+[workflows.workflow.metadata]
+outputType = "webview"
+artifactId = "artifacts/devprep"
 
 [[workflows.workflow]]
 name = "Project"
