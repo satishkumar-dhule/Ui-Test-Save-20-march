@@ -114,6 +114,18 @@ interface OnboardingModalProps {
   theme?: "dark" | "light";
 }
 
+const DRAFT_KEY = 'devprep:onboarding-draft'
+
+function loadDraft(): Set<string> | null {
+  try {
+    const raw = localStorage.getItem(DRAFT_KEY)
+    if (!raw) return null
+    const arr = JSON.parse(raw)
+    if (Array.isArray(arr) && arr.length > 0) return new Set(arr)
+  } catch {}
+  return null
+}
+
 export function OnboardingModal({
   onDone,
   initialSelected,
@@ -123,7 +135,7 @@ export function OnboardingModal({
   const certChannels = useMemo(() => channels.filter(c => c.type === 'cert'), [channels])
 
   const [selected, setSelected] = useState<Set<string>>(
-    initialSelected || new Set(["javascript"]),
+    () => loadDraft() || initialSelected || new Set(["javascript"]),
   );
   const modalRef = useRef<HTMLDivElement>(null);
   const doneButtonRef = useRef<HTMLButtonElement>(null);
@@ -143,6 +155,13 @@ export function OnboardingModal({
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+  // Persist in-progress selections to localStorage so a refresh doesn't lose work
+  useEffect(() => {
+    try {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify([...selected]))
+    } catch {}
+  }, [selected]);
+
   const toggle = (id: string) => {
     setSelected((prev) => {
       const next = new Set(prev);
@@ -153,6 +172,11 @@ export function OnboardingModal({
       }
       return next;
     });
+  };
+
+  const handleDone = () => {
+    try { localStorage.removeItem(DRAFT_KEY) } catch {}
+    onDone(new Set(selected))
   };
 
   const techSelected = techChannels.filter((c) => selected.has(c.id)).length;
@@ -280,7 +304,7 @@ export function OnboardingModal({
             ref={doneButtonRef}
             data-testid="onboarding-done-btn"
             disabled={selected.size === 0}
-            onClick={() => onDone(new Set(selected))}
+            onClick={handleDone}
             className="px-5 py-2.5 rounded-lg text-sm font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed btn-micro touch-target"
             style={{
               background: "hsl(var(--primary))",

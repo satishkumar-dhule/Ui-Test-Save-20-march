@@ -217,24 +217,34 @@ export default function App() {
     analyticsRef.current = analytics
   })
 
+  // Stable primitive ID strings to avoid re-firing the effect on every array reference change
+  const selectedTechIds = useMemo(
+    () => selectedTechChannels.map(c => c.id).join(','),
+    [selectedTechChannels]
+  )
+  const selectedCertIds = useMemo(
+    () => selectedCertChannels.map(c => c.id).join(','),
+    [selectedCertChannels]
+  )
+
   // Auto-switch channel type filter when available channels change
   useEffect(() => {
-    const availableChannels =
-      channelTypeFilter === 'tech' ? selectedTechChannels : selectedCertChannels
-    if (availableChannels.length === 0) {
+    const techIds = selectedTechIds ? selectedTechIds.split(',') : []
+    const certIds = selectedCertIds ? selectedCertIds.split(',') : []
+    const availableIds = channelTypeFilter === 'tech' ? techIds : certIds
+
+    if (availableIds.length === 0) {
       const fallbackFilter = channelTypeFilter === 'tech' ? 'cert' : 'tech'
-      const fallbackChannels =
-        fallbackFilter === 'tech' ? selectedTechChannels : selectedCertChannels
-      if (fallbackChannels.length > 0) {
+      const fallbackIds = fallbackFilter === 'tech' ? techIds : certIds
+      if (fallbackIds.length > 0) {
         setChannelTypeFilter(fallbackFilter)
       }
       return
     }
-    const currentChannel = availableChannels.find(c => c.id === channelId)
-    if (!currentChannel) {
-      handleChannelSwitchRef.current(availableChannels[0].id)
+    if (!availableIds.includes(channelId)) {
+      handleChannelSwitchRef.current(availableIds[0])
     }
-  }, [channelTypeFilter, selectedTechChannels, selectedCertChannels, channelId])
+  }, [channelTypeFilter, selectedTechIds, selectedCertIds, channelId])
 
   // Track visit duration
   useEffect(() => {

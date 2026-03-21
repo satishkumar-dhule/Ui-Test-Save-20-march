@@ -1,4 +1,5 @@
-import { useState, useMemo, useEffect, useCallback } from 'react'
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react'
+import { useGeneratedContent } from '@/hooks/useGeneratedContent'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Activity,
@@ -73,124 +74,87 @@ function formatTimestamp(timestamp: number): string {
   return date.toLocaleTimeString()
 }
 
-function generateMockData(): {
-  items: GeneratedContentItem[]
-  activities: ContentActivity[]
-} {
-  const titles: Record<ContentType, string[]> = {
-    question: [
-      'How does the event loop handle microtasks?',
-      'Explain closure scope in JavaScript',
-      'What is the difference between var and let?',
-    ],
-    flashcard: [
-      'What is hoisting in JavaScript?',
-      'Explain the prototype chain',
-      'What are the phases of the event loop?',
-    ],
-    exam: [
-      'JavaScript Event Loop MCQ',
-      'React Hooks Fundamentals',
-      'Async/Await Interview Questions',
-    ],
-    voice: [
-      'Explain React useEffect cleanup',
-      'Describe the useMemo dependency array',
-      'Walk through async/await error handling',
-    ],
-    coding: [
-      'Implement a debounce function',
-      'Create a deep clone utility',
-      'Build a custom useState hook',
-    ],
+function extractTitle(data: Record<string, unknown>): string {
+  return (
+    String(data.front || data.question || data.title || data.prompt || data.id || 'Untitled')
+  ).slice(0, 120)
+}
+
+function extractPreview(data: Record<string, unknown>): string {
+  const raw = String(data.back || data.answer || data.explanation || data.description || '')
+  return raw.slice(0, 160)
+}
+
+function toFeedItem(
+  type: ContentType,
+  raw: Record<string, unknown>,
+  index: number
+): GeneratedContentItem {
+  return {
+    id: String(raw.id || `${type}-${index}`),
+    type,
+    channelId: String(raw.channelId || 'unknown'),
+    title: extractTitle(raw),
+    preview: extractPreview(raw) || `${type} practice material`,
+    qualityScore: typeof raw.qualityScore === 'number' ? raw.qualityScore : 0.75,
+    createdAt: typeof raw.createdAt === 'number' ? raw.createdAt : Date.now(),
+    tags: Array.isArray(raw.tags) ? (raw.tags as string[]) : [type, String(raw.channelId || '')],
+    difficulty: typeof raw.difficulty === 'string' ? raw.difficulty : undefined,
   }
-
-  const channels = ['javascript', 'react', 'algorithms', 'devops', 'aws-saa', 'kubernetes']
-
-  const items: GeneratedContentItem[] = []
-  const activities: ContentActivity[] = []
-
-  for (let i = 0; i < 20; i++) {
-    const types: ContentType[] = ['question', 'flashcard', 'exam', 'voice', 'coding']
-    const type = types[Math.floor(Math.random() * types.length)]
-    const channelId = channels[Math.floor(Math.random() * channels.length)]
-    const titleList = titles[type]
-    const title = titleList[Math.floor(Math.random() * titleList.length)]
-    const timestamp = Date.now() - Math.random() * 3600000
-
-    const item: GeneratedContentItem = {
-      id: `gen-${i}`,
-      type,
-      channelId,
-      title,
-      preview: `Generated content for ${channelId} - ${type} practice material with detailed explanations and examples.`,
-      qualityScore: 0.5 + Math.random() * 0.45,
-      createdAt: timestamp,
-      tags: [type, channelId, 'generated'],
-      difficulty: ['easy', 'medium', 'hard'][Math.floor(Math.random() * 3)],
-    }
-
-    items.push(item)
-
-    activities.push({
-      id: `act-${i}`,
-      type,
-      channelId,
-      title,
-      timestamp,
-      status: Math.random() > 0.1 ? 'success' : 'failed',
-      durationMs: Math.floor(1000 + Math.random() * 5000),
-    })
-  }
-
-  return { items: items.sort((a, b) => b.createdAt - a.createdAt), activities }
 }
 
 export function RealtimeDashboard({ onNavigateToContent }: RealtimeDashboardProps) {
+  const { generated, loading: dbLoading, refresh: refreshDb } = useGeneratedContent()
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('connecting')
-  const [feedItems, setFeedItems] = useState<GeneratedContentItem[]>([])
   const [activities, setActivities] = useState<ContentActivity[]>([])
-  const [loading, setLoading] = useState(true)
   const [newItemsCount, setNewItemsCount] = useState(0)
   const [activeTab, setActiveTab] = useState<'feed' | 'stats' | 'activity'>('feed')
+  const prevItemCountRef = useRef(0)
 
-  useEffect(() => {
-    const mockData = generateMockData()
-    setFeedItems(mockData.items)
-    setActivities(mockData.activities)
-
-    const statusTimeout = setTimeout(() => {
-      setLoading(false)
-      setConnectionStatus('connected')
-    }, 1500)
-
-    return () => clearTimeout(statusTimeout)
-  }, [])
-
-  useEffect(() => {
-    if (connectionStatus !== 'connected') return
-
-    const interval = setInterval(() => {
-      const types: ContentType[] = ['question', 'flashcard', 'exam', 'voice', 'coding']
-      const type = types[Math.floor(Math.random() * types.length)]
-      const newItem: GeneratedContentItem = {
-        id: `gen-${Date.now()}`,
-        type,
-        channelId: ['javascript', 'react', 'algorithms'][Math.floor(Math.random() * 3)],
-        title: `New ${type} content generated`,
-        preview: 'Freshly generated content ready for practice.',
-        qualityScore: 0.5 + Math.random() * 0.45,
-        createdAt: Date.now(),
-        tags: [type],
-        difficulty: ['easy', 'medium', 'hard'][Math.floor(Math.random() * 3)],
+  // Convert real generated content from DB into feed items
+  const feedItems = useMemo<GeneratedContentItem[]>(() => {
+    const items: GeneratedContentItem[] = []
+    const types: ContentType[] = ['question', 'flashcard', 'exam', 'voice', 'coding']
+    for (const type of types) {
+      const arr = generated[type] as Record<string, unknown>[] | undefined
+      if (arr) {
+        for (let i = 0; i < arr.length; i++) {
+          items.push(toFeedItem(type, arr[i], i))
+        }
       }
+    }
+    return items.sort((a, b) => b.createdAt - a.createdAt)
+  }, [generated])
 
-      setFeedItems(prev => [newItem, ...prev.slice(0, 19)])
-      setNewItemsCount(prev => prev + 1)
-    }, 15000)
+  // Track new items since last visit
+  useEffect(() => {
+    if (feedItems.length > prevItemCountRef.current && prevItemCountRef.current > 0) {
+      setNewItemsCount(prev => prev + (feedItems.length - prevItemCountRef.current))
+    }
+    prevItemCountRef.current = feedItems.length
+  }, [feedItems.length])
 
-    return () => clearInterval(interval)
-  }, [connectionStatus])
+  // Sync activities from feed items
+  useEffect(() => {
+    setActivities(
+      feedItems.slice(0, 30).map((item) => ({
+        id: `act-${item.id}`,
+        type: item.type,
+        channelId: item.channelId,
+        title: item.title,
+        timestamp: item.createdAt,
+        status: 'success' as const,
+        durationMs: undefined,
+      }))
+    )
+  }, [feedItems])
+
+  const loading = dbLoading
+
+  useEffect(() => {
+    const timeout = setTimeout(() => setConnectionStatus('connected'), 800)
+    return () => clearTimeout(timeout)
+  }, [])
 
   const stats = useMemo(() => {
     const byType: Record<ContentType, number> = {
@@ -220,16 +184,11 @@ export function RealtimeDashboard({ onNavigateToContent }: RealtimeDashboardProp
   }, [feedItems, newItemsCount])
 
   const handleRefresh = useCallback(() => {
-    setLoading(true)
     setConnectionStatus('connecting')
-    setTimeout(() => {
-      const mockData = generateMockData()
-      setFeedItems(mockData.items)
-      setActivities(mockData.activities)
-      setLoading(false)
-      setConnectionStatus('connected')
-    }, 1000)
-  }, [])
+    setNewItemsCount(0)
+    refreshDb()
+    setTimeout(() => setConnectionStatus('connected'), 800)
+  }, [refreshDb])
 
   const handleItemClick = useCallback(
     (item: GeneratedContentItem) => {
