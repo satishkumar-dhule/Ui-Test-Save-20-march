@@ -135,7 +135,7 @@ export function OnboardingModal({
   const certChannels = useMemo(() => channels.filter(c => c.type === 'cert'), [channels])
 
   const [selected, setSelected] = useState<Set<string>>(
-    () => loadDraft() || initialSelected || new Set(["javascript"]),
+    () => (initialSelected && initialSelected.size > 0 ? initialSelected : loadDraft() ?? new Set(["javascript"])),
   );
   const modalRef = useRef<HTMLDivElement>(null);
   const doneButtonRef = useRef<HTMLButtonElement>(null);
