@@ -23,7 +23,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
 
 // ── Config ────────────────────────────────────────────────────────────────────
-const CONCURRENCY = parseInt(process.env.CONCURRENCY || "5", 10);
+const CONCURRENCY = parseInt(process.env.CONCURRENCY || "30", 10);
 const COUNT = parseInt(process.env.COUNT || "1", 10);
 const DRY_RUN = process.env.DRY_RUN === "true";
 const GENERATOR = path.resolve(__dirname, "generate-content.mjs");
@@ -42,16 +42,39 @@ const CONTENT_TYPES = ["question", "flashcard", "exam", "voice", "coding"];
 
 // ── Named Agent Pool ──────────────────────────────────────────────────────────
 const AGENT_POOL = [
-  { id: "A01", name: "Alex Chen",       emoji: "🔵" },
-  { id: "A02", name: "Maya Patel",      emoji: "🟢" },
-  { id: "A03", name: "Jordan Kim",      emoji: "🟡" },
-  { id: "A04", name: "Sam Rivera",      emoji: "🟠" },
-  { id: "A05", name: "Casey Morgan",    emoji: "🔴" },
-  { id: "A06", name: "Taylor Brooks",   emoji: "🟣" },
-  { id: "A07", name: "Riley Scott",     emoji: "⚪" },
-  { id: "A08", name: "Drew Hassan",     emoji: "🟤" },
-  { id: "A09", name: "Quinn Nakamura",  emoji: "🔶" },
-  { id: "A10", name: "Blake Osei",      emoji: "🔷" },
+  // Copy 1
+  { id: "A01",  name: "Alex Chen",         emoji: "🔵" },
+  { id: "A02",  name: "Maya Patel",        emoji: "🟢" },
+  { id: "A03",  name: "Jordan Kim",        emoji: "🟡" },
+  { id: "A04",  name: "Sam Rivera",        emoji: "🟠" },
+  { id: "A05",  name: "Casey Morgan",      emoji: "🔴" },
+  { id: "A06",  name: "Taylor Brooks",     emoji: "🟣" },
+  { id: "A07",  name: "Riley Scott",       emoji: "⚪" },
+  { id: "A08",  name: "Drew Hassan",       emoji: "🟤" },
+  { id: "A09",  name: "Quinn Nakamura",    emoji: "🔶" },
+  { id: "A10",  name: "Blake Osei",        emoji: "🔷" },
+  // Copy 2
+  { id: "A11",  name: "Alex Chen II",      emoji: "🔵" },
+  { id: "A12",  name: "Maya Patel II",     emoji: "🟢" },
+  { id: "A13",  name: "Jordan Kim II",     emoji: "🟡" },
+  { id: "A14",  name: "Sam Rivera II",     emoji: "🟠" },
+  { id: "A15",  name: "Casey Morgan II",   emoji: "🔴" },
+  { id: "A16",  name: "Taylor Brooks II",  emoji: "🟣" },
+  { id: "A17",  name: "Riley Scott II",    emoji: "⚪" },
+  { id: "A18",  name: "Drew Hassan II",    emoji: "🟤" },
+  { id: "A19",  name: "Quinn Nakamura II", emoji: "🔶" },
+  { id: "A20",  name: "Blake Osei II",     emoji: "🔷" },
+  // Copy 3
+  { id: "A21",  name: "Alex Chen III",     emoji: "🔵" },
+  { id: "A22",  name: "Maya Patel III",    emoji: "🟢" },
+  { id: "A23",  name: "Jordan Kim III",    emoji: "🟡" },
+  { id: "A24",  name: "Sam Rivera III",    emoji: "🟠" },
+  { id: "A25",  name: "Casey Morgan III",  emoji: "🔴" },
+  { id: "A26",  name: "Taylor Brooks III", emoji: "🟣" },
+  { id: "A27",  name: "Riley Scott III",   emoji: "⚪" },
+  { id: "A28",  name: "Drew Hassan III",   emoji: "🟤" },
+  { id: "A29",  name: "Quinn Nakamura III",emoji: "🔶" },
+  { id: "A30",  name: "Blake Osei III",    emoji: "🔷" },
 ];
 
 // ── Task ─────────────────────────────────────────────────────────────────────
