@@ -244,7 +244,7 @@ export function OnboardingPage({ onDone, initialSelected }: OnboardingPageProps)
                 onClick={() => handleJobRoleClick(role.id)}
                 className={`
                   flex flex-col items-center p-4 rounded-xl border text-center
-                  transition-all duration-200 cursor-pointer btn-micro touch-target
+                  transition-all duration-200 cursor-pointer btn-micro touch-target hover:scale-105 active:scale-95
                   ${
                     activeJobRole === role.id
                       ? 'border-primary/50 bg-primary/10 shadow-lg shadow-primary/10'
@@ -306,7 +306,7 @@ export function OnboardingPage({ onDone, initialSelected }: OnboardingPageProps)
             {selectedSkillLevels.size > 0 && (
               <button
                 onClick={() => setSelectedSkillLevels(new Set())}
-                className="flex items-center gap-1 px-3 py-2.5 rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+                className="flex items-center gap-1 px-3 py-2.5 rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground transition-all hover:scale-105 active:scale-95"
               >
                 Clear filter
                 <svg
@@ -356,7 +356,7 @@ export function OnboardingPage({ onDone, initialSelected }: OnboardingPageProps)
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-all hover:scale-110 active:scale-90 p-1"
                 aria-label="Clear search"
               >
                 <svg
@@ -416,19 +416,19 @@ export function OnboardingPage({ onDone, initialSelected }: OnboardingPageProps)
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={selectAll}
-                className="px-3 py-1.5 rounded-md text-xs font-medium border border-border bg-card text-muted-foreground hover:text-foreground hover:border-border transition-colors"
+                className="px-3 py-1.5 rounded-md text-xs font-medium border border-border bg-card text-muted-foreground hover:text-foreground hover:border-border transition-all hover:scale-105 active:scale-95"
               >
                 Select All
               </button>
               <button
                 onClick={clearAll}
-                className="px-3 py-1.5 rounded-md text-xs font-medium border border-border bg-card text-muted-foreground hover:text-foreground hover:border-border transition-colors"
+                className="px-3 py-1.5 rounded-md text-xs font-medium border border-border bg-card text-muted-foreground hover:text-foreground hover:border-border transition-all hover:scale-105 active:scale-95"
               >
                 Clear
               </button>
               <button
                 onClick={selectRecommended}
-                className="px-3 py-1.5 rounded-md text-xs font-medium border border-primary/30 bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                className="px-3 py-1.5 rounded-md text-xs font-medium border border-primary/30 bg-primary/10 text-primary hover:bg-primary/20 transition-all hover:scale-105 active:scale-95"
               >
                 Recommended
               </button>
@@ -446,7 +446,7 @@ export function OnboardingPage({ onDone, initialSelected }: OnboardingPageProps)
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`
-                  px-4 py-2 rounded-md text-sm font-medium transition-all
+                  px-4 py-2 rounded-md text-sm font-medium transition-all hover:scale-105 active:scale-95
                   ${
                     activeTab === tab.id
                       ? 'bg-card text-foreground shadow-sm border border-border'
@@ -483,13 +483,13 @@ export function OnboardingPage({ onDone, initialSelected }: OnboardingPageProps)
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <button
                   onClick={clearAllFilters}
-                  className="px-5 py-2.5 rounded-lg text-sm font-medium border border-primary/30 bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                  className="px-5 py-2.5 rounded-lg text-sm font-medium border border-primary/30 bg-primary/10 text-primary hover:bg-primary/20 transition-all hover:scale-105 active:scale-95"
                 >
                   Clear all filters
                 </button>
                 <button
                   onClick={selectRecommended}
-                  className="px-5 py-2.5 rounded-lg text-sm font-medium border border-border bg-card text-muted-foreground hover:text-foreground hover:border-border transition-colors"
+                  className="px-5 py-2.5 rounded-lg text-sm font-medium border border-border bg-card text-muted-foreground hover:text-foreground hover:border-border transition-all hover:scale-105 active:scale-95"
                 >
                   Select recommended channels
                 </button>
@@ -506,7 +506,7 @@ export function OnboardingPage({ onDone, initialSelected }: OnboardingPageProps)
                         <button
                           key={id}
                           onClick={() => toggle(id)}
-                          className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                          className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all hover:scale-105 active:scale-95 ${
                             selected.has(id)
                               ? 'bg-primary/20 text-primary border border-primary/30'
                               : 'bg-muted/50 text-muted-foreground hover:text-foreground border border-transparent hover:border-border'
