@@ -24,6 +24,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs";
 import { createRequire } from "module";
+import { loadChannelsFromDb } from "./db-channels.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
@@ -36,10 +37,13 @@ const COUNT = parseInt(process.env.COUNT || "1", 10);
 const DIRECT = process.env.DIRECT === "true";
 const MODEL = process.env.MODEL || "opencode/mimo-v2-pro-free";
 
-const CHANNELS = [
-  "javascript", "react", "algorithms", "devops", "kubernetes",
-  "networking", "system-design", "aws-saa", "aws-dev", "cka", "terraform",
-];
+// Loaded from DB — single source of truth
+const dbChannels = loadChannelsFromDb(DB_PATH);
+if (!dbChannels || dbChannels.length === 0) {
+  console.error("❌ Could not load channels from DB. Make sure data/devprep.db has a populated 'channels' table.");
+  process.exit(1);
+}
+const CHANNELS = dbChannels.map(c => c.id);
 
 const CONTENT_TYPES = ["question", "flashcard", "exam", "voice", "coding"];
 

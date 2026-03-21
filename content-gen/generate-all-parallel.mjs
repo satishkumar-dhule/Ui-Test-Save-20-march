@@ -17,6 +17,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { createRequire } from "module";
 import fs from "fs";
+import { loadChannelsFromDb } from "./db-channels.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
@@ -29,20 +30,13 @@ const GENERATOR = path.resolve(__dirname, "generate-content.mjs");
 const DB_PATH =
   process.env.DB_PATH || path.resolve(__dirname, "../data/devprep.db");
 
-// ── Channels (mirrors generate-content.mjs — kept in sync manually) ───────────
-const CHANNELS = [
-  { id: "javascript",    name: "JavaScript" },
-  { id: "react",         name: "React" },
-  { id: "algorithms",    name: "Algorithms" },
-  { id: "devops",        name: "DevOps" },
-  { id: "kubernetes",    name: "Kubernetes" },
-  { id: "networking",    name: "Networking" },
-  { id: "system-design", name: "System Design" },
-  { id: "aws-saa",       name: "AWS Solutions Architect" },
-  { id: "aws-dev",       name: "AWS Developer" },
-  { id: "cka",           name: "Certified Kubernetes Admin" },
-  { id: "terraform",     name: "HashiCorp Terraform" },
-];
+// ── Channels — loaded from DB (single source of truth) ────────────────────────
+const dbChannels = loadChannelsFromDb(DB_PATH);
+if (!dbChannels) {
+  console.error("❌ Could not load channels from DB. Make sure data/devprep.db exists and has a 'channels' table.");
+  process.exit(1);
+}
+const CHANNELS = dbChannels;
 
 const CONTENT_TYPES = ["question", "flashcard", "exam", "voice", "coding"];
 

@@ -19,6 +19,7 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import crypto from "crypto";
+import { loadChannelsFromDb } from "./db-channels.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DB_PATH =
@@ -86,93 +87,15 @@ function openDb() {
   return db;
 }
 
-// ── Channels ──────────────────────────────────────────────────────────────────
-const CHANNELS = [
-  {
-    id: "javascript",
-    name: "JavaScript",
-    tags: [
-      "javascript",
-      "async",
-      "closures",
-      "prototype",
-      "types",
-      "generators",
-    ],
-    difficulty: "intermediate",
-  },
-  {
-    id: "react",
-    name: "React",
-    tags: ["react", "hooks", "state", "performance", "reconciliation"],
-    difficulty: "intermediate",
-  },
-  {
-    id: "algorithms",
-    name: "Algorithms",
-    tags: [
-      "algorithms",
-      "sorting",
-      "big-o",
-      "dynamic-programming",
-      "trees",
-      "graphs",
-    ],
-    difficulty: "advanced",
-  },
-  {
-    id: "devops",
-    name: "DevOps",
-    tags: ["devops", "docker", "ci-cd", "linux", "containers"],
-    difficulty: "intermediate",
-  },
-  {
-    id: "kubernetes",
-    name: "Kubernetes",
-    tags: ["kubernetes", "k8s", "containers", "orchestration", "helm"],
-    difficulty: "advanced",
-  },
-  {
-    id: "networking",
-    name: "Networking",
-    tags: ["networking", "http", "rest", "dns", "tcp-ip", "https"],
-    difficulty: "intermediate",
-  },
-  {
-    id: "system-design",
-    name: "System Design",
-    tags: ["cs", "distributed", "concurrency", "scalability", "caching"],
-    difficulty: "advanced",
-  },
-  {
-    id: "aws-saa",
-    name: "AWS Solutions Architect",
-    tags: ["aws", "cloud", "ec2", "s3", "vpc", "iam"],
-    difficulty: "intermediate",
-    certCode: "SAA-C03",
-  },
-  {
-    id: "aws-dev",
-    name: "AWS Developer",
-    tags: ["aws", "cloud", "serverless", "lambda", "api-gateway"],
-    difficulty: "intermediate",
-    certCode: "DVA-C02",
-  },
-  {
-    id: "cka",
-    name: "Certified Kubernetes Admin",
-    tags: ["kubernetes", "k8s", "cluster", "pods", "services"],
-    difficulty: "advanced",
-    certCode: "CKA",
-  },
-  {
-    id: "terraform",
-    name: "HashiCorp Terraform",
-    tags: ["terraform", "iac", "modules", "state", "providers"],
-    difficulty: "intermediate",
-    certCode: "TA-002-P",
-  },
-];
+// ── Channels — loaded from DB (single source of truth) ────────────────────────
+const CHANNELS = (() => {
+  const ch = loadChannelsFromDb(DB_PATH);
+  if (!ch || ch.length === 0) {
+    console.error("❌ No channels found in DB. Make sure data/devprep.db has a populated 'channels' table.");
+    process.exit(1);
+  }
+  return ch;
+})();
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function makeId(prefix) {

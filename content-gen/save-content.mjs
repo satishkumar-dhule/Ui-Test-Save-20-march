@@ -171,6 +171,8 @@ db.prepare(`
   channel, type, agentId
 );
 
+// Flush WAL into main .db file so the browser's sql.js can see new data
+db.pragma("wal_checkpoint(TRUNCATE)");
 db.close();
 
 console.log(`✅ Saved ${type} [${data.id}] for "${channel}" quality=${(qualityScore * 100).toFixed(0)}% status=${status}`);

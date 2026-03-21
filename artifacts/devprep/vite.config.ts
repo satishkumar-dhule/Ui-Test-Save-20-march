@@ -4,9 +4,23 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import path from 'path'
 import fs from 'fs'
+import { createRequire } from 'module'
 import runtimeErrorOverlay from '@replit/vite-plugin-runtime-error-modal'
 import { VitePWA } from 'vite-plugin-pwa'
 import 'dotenv/config'
+
+const require = createRequire(import.meta.url)
+
+function checkpointDb(dbPath: string): void {
+  try {
+    const Database = require('better-sqlite3')
+    const db = new Database(dbPath)
+    db.pragma('wal_checkpoint(TRUNCATE)')
+    db.close()
+  } catch {
+    // DB may not exist yet or better-sqlite3 not available — skip
+  }
+}
 
 function serveDatabase(): Plugin {
   const dbPath = path.resolve(import.meta.dirname, '../../data/devprep.db')
@@ -15,6 +29,8 @@ function serveDatabase(): Plugin {
     configureServer(server) {
       server.middlewares.use('/devprep.db', (_req, res, next) => {
         try {
+          // Checkpoint WAL before serving so the browser's sql.js sees all rows
+          checkpointDb(dbPath)
           const data = fs.readFileSync(dbPath)
           res.setHeader('Content-Type', 'application/octet-stream')
           res.setHeader('Content-Length', String(data.length))
@@ -27,6 +43,7 @@ function serveDatabase(): Plugin {
     },
     generateBundle() {
       try {
+        checkpointDb(dbPath)
         const data = fs.readFileSync(dbPath)
         this.emitFile({ type: 'asset', fileName: 'devprep.db', source: data })
       } catch {
