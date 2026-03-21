@@ -6,29 +6,22 @@ interface SectionTabsProps {
   onSectionChange: (section: Section) => void;
 }
 
-/**
- * Section navigation tabs (Q&A, Flashcards, Coding, Exam, Voice)
- */
-export function SectionTabs({
-  section,
-  sectionCounts,
-  onSectionChange,
-}: SectionTabsProps) {
-  const tabs: { id: Section; label: string; emoji: string }[] = [
-    { id: "qa", label: "Q&A", emoji: "📖" },
-    { id: "flashcards", label: "Flashcards", emoji: "🃏" },
-    { id: "coding", label: "Coding", emoji: "💻" },
-    { id: "exam", label: "Mock Exam", emoji: "📝" },
-    { id: "voice", label: "Voice", emoji: "🎤" },
-  ];
+const TABS: { id: Section; label: string; icon: string }[] = [
+  { id: "qa",         label: "Q & A",      icon: "📖" },
+  { id: "flashcards", label: "Flashcards",  icon: "🃏" },
+  { id: "coding",     label: "Coding",      icon: "💻" },
+  { id: "exam",       label: "Exam",        icon: "📝" },
+  { id: "voice",      label: "Voice Lab",   icon: "🎤" },
+];
 
+export function SectionTabs({ section, sectionCounts, onSectionChange }: SectionTabsProps) {
   return (
     <div
-      className="flex-shrink-0 flex items-center border-b border-border px-4 gap-0.5 bg-background overflow-x-auto"
-      style={{ height: 44 }}
+      className="flex-shrink-0 flex items-center border-b border-border/50 px-4 gap-0 bg-background overflow-x-auto"
+      style={{ height: 42 }}
       data-testid="section-tabs"
     >
-      {tabs.map((tab) => (
+      {TABS.map((tab) => (
         <SectionTab
           key={tab.id}
           tab={tab}
@@ -41,60 +34,51 @@ export function SectionTabs({
   );
 }
 
-/**
- * Individual section tab button
- */
 function SectionTab({
   tab,
   isActive,
   count,
   onClick,
 }: {
-  tab: { id: Section; label: string; emoji: string };
+  tab: { id: Section; label: string; icon: string };
   isActive: boolean;
   count: number;
   onClick: () => void;
 }) {
   return (
     <button
-      key={tab.id}
       data-testid={`section-tab-${tab.id}`}
       onClick={onClick}
-      className="flex items-center gap-1.5 px-3 h-11 text-sm transition-all shrink-0"
+      className="relative flex items-center gap-1.5 px-3 h-full shrink-0 transition-colors duration-150 group"
       style={{
-        borderBottom: `2px solid ${isActive ? "hsl(var(--chart-3))" : "transparent"}`,
-        fontWeight: isActive ? 600 : 400,
+        color: isActive ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))",
       }}
     >
-      <span
-        className={isActive ? "text-foreground" : "text-muted-foreground"}
-      >
-        {tab.emoji} {tab.label}
+      <span className="text-[10px] uppercase tracking-widest font-bold">
+        {tab.label}
       </span>
       {count > 0 && (
-        <CountBadge isActive={isActive} count={count} />
+        <span
+          className="text-[9px] font-bold px-1.5 py-0.5 rounded-full transition-colors"
+          style={{
+            background: isActive
+              ? "hsl(var(--primary) / 0.15)"
+              : "hsl(var(--muted))",
+            color: isActive
+              ? "hsl(var(--primary))"
+              : "hsl(var(--muted-foreground))",
+          }}
+        >
+          {count}
+        </span>
       )}
+      {/* Active underline */}
+      <span
+        className="absolute bottom-0 left-0 right-0 h-0.5 rounded-t-full transition-all duration-150"
+        style={{
+          background: isActive ? "hsl(var(--primary) / 0.5)" : "transparent",
+        }}
+      />
     </button>
-  );
-}
-
-/**
- * Count badge displayed next to section tab
- */
-function CountBadge({ isActive, count }: { isActive: boolean; count: number }) {
-  return (
-    <span
-      className="text-[10px] font-bold px-1.5 rounded-full"
-      style={{
-        background: isActive
-          ? "hsl(var(--chart-3) / 0.2)"
-          : "hsl(var(--muted))",
-        color: isActive
-          ? "hsl(var(--chart-3))"
-          : "hsl(var(--muted-foreground))",
-      }}
-    >
-      {count}
-    </span>
   );
 }

@@ -1,0 +1,11 @@
+version = "1.0"
+kind = "web"
+slug = "devprep"
+title = "DevPrep — Architect Elite"
+previewPath = "/"
+
+[[services]]
+name = "web"
+devCommand = "pnpm --filter @workspace/devprep run dev"
+buildCommand = "pnpm --filter @workspace/devprep run build"
+productionServe = "static"

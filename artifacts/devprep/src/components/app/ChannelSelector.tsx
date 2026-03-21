@@ -11,15 +11,11 @@ interface ChannelSelectorProps {
   onEditChannels: () => void;
 }
 
-/**
- * Channel navigation bar for selecting between channels
- */
 export function ChannelSelector({
   channelId,
   channelTypeFilter,
   selectedTechChannels,
   selectedCertChannels,
-  theme,
   onChannelSwitch,
   onChannelTypeFilterChange,
   onEditChannels,
@@ -29,16 +25,12 @@ export function ChannelSelector({
 
   return (
     <div
-      className="flex-shrink-0 flex items-center border-b border-border px-4 overflow-x-auto gap-1"
-      style={{
-        height: 44,
-        background: theme === "dark" ? "#010409" : "#f6f8fa",
-      }}
+      className="flex-shrink-0 flex items-center border-b border-border/50 px-4 overflow-x-auto gap-1 bg-background"
+      style={{ height: 40 }}
       data-testid="channel-bar"
     >
-      {/* Channel type filter (only show if both types have channels) */}
       {hasBothTypes && (
-        <div className="flex items-center shrink-0 border border-border rounded-md overflow-hidden mr-1">
+        <div className="flex items-center shrink-0 border border-border/40 rounded-md overflow-hidden mr-2">
           <FilterButton
             active={channelTypeFilter === "tech"}
             disabled={selectedTechChannels.length === 0}
@@ -54,45 +46,27 @@ export function ChannelSelector({
         </div>
       )}
 
-      {/* Empty state messages */}
-      {channelTypeFilter === "tech" &&
-        selectedTechChannels.length === 0 &&
-        selectedCertChannels.length > 0 && (
-          <EmptyStateMessage type="tech" onAddChannels={onEditChannels} />
-        )}
-      {channelTypeFilter === "cert" &&
-        selectedCertChannels.length === 0 &&
-        selectedTechChannels.length > 0 && (
-          <EmptyStateMessage type="cert" onAddChannels={onEditChannels} />
-        )}
+      {channelTypeFilter === "tech" && selectedTechChannels.length === 0 && selectedCertChannels.length > 0 && (
+        <EmptyMsg type="tech" onAdd={onEditChannels} />
+      )}
+      {channelTypeFilter === "cert" && selectedCertChannels.length === 0 && selectedTechChannels.length > 0 && (
+        <EmptyMsg type="cert" onAdd={onEditChannels} />
+      )}
 
-      {/* Tech channels */}
       {channelTypeFilter === "tech" &&
         selectedTechChannels.map((c) => (
-          <ChannelTab
-            key={c.id}
-            channel={c}
-            isActive={channelId === c.id}
-            onClick={() => onChannelSwitch(c.id)}
-          />
+          <ChannelTab key={c.id} channel={c} isActive={channelId === c.id} onClick={() => onChannelSwitch(c.id)} />
         ))}
 
-      {/* Cert channels */}
       {channelTypeFilter === "cert" &&
         selectedCertChannels.map((c) => (
-          <CertChannelTab
-            key={c.id}
-            channel={c}
-            isActive={channelId === c.id}
-            onClick={() => onChannelSwitch(c.id)}
-          />
+          <CertChannelTab key={c.id} channel={c} isActive={channelId === c.id} onClick={() => onChannelSwitch(c.id)} />
         ))}
 
-      {/* Edit channels button */}
       <button
         data-testid="edit-tracks-btn"
         onClick={onEditChannels}
-        className="ml-2 shrink-0 text-[11px] font-semibold text-primary px-2 py-0.5 rounded-full border border-dashed border-border hover:bg-accent transition-colors"
+        className="ml-2 shrink-0 text-[9px] font-bold uppercase tracking-widest text-muted-foreground px-2 py-0.5 rounded border border-dashed border-border/40 hover:text-primary hover:border-primary/30 transition-colors"
       >
         + Edit
       </button>
@@ -100,140 +74,83 @@ export function ChannelSelector({
   );
 }
 
-/**
- * Filter button for tech/cert toggle
- */
-function FilterButton({
-  active,
-  disabled,
-  onClick,
-  label,
-}: {
-  active: boolean;
-  disabled: boolean;
-  onClick: () => void;
-  label: string;
+function FilterButton({ active, disabled, onClick, label }: {
+  active: boolean; disabled: boolean; onClick: () => void; label: string;
 }) {
   return (
     <button
       onClick={onClick}
       disabled={disabled}
-      className={`px-2 py-1 text-[11px] font-semibold transition-colors ${
+      className={`px-2.5 py-1 text-[9px] font-bold uppercase tracking-widest transition-colors ${
         active
-          ? "bg-primary text-primary-foreground"
-          : "text-muted-foreground hover:bg-accent"
-      } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
+          ? "bg-primary/10 text-primary"
+          : "text-muted-foreground hover:text-foreground"
+      } ${disabled ? "opacity-40 cursor-not-allowed" : ""}`}
     >
       {label}
     </button>
   );
 }
 
-/**
- * Empty state message when no channels of a type are selected
- */
-function EmptyStateMessage({
-  type,
-  onAddChannels,
-}: {
-  type: "tech" | "cert";
-  onAddChannels: () => void;
-}) {
+function EmptyMsg({ type, onAdd }: { type: "tech" | "cert"; onAdd: () => void }) {
   return (
-    <span className="text-xs text-muted-foreground shrink-0">
+    <span className="text-[10px] text-muted-foreground shrink-0">
       No {type} channels.{" "}
-      <button
-        onClick={onAddChannels}
-        className="text-primary underline hover:no-underline"
-      >
-        Add channels
+      <button onClick={onAdd} className="text-primary hover:underline">
+        Add
       </button>
     </span>
   );
 }
 
-/**
- * Channel tab button for tech channels
- */
-function ChannelTab({
-  channel: c,
-  isActive,
-  onClick,
-}: {
-  channel: Channel;
-  isActive: boolean;
-  onClick: () => void;
-}) {
+function ChannelTab({ channel: c, isActive, onClick }: { channel: Channel; isActive: boolean; onClick: () => void }) {
   return (
     <button
-      key={c.id}
       data-testid={`channel-tab-${c.id}`}
       onClick={onClick}
-      className="flex items-center gap-1.5 px-2.5 h-11 text-sm font-medium shrink-0 transition-all"
-      style={{
-        borderBottom: `2px solid ${isActive ? c.color : "transparent"}`,
-        fontWeight: isActive ? 600 : 400,
-      }}
+      className="relative flex items-center gap-1.5 px-2.5 h-10 shrink-0 transition-colors duration-150"
+      style={{ color: isActive ? c.color : "hsl(var(--muted-foreground))" }}
     >
-      <span
-        className={isActive ? "text-foreground" : "text-muted-foreground"}
-      >
-        {c.emoji}
-      </span>
-      <span
-        className={isActive ? "text-foreground" : "text-muted-foreground"}
-      >
+      <span className="text-sm">{c.emoji}</span>
+      <span className="text-[10px] font-bold uppercase tracking-widest">
         {c.shortName}
       </span>
+      <span
+        className="absolute bottom-0 left-0 right-0 h-0.5 rounded-t-full transition-all"
+        style={{ background: isActive ? c.color + "80" : "transparent" }}
+      />
     </button>
   );
 }
 
-/**
- * Channel tab button for cert channels (includes cert badge)
- */
-function CertChannelTab({
-  channel: c,
-  isActive,
-  onClick,
-}: {
-  channel: Channel;
-  isActive: boolean;
-  onClick: () => void;
-}) {
+function CertChannelTab({ channel: c, isActive, onClick }: { channel: Channel; isActive: boolean; onClick: () => void }) {
   return (
     <button
-      key={c.id}
       data-testid={`channel-tab-${c.id}`}
       onClick={onClick}
-      className="flex items-center gap-1.5 px-2.5 h-11 text-sm shrink-0 transition-all"
-      style={{
-        borderBottom: `2px solid ${isActive ? c.color : "transparent"}`,
-        fontWeight: isActive ? 600 : 400,
-      }}
+      className="relative flex items-center gap-1.5 px-2.5 h-10 shrink-0 transition-colors duration-150"
+      style={{ color: isActive ? c.color : "hsl(var(--muted-foreground))" }}
     >
-      <span
-        className={isActive ? "text-foreground" : "text-muted-foreground"}
-      >
-        {c.emoji}
-      </span>
-      <span
-        className={isActive ? "text-foreground" : "text-muted-foreground"}
-      >
+      <span className="text-sm">{c.emoji}</span>
+      <span className="text-[10px] font-bold uppercase tracking-widest">
         {c.shortName}
       </span>
       {c.certCode && (
         <span
-          className="text-[9px] font-bold px-1 py-0.5 rounded-full"
+          className="text-[8px] font-bold px-1 py-0.5 rounded"
           style={{
             color: c.color,
-            background: c.color + "25",
-            border: `1px solid ${c.color}44`,
+            background: c.color + "20",
+            border: `1px solid ${c.color}30`,
           }}
         >
           {c.certCode}
         </span>
       )}
+      <span
+        className="absolute bottom-0 left-0 right-0 h-0.5 rounded-t-full transition-all"
+        style={{ background: isActive ? c.color + "80" : "transparent" }}
+      />
     </button>
   );
 }

@@ -186,7 +186,7 @@ export function OnboardingModal({ onDone, initialSelected }: OnboardingModalProp
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: 'rgba(1,4,9,0.88)', backdropFilter: 'blur(6px)' }}
+      style={{ background: 'rgba(10,10,10,0.92)', backdropFilter: 'blur(12px)' }}
       role="dialog"
       aria-modal="true"
       aria-labelledby="onboarding-title"

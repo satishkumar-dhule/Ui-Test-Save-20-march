@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Architect Elite | Voice Lab</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;400;700;800&amp;family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "outline-variant": "#464555",
+                        "inverse-primary": "#4d44e3",
+                        "surface-container-highest": "#353534",
+                        "surface": "#0e0e0e",
+                        "on-background": "#e5e2e1",
+                        "inverse-on-surface": "#313030",
+                        "primary-container": "#4f46e5",
+                        "surface-bright": "#3a3939",
+                        "background": "#0e0e0e",
+                        "inverse-surface": "#e5e2e1",
+                        "tertiary-container": "#566175",
+                        "on-secondary-container": "#00424e",
+                        "surface-variant": "#353534",
+                        "surface-tint": "#c3c0ff",
+                        "on-error-container": "#ffdad6",
+                        "on-secondary": "#003640",
+                        "on-primary-fixed": "#0f0069",
+                        "secondary": "#4cd7f6",
+                        "on-primary-fixed-variant": "#3323cc",
+                        "surface-dim": "#0e0e0e",
+                        "error": "#ffb4ab",
+                        "on-surface": "#e5e2e1",
+                        "outline": "#918fa1",
+                        "on-primary-container": "#dad7ff",
+                        "secondary-fixed": "#acedff",
+                        "primary": "#c3c0ff",
+                        "primary-fixed-dim": "#c3c0ff",
+                        "on-tertiary": "#263143",
+                        "on-tertiary-container": "#d1dcf4",
+                        "primary-fixed": "#e2dfff",
+                        "secondary-fixed-dim": "#4cd7f6",
+                        "on-secondary-fixed-variant": "#004e5c",
+                        "surface-container-high": "#1c1b1b",
+                        "surface-container-lowest": "#0a0a0a",
+                        "tertiary": "#bcc7de",
+                        "on-primary": "#1d00a5",
+                        "error-container": "#93000a",
+                        "secondary-container": "#03b5d3",
+                        "on-surface-variant": "#918fa1",
+                        "on-error": "#690005",
+                        "on-secondary-fixed": "#001f26",
+                        "tertiary-fixed-dim": "#bcc7de",
+                        "on-tertiary-fixed-variant": "#3c475a",
+                        "surface-container-low": "#131313",
+                        "surface-container": "#181818",
+                        "tertiary-fixed": "#d8e3fb",
+                        "on-tertiary-fixed": "#111c2d"
+                    },
+                    fontFamily: {
+                        "headline": ["Manrope"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "1rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .waveform-bar {
+            animation: pulse-height 2s ease-in-out infinite alternate;
+        }
+        @keyframes pulse-height {
+            from { height: 4px; opacity: 0.2; }
+            to { height: 40px; opacity: 0.8; }
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-surface-container-lowest text-on-surface font-body selection:bg-primary/20">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-md border-b border-outline-variant/10">
+<div class="flex justify-between items-center px-8 h-16 w-full">
+<div class="text-xl font-bold tracking-tight text-on-background font-headline">
+                Architect <span class="text-primary/80">Elite</span>
+</div>
+<div class="hidden md:flex items-center gap-10">
+<a class="text-on-surface-variant text-xs font-label uppercase tracking-widest hover:text-on-surface transition-colors" href="#">Curriculum</a>
+<a class="text-primary text-xs font-label uppercase tracking-widest font-bold border-b border-primary/40 pb-1" href="#">Voice Lab</a>
+<a class="text-on-surface-variant text-xs font-label uppercase tracking-widest hover:text-on-surface transition-colors" href="#">Coding Lab</a>
+</div>
+<div class="flex items-center gap-6">
+<span class="material-symbols-outlined text-on-surface-variant hover:text-primary cursor-pointer transition-colors">notifications</span>
+<div class="w-8 h-8 rounded-full bg-surface-container border border-outline-variant/20 overflow-hidden">
+<img alt="User profile" class="w-full h-full object-cover grayscale opacity-80" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDo8lw8vFRlEEVdMqgRxl08nCau9UfTPwipRCLVxkf4fu_WlP4FI7lvEXJ6EaHyUqjtvnGfXdcLvf9thYUsMMRuNOfMeIt4Q_CxWMK-eF9LEknLi-LgnP4aW9G37TpVUeC5yvifSSmpf0AlzE7AXNtO5Uv1Nx_-TFrYBrU_xZ8e7NDM1WAe77Q8LrG9Yv4C6Zu_llhFKVqbSVH2KN-Doa0p6H46-13vmShlHfr3I8CEO09-95F5FkNXSN0Q3iepiVUd19yzDtDZlMA"/>
+</div>
+</div>
+</div>
+</nav>
+<!-- SideNavBar (Simplified) -->
+<aside class="fixed left-0 top-16 h-full w-64 z-40 bg-background flex flex-col py-10 px-6 border-r border-outline-variant/10 hidden md:flex">
+<div class="mb-12">
+<h2 class="font-headline text-xs font-bold text-on-surface-variant uppercase tracking-[0.2em] mb-4">Core Pathways</h2>
+<nav class="space-y-1">
+<a class="flex items-center gap-4 py-2 text-on-surface-variant hover:text-on-surface transition-colors text-xs uppercase tracking-widest" href="#">
+<span class="material-symbols-outlined text-sm">menu_book</span>
+<span>Curriculum</span>
+</a>
+<a class="flex items-center gap-4 py-2 text-primary font-bold text-xs uppercase tracking-widest" href="#">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">mic_external_on</span>
+<span>Voice Lab</span>
+</a>
+<a class="flex items-center gap-4 py-2 text-on-surface-variant hover:text-on-surface transition-colors text-xs uppercase tracking-widest" href="#">
+<span class="material-symbols-outlined text-sm">terminal</span>
+<span>Coding Lab</span>
+</a>
+</nav>
+</div>
+<div class="mt-auto pb-10">
+<a class="flex items-center gap-3 py-2 text-on-surface-variant hover:text-on-surface transition-all text-xs uppercase tracking-widest mb-4" href="#">
+<span class="material-symbols-outlined text-sm">help_outline</span>
+<span>Support</span>
+</a>
+<div class="p-4 bg-surface-container rounded-lg border border-outline-variant/10">
+<p class="text-[10px] text-on-surface-variant uppercase tracking-widest mb-1">Session Limit</p>
+<div class="w-full h-1 bg-surface-container-highest rounded-full mb-2">
+<div class="h-full w-3/4 bg-primary/40"></div>
+</div>
+<p class="text-[10px] text-on-surface/60">45 / 60 mins used</p>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="md:ml-64 pt-24 pb-12 px-12 min-h-screen bg-background">
+<!-- Header Section -->
+<header class="mb-16 flex flex-col md:flex-row md:items-baseline justify-between gap-4 border-b border-outline-variant/10 pb-8">
+<div class="max-w-2xl">
+<p class="font-label text-xs text-primary/60 font-medium tracking-[0.3em] uppercase mb-3">Module 04 // Interactive</p>
+<h1 class="font-headline text-4xl font-light tracking-tight text-on-background">
+                    Voice <span class="font-extrabold">Practice</span>
+</h1>
+</div>
+<div class="flex items-center gap-4">
+<span class="text-[10px] font-label uppercase tracking-widest text-on-surface-variant">Live Session</span>
+<div class="w-1.5 h-1.5 rounded-full bg-secondary shadow-[0_0_8px_rgba(76,215,246,0.5)]"></div>
+</div>
+</header>
+<!-- Main Interaction Area (Zen Layout) -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-16">
+<!-- Left: Scenarios List (Slimmed down) -->
+<div class="lg:col-span-4 space-y-6 order-2 lg:order-1">
+<h3 class="font-headline text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-6">Select Scenario</h3>
+<div class="space-y-3">
+<button class="w-full text-left p-6 rounded-xl bg-surface-container border-l-2 border-primary transition-all group">
+<p class="text-[10px] uppercase tracking-widest text-primary/60 mb-2 font-bold">Scenario 01</p>
+<h4 class="font-medium text-sm text-on-surface group-hover:text-primary transition-colors">Shared Responsibility Model</h4>
+</button>
+<button class="w-full text-left p-6 rounded-xl bg-transparent border border-outline-variant/10 hover:bg-surface-container transition-all group">
+<p class="text-[10px] uppercase tracking-widest text-on-surface-variant mb-2">Scenario 02</p>
+<h4 class="font-medium text-sm text-on-surface-variant group-hover:text-on-surface transition-colors">Multi-Region Failover</h4>
+</button>
+<button class="w-full text-left p-6 rounded-xl bg-transparent border border-outline-variant/10 hover:bg-surface-container transition-all group">
+<p class="text-[10px] uppercase tracking-widest text-on-surface-variant mb-2">Scenario 03</p>
+<h4 class="font-medium text-sm text-on-surface-variant group-hover:text-on-surface transition-colors">Serverless Trade-offs</h4>
+</button>
+</div>
+</div>
+<!-- Center: Voice Interaction Module (Prominent & Minimal) -->
+<div class="lg:col-span-8 space-y-12 order-1 lg:order-2">
+<div class="flex flex-col items-center justify-center min-h-[400px] border border-outline-variant/10 rounded-3xl bg-surface-container-low/30 backdrop-blur-sm">
+<!-- Audio Waveform Visualizer (Subtle) -->
+<div class="flex items-center justify-center gap-1.5 h-20 mb-16">
+<div class="waveform-bar w-1 bg-primary rounded-full" style="animation-delay: 0.1s; height: 10px;"></div>
+<div class="waveform-bar w-1 bg-primary rounded-full" style="animation-delay: 0.4s; height: 15px;"></div>
+<div class="waveform-bar w-1 bg-secondary rounded-full" style="animation-delay: 0.2s; height: 30px;"></div>
+<div class="waveform-bar w-1 bg-primary rounded-full" style="animation-delay: 0.6s; height: 12px;"></div>
+<div class="waveform-bar w-1 bg-secondary rounded-full" style="animation-delay: 0.8s; height: 40px;"></div>
+<div class="waveform-bar w-1 bg-primary rounded-full" style="animation-delay: 0.3s; height: 20px;"></div>
+<div class="waveform-bar w-1 bg-primary rounded-full" style="animation-delay: 0.7s; height: 10px;"></div>
+<div class="waveform-bar w-1 bg-secondary rounded-full" style="animation-delay: 0.5s; height: 35px;"></div>
+<div class="waveform-bar w-1 bg-primary rounded-full" style="animation-delay: 0.9s; height: 15px;"></div>
+</div>
+<!-- Voice Button -->
+<button class="group relative flex items-center justify-center mb-10">
+<div class="absolute inset-0 bg-primary/10 blur-3xl rounded-full scale-150"></div>
+<div class="relative w-20 h-20 border border-primary/30 rounded-full flex items-center justify-center bg-background hover:bg-primary/5 transition-colors active:scale-95 duration-200">
+<span class="material-symbols-outlined text-3xl text-primary" style="font-variation-settings: 'FILL' 1;">mic</span>
+</div>
+</button>
+<div class="text-center">
+<p class="text-on-surface font-headline text-lg tracking-tight mb-2">System Listening</p>
+<p class="text-on-surface-variant text-xs font-label opacity-60 tracking-wider">Describe the Shared Responsibility Model clearly</p>
+</div>
+<!-- Real-time Transcript Area (Clean text-only) -->
+<div class="mt-16 w-full max-w-xl px-12 py-8 text-center border-t border-outline-variant/5">
+<p class="text-sm font-body leading-loose text-on-surface/70 italic">
+                            "In the Shared Responsibility Model, the provider is responsible for the security of the cloud, while the customer manages security in the cloud. This includes data encryption, access controls, and endpoint security..."
+                        </p>
+</div>
+</div>
+<!-- Footer Actions -->
+<div class="flex items-center justify-between pt-4">
+<button class="text-[10px] uppercase tracking-[0.2em] text-on-surface-variant hover:text-on-surface transition-colors font-bold">
+                        Abandon Session
+                    </button>
+<button class="px-10 py-3.5 rounded-full bg-on-surface text-surface text-[10px] uppercase tracking-[0.2em] font-bold hover:bg-primary hover:text-on-primary-fixed transition-all shadow-xl shadow-primary/5">
+                        Submit Analysis
+                    </button>
+</div>
+</div>
+</div>
+</main>
+</body></html>
