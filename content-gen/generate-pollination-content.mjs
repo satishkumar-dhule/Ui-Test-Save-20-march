@@ -20,6 +20,12 @@ import path from "path";
 import { fileURLToPath } from "url";
 import crypto from "crypto";
 import https from "https";
+import {
+  generateDiagramSync,
+  initDiagramDb,
+  diagramExists,
+  saveDiagram,
+} from "./generate-diagrams.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DB_PATH =
@@ -201,6 +207,22 @@ function openDb() {
     CREATE INDEX IF NOT EXISTS idx_channel ON generated_content(channel_id);
     CREATE INDEX IF NOT EXISTS idx_status ON generated_content(status);
     CREATE INDEX IF NOT EXISTS idx_quality ON generated_content(quality_score);
+
+    CREATE TABLE IF NOT EXISTS generated_diagrams (
+      id TEXT PRIMARY KEY,
+      hash TEXT UNIQUE NOT NULL,
+      svg_content TEXT NOT NULL,
+      channel_id TEXT NOT NULL,
+      question_id TEXT,
+      content_hash TEXT,
+      diagram_type TEXT,
+      keywords TEXT,
+      created_at INTEGER DEFAULT (strftime('%s', 'now'))
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_diag_hash ON generated_diagrams(hash);
+    CREATE INDEX IF NOT EXISTS idx_diag_channel ON generated_diagrams(channel_id);
+    CREATE INDEX IF NOT EXISTS idx_diag_question ON generated_diagrams(question_id);
   `);
   return db;
 }
@@ -802,6 +824,8 @@ async function generateOne(db, type, channel, agentId) {
     parsed.channelId = parsed.channelId || channel.id;
   }
 
+  await injectUniqueDiagramPollination(db, parsed, type, channel);
+
   const qualityScore = saveToDb(
     db,
     id,
@@ -814,6 +838,77 @@ async function generateOne(db, type, channel, agentId) {
   );
   updateAgentStatus(agentId, "idle");
   return qualityScore >= QUALITY_THRESHOLD;
+}
+
+async function injectUniqueDiagramPollination(db, parsed, type, channel) {
+  const diagramTypes = ["question", "flashcard", "exam", "voice", "coding"];
+  if (!diagramTypes.includes(type)) return;
+
+  try {
+    const diagramInfo = generateDiagramSync(parsed, channel.id);
+
+    if (diagramInfo && diagramInfo.svgContent) {
+      const existingHash = await diagramExists(db, diagramInfo.hash);
+
+      if (!existingHash) {
+        await saveDiagram(
+          db,
+          diagramInfo.hash,
+          diagramInfo.svgContent,
+          channel.id,
+          parsed.id,
+          diagramInfo,
+        );
+      }
+
+      if (type === "question" && parsed.sections) {
+        const diagramSection = parsed.sections.find(
+          (s) => s.type === "diagram" && s.svgContent,
+        );
+        if (!diagramSection || diagramSection.svgContent.length < 100) {
+          const idx = parsed.sections.findIndex((s) => s.type === "short");
+          if (idx !== -1) {
+            parsed.sections.splice(idx + 1, 0, {
+              type: "diagram",
+              title: `${parsed.title || "Concept"} Diagram`,
+              description: `Unique visual for ${channel.name} topic`,
+              svgContent: diagramInfo.svgContent,
+            });
+          } else {
+            parsed.sections.push({
+              type: "diagram",
+              title: `${parsed.title || "Concept"} Diagram`,
+              description: `Unique visual for ${channel.name} topic`,
+              svgContent: diagramInfo.svgContent,
+            });
+          }
+        } else {
+          diagramSection.svgContent = diagramInfo.svgContent;
+        }
+      } else if (
+        type === "flashcard" ||
+        type === "exam" ||
+        type === "voice" ||
+        type === "coding"
+      ) {
+        if (!parsed.diagram) {
+          parsed.diagram = {};
+        }
+        if (
+          !parsed.diagram.svgContent ||
+          parsed.diagram.svgContent.length < 100
+        ) {
+          parsed.diagram.title = `${parsed.title || parsed.prompt || "Concept"} Visual`;
+          parsed.diagram.description = `Unique diagram for ${channel.name}`;
+          parsed.diagram.svgContent = diagramInfo.svgContent;
+        } else {
+          parsed.diagram.svgContent = diagramInfo.svgContent;
+        }
+      }
+    }
+  } catch (err) {
+    console.warn(`   ⚠️  Diagram injection warning: ${err.message}`);
+  }
 }
 
 // ── Parallel Generation ────────────────────────────────────────────────────────

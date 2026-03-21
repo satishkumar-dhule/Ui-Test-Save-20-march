@@ -4,24 +4,37 @@ import {
   Shuffle,
   ChevronLeft,
   ChevronRight,
-  Menu,
-  Star,
   CheckCircle2,
+  Star,
+  Mic,
+  Gauge,
+  BadgeCheck,
+  Lightbulb,
 } from "lucide-react";
 import type { VoicePrompt } from "@/data/voicePractice";
 import { progressApi } from "@/services/progressApi";
+import { cn } from "@/lib/utils";
 
-const DIFF_EMOJI: Record<string, string> = {
-  beginner: "🟢",
-  intermediate: "🟡",
-  advanced: "🔴",
+const DIFF_BADGE: Record<string, { label: string; cls: string }> = {
+  beginner: { label: "BEGINNER", cls: "text-emerald-400 bg-emerald-400/10" },
+  intermediate: { label: "INTERMEDIATE", cls: "text-amber-400 bg-amber-400/10" },
+  advanced: { label: "ADVANCED", cls: "text-rose-400 bg-rose-400/10" },
 };
-const TYPE_COLOR: Record<string, string> = {
-  technical: "hsl(var(--primary))",
-  behavioral: "hsl(var(--chart-2))",
-  scenario: "hsl(var(--chart-3))",
-  explain: "hsl(var(--chart-4))",
-};
+
+const WAVEFORM_HEIGHTS = [30, 50, 80, 40, 90, 50, 20, 40, 70, 30];
+const WAVEFORM_DELAYS = [0.1, 0.3, 0.2, 0.5, 0.4, 0.7, 0.6, 0.8, 1.0, 0.9];
+const WAVEFORM_COLORS = [
+  "bg-[#c3c0ff]",
+  "bg-[#c3c0ff]",
+  "bg-[#4cd7f6]",
+  "bg-[#c3c0ff]",
+  "bg-[#4cd7f6]",
+  "bg-[#c3c0ff]",
+  "bg-[#c3c0ff]",
+  "bg-[#c3c0ff]",
+  "bg-[#4cd7f6]",
+  "bg-[#c3c0ff]",
+];
 
 type RecordPhase = "idle" | "countdown" | "recording" | "done";
 
@@ -39,7 +52,6 @@ export function VoicePracticePage({
   const [activeIdx, setActiveIdx] = useState(0);
   const [shuffle, setShuffle] = useState(false);
   const [order, setOrder] = useState<number[]>([]);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [phase, setPhase] = useState<RecordPhase>("idle");
   const [countdown, setCountdown] = useState(3);
   const [elapsed, setElapsed] = useState(0);
@@ -48,6 +60,7 @@ export function VoicePracticePage({
   const [keyPointsOpen, setKeyPointsOpen] = useState(false);
   const [ratings, setRatings] = useState<Record<string, number>>({});
   const [srSupported, setSrSupported] = useState(true);
+  const [isAnimating, setIsAnimating] = useState(false);
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const cdRef = useRef<NodeJS.Timeout | null>(null);
@@ -77,28 +90,41 @@ export function VoicePracticePage({
       if (timerRef.current) clearInterval(timerRef.current);
       if (cdRef.current) clearInterval(cdRef.current);
       if (recognitionRef.current) {
-        try {
-          recognitionRef.current.stop();
-        } catch {}
+        try { recognitionRef.current.stop(); } catch {}
       }
     };
   }, []);
 
+  useEffect(() => {
+    setIsAnimating(phase === "recording" || phase === "countdown");
+  }, [phase]);
+
   const displayPrompts = order.map((i) => prompts[i]).filter(Boolean);
   const active = displayPrompts[activeIdx];
 
-  const go = useCallback((dir: 1 | -1) => {
-    stopRecording();
-    setActiveIdx((i) => {
-      const max = displayPrompts.length - 1;
-      return Math.max(0, Math.min(max, i + dir));
-    });
-    setPhase("idle");
-    setElapsed(0);
-    setTranscript("");
-    setRating(0);
-    setKeyPointsOpen(false);
+  const stopRecording = useCallback(() => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    if (cdRef.current) clearInterval(cdRef.current);
+    if (recognitionRef.current) {
+      try { recognitionRef.current.stop(); } catch {}
+    }
   }, []);
+
+  const go = useCallback(
+    (dir: 1 | -1) => {
+      stopRecording();
+      setActiveIdx((i) => {
+        const max = displayPrompts.length - 1;
+        return Math.max(0, Math.min(max, i + dir));
+      });
+      setPhase("idle");
+      setElapsed(0);
+      setTranscript("");
+      setRating(0);
+      setKeyPointsOpen(false);
+    },
+    [displayPrompts.length, stopRecording]
+  );
 
   const doShuffle = () => {
     const arr = prompts.map((_, i) => i);
@@ -112,16 +138,6 @@ export function VoicePracticePage({
     setPhase("idle");
     setElapsed(0);
     setTranscript("");
-  };
-
-  const stopRecording = () => {
-    if (timerRef.current) clearInterval(timerRef.current);
-    if (cdRef.current) clearInterval(cdRef.current);
-    if (recognitionRef.current) {
-      try {
-        recognitionRef.current.stop();
-      } catch {}
-    }
   };
 
   const startCountdown = () => {
@@ -191,18 +207,20 @@ export function VoicePracticePage({
     }
   };
 
+  const handleMicClick = () => {
+    if (phase === "idle") startCountdown();
+    else if (phase === "recording") stop();
+    else if (phase === "done") retry();
+  };
+
   const mm = String(Math.floor(elapsed / 60)).padStart(2, "0");
   const ss = String(elapsed % 60).padStart(2, "0");
-  const timerCircumference = 2 * Math.PI * 50;
-  const timerPct = active ? Math.min(elapsed / active.timeLimit, 1) : 0;
 
   if (prompts.length === 0) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
         <Volume2 size={48} className="text-muted-foreground mb-4" />
-        <h3 className="text-lg font-semibold mb-2">
-          No voice prompts for this channel
-        </h3>
+        <h3 className="text-lg font-semibold mb-2">No voice prompts for this channel</h3>
         <p className="text-muted-foreground text-sm">
           Try JavaScript, React, or System Design channels.
         </p>
@@ -211,373 +229,433 @@ export function VoicePracticePage({
   }
 
   return (
-    <div className="flex flex-1 h-full overflow-hidden">
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 z-30 bg-black/60 md:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
+    <div className="flex-1 flex flex-col overflow-y-auto bg-[#0e0e0e] text-[#e5e2e1]">
+      <style>{`
+        @keyframes pulse-height {
+          from { height: 10px; opacity: 0.4; }
+          to { height: 60px; opacity: 1; }
+        }
+        .waveform-bar-active {
+          animation: pulse-height 1.2s ease-in-out infinite alternate;
+        }
+      `}</style>
 
-      {/* Sidebar */}
-      <div
-        className={`sidebar flex-shrink-0 flex-col border-r border-border overflow-hidden bg-card ${sidebarOpen ? "fixed left-0 top-0 h-full z-40 flex w-72" : "hidden md:flex"}`}
-        style={{ width: 260 }}
-      >
-        <div className="flex items-center gap-2 px-4 py-3 border-b border-border">
-          <Volume2 size={14} className="text-muted-foreground" />
-          <span className="text-sm font-semibold text-foreground">Prompts</span>
-          <span className="ml-auto text-[10px] font-bold bg-primary/15 text-primary px-1.5 rounded-full">
-            {displayPrompts.length}
-          </span>
+      {/* Page Header */}
+      <div className="px-6 pt-6 pb-2 flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+          <p className="text-xs font-semibold tracking-[0.2em] uppercase text-[#4cd7f6] mb-1">
+            Certification Mastery
+          </p>
+          <h1 className="text-4xl md:text-6xl font-extrabold tracking-tighter leading-none">
+            Voice{" "}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#c3c0ff] to-[#4cd7f6]">
+              Practice
+            </span>
+          </h1>
         </div>
-        <div className="flex-1 overflow-y-auto">
-          {displayPrompts.map((p, i) => (
+        <div className="flex items-center gap-4">
+          {/* Navigation controls */}
+          <div className="flex items-center gap-2">
             <button
-              key={p.id}
-              data-testid={`voice-sidebar-${p.id}`}
-              onClick={() => {
-                stopRecording();
-                setActiveIdx(i);
-                setPhase("idle");
-                setElapsed(0);
-                setTranscript("");
-                setRating(0);
-                setKeyPointsOpen(false);
-                setSidebarOpen(false);
-              }}
-              className="w-full text-left px-3 py-2.5 transition-colors hover:bg-muted/50 border-l-2 flex items-start gap-2"
-              style={{
-                borderLeftColor:
-                  i === activeIdx ? "hsl(var(--primary))" : "transparent",
-                background:
-                  i === activeIdx ? "hsl(var(--primary) / 0.06)" : undefined,
-              }}
+              onClick={
+                shuffle
+                  ? () => { setOrder(prompts.map((_, i) => i)); setShuffle(false); }
+                  : doShuffle
+              }
+              className={cn(
+                "flex items-center gap-1.5 text-[0.65rem] px-2.5 py-1.5 rounded border uppercase tracking-widest font-bold transition-colors",
+                shuffle
+                  ? "border-[#4f46e5] text-[#c3c0ff] bg-[#4f46e5]/10"
+                  : "border-[#464555]/40 text-[#c7c4d8] hover:bg-[#1c1b1b]"
+              )}
             >
-              <span className="text-base shrink-0">
-                {DIFF_EMOJI[p.difficulty]}
-              </span>
-              <div className="flex-1 min-w-0">
-                {ratings[p.id] && (
-                  <div className="flex gap-0.5 mb-0.5">
-                    {Array.from({ length: 5 }).map((_, si) => (
-                      <Star
-                        key={si}
-                        size={8}
-                        fill={
-                          si < ratings[p.id] ? "hsl(var(--chart-3))" : "none"
-                        }
-                        style={{ color: "hsl(var(--chart-3))" }}
-                      />
-                    ))}
-                  </div>
-                )}
-                <p className="text-xs text-foreground line-clamp-2 leading-snug">
-                  {p.prompt}
-                </p>
-              </div>
-              <span className="text-[10px] text-muted-foreground shrink-0 mt-0.5">
-                #{i + 1}
-              </span>
+              <Shuffle size={11} /> {shuffle ? "Shuffled" : "Shuffle"}
             </button>
-          ))}
+            <button
+              onClick={() => go(-1)}
+              disabled={activeIdx === 0}
+              className="w-8 h-8 rounded flex items-center justify-center border border-[#464555]/40 hover:bg-[#1c1b1b] disabled:opacity-30 transition-colors"
+            >
+              <ChevronLeft size={14} />
+            </button>
+            <span className="text-xs text-[#918fa1] font-mono w-12 text-center">
+              {activeIdx + 1}/{displayPrompts.length}
+            </span>
+            <button
+              onClick={() => go(1)}
+              disabled={activeIdx === displayPrompts.length - 1}
+              className="w-8 h-8 rounded flex items-center justify-center border border-[#464555]/40 hover:bg-[#1c1b1b] disabled:opacity-30 transition-colors"
+            >
+              <ChevronRight size={14} />
+            </button>
+          </div>
+          <div className="hidden md:flex items-center gap-3">
+            <div className="text-right">
+              <p className="text-[0.6rem] uppercase tracking-widest text-[#c7c4d8]">Session Status</p>
+              <p className="text-xs font-bold text-[#4cd7f6]">
+                {phase === "recording" ? "RECORDING" : phase === "countdown" ? "STARTING" : "ACTIVE PROTOCOL"}
+              </p>
+            </div>
+            <div
+              className={cn(
+                "w-2 h-2 rounded-full",
+                phase === "recording"
+                  ? "bg-rose-400 shadow-[0_0_10px_rgba(251,113,133,0.8)] animate-pulse"
+                  : "bg-[#4cd7f6] shadow-[0_0_10px_#4cd7f6]"
+              )}
+            />
+          </div>
         </div>
       </div>
 
-      {/* Main */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Toolbar */}
-        <div
-          className="flex items-center gap-2 px-4 border-b border-border bg-card/50"
-          style={{ height: 44 }}
-        >
-          <button
-            aria-label="Open prompt list"
-            className="mob-menu md:hidden items-center justify-center w-8 h-8 rounded hover:bg-muted transition-colors"
-            onClick={() => setSidebarOpen(true)}
-          >
-            <Menu size={16} />
-          </button>
-          <button
-            onClick={
-              shuffle
-                ? () => {
-                    setOrder(prompts.map((_, i) => i));
-                    setShuffle(false);
-                  }
-                : doShuffle
-            }
-            className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded border border-border hover:bg-muted transition-colors"
-            style={{ color: shuffle ? "hsl(var(--primary))" : undefined }}
-          >
-            <Shuffle size={12} /> {shuffle ? "Shuffled" : "Shuffle"}
-          </button>
-          <span className="text-xs text-muted-foreground ml-auto">
-            {activeIdx + 1} / {displayPrompts.length}
-          </span>
-          <button
-            aria-label="Previous prompt"
-            onClick={() => go(-1)}
-            disabled={activeIdx === 0}
-            className="w-7 h-7 rounded flex items-center justify-center hover:bg-muted disabled:opacity-30 transition-colors"
-          >
-            <ChevronLeft size={14} />
-          </button>
-          <button
-            aria-label="Next prompt"
-            onClick={() => go(1)}
-            disabled={activeIdx === displayPrompts.length - 1}
-            className="w-7 h-7 rounded flex items-center justify-center hover:bg-muted disabled:opacity-30 transition-colors"
-          >
-            <ChevronRight size={14} />
-          </button>
-        </div>
+      {/* Bento Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 px-6 pb-6 pt-4 flex-1">
 
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6">
-          {active && (
-            <div className="max-w-2xl mx-auto space-y-5">
-              {/* Prompt card */}
-              <div className="p-5 rounded-xl border border-border bg-card space-y-3">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                    {active.domain}
-                  </span>
-                  <span
-                    className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded-full"
-                    style={{
-                      background: TYPE_COLOR[active.type] + "20",
-                      color: TYPE_COLOR[active.type],
-                    }}
-                  >
-                    {active.type}
-                  </span>
-                  <span className="text-[11px] text-muted-foreground">
-                    {DIFF_EMOJI[active.difficulty]} {active.difficulty}
-                  </span>
-                  <span className="ml-auto text-xs text-muted-foreground">
-                    ⏱ {active.timeLimit}s
-                  </span>
-                </div>
-                <p className="text-[17px] font-bold text-foreground leading-snug">
-                  {active.prompt}
-                </p>
-              </div>
-
-              {/* Countdown */}
-              {phase === "countdown" && (
-                <div className="flex flex-col items-center justify-center py-6">
-                  <div
-                    data-testid="voice-countdown"
-                    className="w-20 h-20 rounded-full border-4 flex items-center justify-center text-4xl font-black"
-                    style={{
-                      borderColor: "hsl(var(--primary))",
-                      color: "hsl(var(--primary))",
-                    }}
-                  >
-                    {countdown}
-                  </div>
-                  <p className="text-sm text-muted-foreground mt-3">
-                    Get ready to speak...
-                  </p>
-                </div>
-              )}
-
-              {/* Recording panel */}
-              {(phase === "recording" ||
-                phase === "done" ||
-                phase === "idle") && (
-                <div className="flex flex-col items-center gap-5 py-4">
-                  {/* Circular timer SVG */}
-                  <div className="relative">
-                    <svg width={120} height={120} className="-rotate-90">
-                      <circle
-                        cx={60}
-                        cy={60}
-                        r={50}
-                        fill="none"
-                        stroke="hsl(var(--border))"
-                        strokeWidth={6}
-                      />
-                      <circle
-                        cx={60}
-                        cy={60}
-                        r={50}
-                        fill="none"
-                        stroke={
-                          phase === "recording"
-                            ? "hsl(var(--chart-5))"
-                            : "hsl(var(--primary))"
-                        }
-                        strokeWidth={6}
-                        strokeDasharray={`${timerCircumference}`}
-                        strokeDashoffset={`${timerCircumference * (1 - timerPct)}`}
-                        strokeLinecap="round"
-                        style={{ transition: "stroke-dashoffset 1s linear" }}
-                      />
-                    </svg>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="text-xl font-bold font-mono text-foreground">
-                        {mm}:{ss}
-                      </span>
-                      {phase === "recording" && (
-                        <span
-                          className="text-[10px] font-semibold"
-                          style={{ color: "hsl(var(--chart-5))" }}
-                        >
-                          ● REC
-                        </span>
-                      )}
-                      {phase === "idle" && (
-                        <span className="text-[10px] text-muted-foreground">
-                          Ready
-                        </span>
-                      )}
-                      {phase === "done" && (
-                        <span className="text-[10px] text-muted-foreground">
-                          Done
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Buttons */}
-                  {phase === "idle" &&
-                    (srSupported ? (
-                      <button
-                        data-testid="voice-start-btn"
-                        onClick={startCountdown}
-                        className="px-6 py-2.5 rounded-lg text-sm font-bold transition-all hover:opacity-90"
-                        style={{
-                          background: "hsl(var(--primary))",
-                          color: "hsl(var(--primary-foreground))",
-                        }}
-                      >
-                        Start
-                      </button>
-                    ) : (
-                      <div className="flex flex-col items-center gap-2 p-4 rounded-lg border border-border bg-muted/30 text-center">
-                        <p className="text-sm text-foreground">
-                          Speech Recognition is not supported in this browser.
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          Please use Google Chrome for voice practice features.
-                        </p>
-                      </div>
-                    ))}
-                  {phase === "recording" && (
-                    <button
-                      data-testid="voice-stop-btn"
-                      onClick={stop}
-                      className="px-6 py-2.5 rounded-lg text-sm font-bold transition-all"
-                      style={{
-                        background: "hsl(var(--chart-5) / 0.15)",
-                        color: "hsl(var(--chart-5))",
-                        border: "1.5px solid hsl(var(--chart-5) / 0.5)",
-                      }}
-                    >
-                      Stop
-                    </button>
-                  )}
-                  {phase === "done" && (
-                    <button
-                      data-testid="voice-retry-btn"
-                      onClick={retry}
-                      className="px-5 py-2 rounded-lg text-sm font-semibold border border-border hover:bg-muted transition-colors"
-                    >
-                      Retry
-                    </button>
-                  )}
-                </div>
-              )}
-
-              {/* Transcript */}
-              {transcript && (
-                <div className="p-4 rounded-lg border border-border bg-muted/30">
-                  <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
-                    Your response
-                  </div>
-                  <p className="text-sm text-foreground leading-relaxed">
-                    {transcript}
-                  </p>
-                </div>
-              )}
-
-              {/* Key Points */}
-              <div className="rounded-lg border border-border overflow-hidden">
+        {/* Left: Prompt List */}
+        <div className="lg:col-span-3 space-y-3 order-2 lg:order-1">
+          <h3 className="text-sm font-bold px-1 mb-3 uppercase tracking-widest text-[#c7c4d8]">
+            Practice Scenarios
+          </h3>
+          <div className="space-y-2">
+            {displayPrompts.map((p, i) => {
+              const isActive = i === activeIdx;
+              const diff = DIFF_BADGE[p.difficulty];
+              return (
                 <button
-                  onClick={() => setKeyPointsOpen((o) => !o)}
-                  className="w-full flex items-center justify-between px-4 py-3 text-sm font-semibold text-foreground hover:bg-muted/30 transition-colors"
+                  key={p.id}
+                  onClick={() => {
+                    stopRecording();
+                    setActiveIdx(i);
+                    setPhase("idle");
+                    setElapsed(0);
+                    setTranscript("");
+                    setRating(0);
+                    setKeyPointsOpen(false);
+                  }}
+                  className={cn(
+                    "w-full text-left p-3.5 rounded-xl transition-all duration-200 border",
+                    isActive
+                      ? "bg-[#201f1f] border-l-4 border-l-[#c3c0ff] border-t-transparent border-r-transparent border-b-transparent shadow-lg"
+                      : "bg-[#1c1b1b]/60 border-[#464555]/20 opacity-60 hover:opacity-100 hover:bg-[#201f1f]"
+                  )}
                 >
-                  <span>📌 Key Points to Cover</span>
-                  <span className="text-muted-foreground text-xs">
-                    {keyPointsOpen ? "▲" : "▼"}
-                  </span>
-                </button>
-                {keyPointsOpen && (
-                  <div className="px-4 pb-4 space-y-1.5 bg-card/50">
-                    {active.keyPoints.map((kp, i) => (
-                      <div key={i} className="flex items-start gap-2">
-                        <CheckCircle2
-                          size={14}
-                          className="shrink-0 mt-0.5"
-                          style={{ color: "hsl(var(--chart-2))" }}
-                        />
-                        <span className="text-sm text-foreground">{kp}</span>
-                      </div>
-                    ))}
-                    {active.followUp && (
-                      <div className="mt-3 pt-3 border-t border-border">
-                        <span className="text-xs font-semibold text-muted-foreground">
-                          Follow-up:{" "}
-                        </span>
-                        <span className="text-xs text-foreground">
-                          {active.followUp}
-                        </span>
+                  <p className={cn("text-[0.6rem] uppercase tracking-widest mb-1", isActive ? "text-[#c3c0ff]" : "text-[#918fa1]")}>
+                    Scenario {String(i + 1).padStart(2, "0")}
+                  </p>
+                  <h4 className="font-bold text-xs text-[#e5e2e1] leading-snug line-clamp-2">
+                    {p.prompt.length > 60 ? p.prompt.slice(0, 60) + "…" : p.prompt}
+                  </h4>
+                  <div className="flex items-center gap-2 mt-2.5 flex-wrap">
+                    <span className={cn("px-1.5 py-0.5 rounded text-[0.55rem] font-bold uppercase", diff.cls)}>
+                      {p.domain}
+                    </span>
+                    <span className="text-[0.55rem] text-[#918fa1]">{p.timeLimit}s practice</span>
+                    {ratings[p.id] && (
+                      <div className="flex gap-0.5 ml-auto">
+                        {Array.from({ length: 5 }).map((_, si) => (
+                          <Star
+                            key={si}
+                            size={8}
+                            fill={si < ratings[p.id] ? "#f59e0b" : "none"}
+                            className="text-amber-400"
+                          />
+                        ))}
                       </div>
                     )}
                   </div>
-                )}
-              </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
-              {/* Self-rating */}
-              {phase === "done" && (
-                <div className="flex flex-col items-center gap-3 p-4 rounded-lg border border-border bg-card">
-                  <p className="text-sm font-semibold text-foreground">
-                    Rate your response
-                  </p>
-                  <div className="flex gap-2">
-                    {[1, 2, 3, 4, 5].map((s) => (
-                      <button
-                        key={s}
-                        data-testid={`voice-star-${s}`}
-                        onClick={() => setRating(s)}
-                        className="p-1 transition-transform hover:scale-110"
-                      >
-                        <Star
-                          size={28}
-                          fill={s <= rating ? "hsl(var(--chart-3))" : "none"}
-                          style={{ color: "hsl(var(--chart-3))" }}
-                        />
-                      </button>
-                    ))}
-                  </div>
-                  {rating > 0 && (
-                    <button
-                      onClick={() => rateAndNext(rating)}
-                      className="px-5 py-1.5 rounded-lg text-sm font-bold"
-                      style={{
-                        background: "hsl(var(--primary))",
-                        color: "hsl(var(--primary-foreground))",
-                      }}
-                    >
-                      Next →
-                    </button>
+        {/* Center: Voice Interaction Module */}
+        <div className="lg:col-span-6 space-y-4 order-1 lg:order-2">
+          {/* Prompt card */}
+          {active && (
+            <div className="p-4 rounded-xl bg-[#201f1f] border border-[#464555]/20">
+              <div className="flex items-center gap-2 flex-wrap mb-2">
+                <span className="text-[0.6rem] font-bold uppercase tracking-widest text-[#918fa1]">
+                  {active.domain}
+                </span>
+                <span className="text-[0.6rem] font-bold uppercase px-1.5 py-0.5 rounded bg-[#4f46e5]/20 text-[#c3c0ff]">
+                  {active.type}
+                </span>
+                <span className={cn("text-[0.6rem] font-bold uppercase px-1.5 py-0.5 rounded ml-auto", DIFF_BADGE[active.difficulty].cls)}>
+                  {active.difficulty}
+                </span>
+              </div>
+              <p className="text-sm font-bold text-[#e5e2e1] leading-snug">{active.prompt}</p>
+            </div>
+          )}
+
+          {/* Main Voice Panel */}
+          <div className="bg-[#201f1f] relative overflow-hidden rounded-2xl p-8 flex flex-col items-center justify-center border border-[#464555]/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] min-h-[340px]">
+
+            {/* Countdown overlay */}
+            {phase === "countdown" && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#0e0e0e]/80 z-10 rounded-2xl">
+                <div
+                  data-testid="voice-countdown"
+                  className="w-20 h-20 rounded-full border-4 border-[#c3c0ff] flex items-center justify-center text-4xl font-black text-[#c3c0ff] mb-3"
+                >
+                  {countdown}
+                </div>
+                <p className="text-xs text-[#918fa1]">Get ready to speak…</p>
+              </div>
+            )}
+
+            {/* Waveform Visualizer */}
+            <div className="flex items-center justify-center gap-1 h-20 mb-8">
+              {WAVEFORM_HEIGHTS.map((h, i) => (
+                <div
+                  key={i}
+                  className={cn("w-1.5 rounded-full transition-all", WAVEFORM_COLORS[i], isAnimating ? "waveform-bar-active" : "")}
+                  style={{
+                    height: isAnimating ? undefined : `${Math.max(8, h * 0.3)}px`,
+                    animationDelay: `${WAVEFORM_DELAYS[i]}s`,
+                    opacity: isAnimating ? undefined : 0.3,
+                  }}
+                />
+              ))}
+            </div>
+
+            {/* Mic Button */}
+            <button
+              onClick={handleMicClick}
+              disabled={!srSupported && phase === "idle"}
+              className="group relative flex items-center justify-center mb-6"
+              data-testid={phase === "idle" ? "voice-start-btn" : phase === "recording" ? "voice-stop-btn" : "voice-retry-btn"}
+            >
+              <div
+                className={cn(
+                  "absolute inset-0 blur-2xl rounded-full transition-transform",
+                  phase === "recording" ? "bg-rose-400/20 group-active:scale-150" : "bg-[#c3c0ff]/20 group-active:scale-150"
+                )}
+              />
+              <div
+                className={cn(
+                  "relative w-20 h-20 rounded-full flex items-center justify-center shadow-lg transition-transform active:scale-90",
+                  phase === "recording"
+                    ? "bg-gradient-to-br from-rose-500 to-rose-700"
+                    : "bg-gradient-to-br from-[#4f46e5] to-[#03b5d3]"
+                )}
+              >
+                <Mic
+                  size={32}
+                  className={cn("text-white", phase === "recording" && "animate-pulse")}
+                  fill="white"
+                />
+              </div>
+            </button>
+
+            {/* State label */}
+            <p className="text-[#e5e2e1] font-bold text-base mb-1">
+              {phase === "idle" && (srSupported ? "Tap to Speak" : "Not Supported")}
+              {phase === "countdown" && "Get Ready…"}
+              {phase === "recording" && `Recording  ${mm}:${ss}`}
+              {phase === "done" && "Session Complete"}
+            </p>
+            <p className="text-[#918fa1] text-xs">
+              {phase === "idle" && (srSupported ? "Tap the mic to begin your practice session" : "Please use Google Chrome for voice features")}
+              {phase === "countdown" && "Preparing speech recognition…"}
+              {phase === "recording" && "Architect is listening to your explanation…"}
+              {phase === "done" && "Tap the mic to retry, or rate your response below"}
+            </p>
+
+            {/* Transcript */}
+            {(transcript || phase === "done") && (
+              <div className="mt-8 w-full p-5 bg-[#0e0e0e] rounded-xl border border-[#464555]/10">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-[0.6rem] uppercase tracking-widest text-[#918fa1]">Live Transcript</span>
+                  {phase === "recording" && (
+                    <span className="flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#4cd7f6] animate-pulse" />
+                      <span className="text-[0.6rem] text-[#4cd7f6] font-bold">STT ACTIVE</span>
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs leading-relaxed text-[#e5e2e1]/80 italic">
+                  {transcript
+                    ? `"${transcript}"`
+                    : "No speech detected. Try again in a Chrome browser."}
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Key Points */}
+          {active && (
+            <div className="rounded-xl border border-[#464555]/20 bg-[#201f1f] overflow-hidden">
+              <button
+                onClick={() => setKeyPointsOpen((o) => !o)}
+                className="w-full flex items-center justify-between px-5 py-3.5 text-xs font-bold text-[#e5e2e1] hover:bg-[#2a2a2a] transition-colors uppercase tracking-widest"
+              >
+                <span className="flex items-center gap-2">
+                  <CheckCircle2 size={13} className="text-[#4cd7f6]" />
+                  Key Points to Cover
+                </span>
+                <span className="text-[#918fa1]">{keyPointsOpen ? "▲" : "▼"}</span>
+              </button>
+              {keyPointsOpen && (
+                <div className="px-5 pb-5 space-y-2 border-t border-[#464555]/20">
+                  {active.keyPoints.map((kp, i) => (
+                    <div key={i} className="flex items-start gap-2 pt-2">
+                      <CheckCircle2 size={13} className="shrink-0 mt-0.5 text-[#4cd7f6]" />
+                      <span className="text-xs text-[#e5e2e1]">{kp}</span>
+                    </div>
+                  ))}
+                  {active.followUp && (
+                    <div className="mt-3 pt-3 border-t border-[#464555]/20">
+                      <span className="text-[0.6rem] font-bold text-[#918fa1] uppercase tracking-widest">Follow-up: </span>
+                      <span className="text-xs text-[#e5e2e1]">{active.followUp}</span>
+                    </div>
                   )}
                 </div>
               )}
             </div>
           )}
+
+          {/* Self-rating */}
+          {phase === "done" && (
+            <div className="flex flex-col items-center gap-3 p-5 rounded-xl border border-[#464555]/20 bg-[#201f1f]">
+              <p className="text-xs font-bold uppercase tracking-widest text-[#c7c4d8]">Rate Your Response</p>
+              <div className="flex gap-2">
+                {[1, 2, 3, 4, 5].map((s) => (
+                  <button
+                    key={s}
+                    data-testid={`voice-star-${s}`}
+                    onClick={() => setRating(s)}
+                    className="p-1 transition-transform hover:scale-110"
+                  >
+                    <Star
+                      size={28}
+                      fill={s <= rating ? "#f59e0b" : "none"}
+                      className="text-amber-400"
+                    />
+                  </button>
+                ))}
+              </div>
+              {rating > 0 && (
+                <button
+                  onClick={() => rateAndNext(rating)}
+                  className="px-6 py-2 rounded-lg text-[0.7rem] uppercase tracking-widest font-bold bg-gradient-to-r from-[#4f46e5] to-[#03b5d3] text-white shadow-lg active:scale-95 transition-transform"
+                >
+                  Save & Next →
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Right: Live Analysis */}
+        <div className="lg:col-span-3 space-y-4 order-3">
+          <h3 className="text-sm font-bold px-1 mb-3 uppercase tracking-widest text-[#c7c4d8]">
+            Live Analysis
+          </h3>
+
+          {/* Fluency Score */}
+          <div className="bg-[#201f1f] p-5 rounded-2xl border border-[#464555]/10 shadow-xl">
+            <div className="flex justify-between items-start mb-5">
+              <div>
+                <p className="text-[0.6rem] uppercase tracking-widest text-[#918fa1] mb-1">Fluency Score</p>
+                <h5 className="text-3xl font-black text-[#e5e2e1]">
+                  {phase === "recording"
+                    ? elapsed < 10 ? "—" : "7.8"
+                    : phase === "done" ? "8.4" : "—"}
+                  <span className="text-xs text-[#918fa1] font-normal">/10</span>
+                </h5>
+              </div>
+              <div className="p-2 bg-[#c3c0ff]/10 rounded-lg">
+                <Gauge size={20} className="text-[#c3c0ff]" />
+              </div>
+            </div>
+            <div className="w-full h-1.5 bg-[#353534] rounded-full overflow-hidden">
+              <div
+                className="h-full bg-[#c3c0ff] shadow-[0_0_10px_#c3c0ff] transition-all duration-1000 rounded-full"
+                style={{ width: phase === "done" ? "84%" : phase === "recording" && elapsed > 10 ? "78%" : "0%" }}
+              />
+            </div>
+            <p className="mt-3 text-[0.6rem] text-[#918fa1] italic leading-snug">
+              {phase === "done"
+                ? "Excellent pacing. Minimal hesitation noted during technical transition."
+                : "Begin speaking to generate analysis."}
+            </p>
+          </div>
+
+          {/* Technical Accuracy */}
+          <div className="bg-[#201f1f] p-5 rounded-2xl border border-[#464555]/10 shadow-xl">
+            <div className="flex justify-between items-start mb-5">
+              <div>
+                <p className="text-[0.6rem] uppercase tracking-widest text-[#918fa1] mb-1">Technical Accuracy</p>
+                <h5 className="text-3xl font-black text-[#e5e2e1]">
+                  {phase === "done" ? "92" : phase === "recording" && elapsed > 10 ? "87" : "—"}
+                  <span className="text-xs text-[#918fa1] font-normal">%</span>
+                </h5>
+              </div>
+              <div className="p-2 bg-[#4cd7f6]/10 rounded-lg">
+                <BadgeCheck size={20} className="text-[#4cd7f6]" />
+              </div>
+            </div>
+            <div className="flex items-end gap-1 h-10">
+              {[20, 40, 30, 60, 100].map((h, i) => (
+                <div
+                  key={i}
+                  className="flex-1 bg-[#4cd7f6] rounded-t-sm transition-all duration-700"
+                  style={{
+                    height: phase === "done" || (phase === "recording" && elapsed > 10) ? `${h}%` : "0%",
+                    opacity: 0.2 + i * 0.2,
+                    boxShadow: i === 4 ? "0 -5px 15px rgba(76,215,246,0.3)" : "none",
+                  }}
+                />
+              ))}
+            </div>
+            {phase === "done" && (
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {active?.keyPoints.slice(0, 2).map((kp, i) => (
+                  <span key={i} className="px-2 py-0.5 rounded bg-[#566175]/20 text-[0.55rem] text-[#bcc7de] border border-[#464555]/20">
+                    {kp.split(/[—–,]/)[0].trim().slice(0, 20)}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Architect's Note */}
+          <div className="p-5 bg-gradient-to-br from-[#201f1f] to-[#2a2a2a] rounded-2xl border border-[#464555]/10">
+            <h6 className="text-[0.6rem] font-bold uppercase tracking-widest text-[#c3c0ff] mb-2 flex items-center gap-1.5">
+              <Lightbulb size={12} />
+              Architect's Note
+            </h6>
+            <p className="text-xs text-[#918fa1] leading-relaxed">
+              {active
+                ? `To maximize your score, ensure you cover all ${active.keyPoints.length} key points clearly.${active.followUp ? ` Also prepare for: "${active.followUp}"` : ""}`
+                : "Select a scenario to receive personalized coaching notes."}
+            </p>
+          </div>
+
+          {/* Session Stats */}
+          <div className="p-5 bg-[#201f1f] rounded-2xl border border-[#464555]/10">
+            <h6 className="text-[0.6rem] font-bold uppercase tracking-widest text-[#918fa1] mb-3">Session Stats</h6>
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span className="text-[0.6rem] uppercase tracking-widest text-[#918fa1]">Completed</span>
+                <span className="text-xs font-bold text-[#e5e2e1]">{Object.keys(ratings).length} / {displayPrompts.length}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[0.6rem] uppercase tracking-widest text-[#918fa1]">Avg Rating</span>
+                <span className="text-xs font-bold text-[#4cd7f6]">
+                  {Object.keys(ratings).length === 0
+                    ? "—"
+                    : (Object.values(ratings).reduce((a, b) => a + b, 0) / Object.keys(ratings).length).toFixed(1) + " / 5"}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[0.6rem] uppercase tracking-widest text-[#918fa1]">Time Limit</span>
+                <span className="text-xs font-bold text-[#e5e2e1]">{active ? `${active.timeLimit}s` : "—"}</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

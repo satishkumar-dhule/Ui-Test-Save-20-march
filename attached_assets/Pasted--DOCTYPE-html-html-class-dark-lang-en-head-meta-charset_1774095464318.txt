@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Architect Elite | Voice Lab</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;400;700;800&amp;family=Inter:wght@300;400;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "outline-variant": "#464555",
+                        "inverse-primary": "#4d44e3",
+                        "surface-container-highest": "#353534",
+                        "surface": "#131313",
+                        "on-background": "#e5e2e1",
+                        "inverse-on-surface": "#313030",
+                        "primary-container": "#4f46e5",
+                        "surface-bright": "#3a3939",
+                        "background": "#131313",
+                        "inverse-surface": "#e5e2e1",
+                        "tertiary-container": "#566175",
+                        "on-secondary-container": "#00424e",
+                        "surface-variant": "#353534",
+                        "surface-tint": "#c3c0ff",
+                        "on-error-container": "#ffdad6",
+                        "on-secondary": "#003640",
+                        "on-primary-fixed": "#0f0069",
+                        "secondary": "#4cd7f6",
+                        "on-primary-fixed-variant": "#3323cc",
+                        "surface-dim": "#131313",
+                        "error": "#ffb4ab",
+                        "on-surface": "#e5e2e1",
+                        "outline": "#918fa1",
+                        "on-primary-container": "#dad7ff",
+                        "secondary-fixed": "#acedff",
+                        "primary": "#c3c0ff",
+                        "primary-fixed-dim": "#c3c0ff",
+                        "on-tertiary": "#263143",
+                        "on-tertiary-container": "#d1dcf4",
+                        "primary-fixed": "#e2dfff",
+                        "secondary-fixed-dim": "#4cd7f6",
+                        "on-secondary-fixed-variant": "#004e5c",
+                        "surface-container-high": "#2a2a2a",
+                        "surface-container-lowest": "#0e0e0e",
+                        "tertiary": "#bcc7de",
+                        "on-primary": "#1d00a5",
+                        "error-container": "#93000a",
+                        "secondary-container": "#03b5d3",
+                        "on-surface-variant": "#c7c4d8",
+                        "on-error": "#690005",
+                        "on-secondary-fixed": "#001f26",
+                        "tertiary-fixed-dim": "#bcc7de",
+                        "on-tertiary-fixed-variant": "#3c475a",
+                        "surface-container-low": "#1c1b1b",
+                        "surface-container": "#201f1f",
+                        "tertiary-fixed": "#d8e3fb",
+                        "on-tertiary-fixed": "#111c2d"
+                    },
+                    fontFamily: {
+                        "headline": ["Manrope"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+                },
+            },
+        }
+    </script>
+<style>
+        .waveform-bar {
+            animation: pulse-height 1.2s ease-in-out infinite alternate;
+        }
+        @keyframes pulse-height {
+            from { height: 10px; opacity: 0.4; }
+            to { height: 60px; opacity: 1; }
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-surface-container-lowest text-on-surface font-body selection:bg-primary/30">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-[#131313] backdrop-blur-xl opacity-90 shadow-[0_0_40px_rgba(76,215,246,0.04)]">
+<div class="flex justify-between items-center px-8 h-20 w-full">
+<div class="text-2xl font-black tracking-tighter text-[#e5e2e1] font-headline">
+                Architect Elite
+            </div>
+<div class="hidden md:flex items-center gap-8">
+<a class="text-[#e5e2e1] opacity-60 font-headline font-bold tracking-tight hover:text-[#c3c0ff] transition-colors duration-300" href="#">Curriculum</a>
+<a class="text-[#c3c0ff] border-b-2 border-[#4f46e5] font-headline font-bold tracking-tight active:scale-95 duration-200" href="#">Voice Lab</a>
+<a class="text-[#e5e2e1] opacity-60 font-headline font-bold tracking-tight hover:text-[#c3c0ff] transition-colors duration-300" href="#">Coding Lab</a>
+<a class="text-[#e5e2e1] opacity-60 font-headline font-bold tracking-tight hover:text-[#c3c0ff] transition-colors duration-300" href="#">Exam Center</a>
+</div>
+<div class="flex items-center gap-6">
+<span class="material-symbols-outlined text-[#c3c0ff] cursor-pointer">notifications</span>
+<span class="material-symbols-outlined text-[#c3c0ff] cursor-pointer">settings</span>
+<div class="w-10 h-10 rounded-full bg-surface-container-high border border-outline-variant/20 overflow-hidden">
+<img alt="User profile avatar" class="w-full h-full object-cover" data-alt="Stylized technical user avatar profile picture" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDo8lw8vFRlEEVdMqgRxl08nCau9UfTPwipRCLVxkf4fu_WlP4FI7lvEXJ6EaHyUqjtvnGfXdcLvf9thYUsMMRuNOfMeIt4Q_CxWMK-eF9LEknLi-LgnP4aW9G37TpVUeC5yvifSSmpf0AlzE7AXNtO5Uv1Nx_-TFrYBrU_xZ8e7NDM1WAe77Q8LrG9Yv4C6Zu_llhFKVqbSVH2KN-Doa0p6H46-13vmShlHfr3I8CEO09-95F5FkNXSN0Q3iepiVUd19yzDtDZlMA"/>
+</div>
+</div>
+</div>
+</nav>
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 h-full w-64 z-40 bg-[#0e0e0e] flex flex-col py-8 px-4 border-r border-[#464555]/20 mt-20 hidden md:flex">
+<div class="mb-12 px-2">
+<h2 class="font-headline font-extrabold text-xl text-on-background tracking-tighter">Mastery Hub</h2>
+<p class="font-label text-[0.65rem] uppercase tracking-widest text-primary opacity-80">Technical Tier 1</p>
+</div>
+<nav class="flex-1 space-y-2">
+<a class="flex items-center gap-4 py-3 px-4 rounded-r-lg text-[#e5e2e1] opacity-40 hover:bg-[#1c1b1b] hover:opacity-100 transition-all font-['Inter'] text-[0.75rem] uppercase tracking-widest active:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined">menu_book</span>
+<span>Curriculum</span>
+</a>
+<a class="flex items-center gap-4 py-3 px-4 rounded-r-lg bg-gradient-to-r from-[#4f46e5]/20 to-transparent text-[#c3c0ff] border-l-4 border-[#4f46e5] font-['Inter'] text-[0.75rem] uppercase tracking-widest active:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined">mic_external_on</span>
+<span>Voice Lab</span>
+</a>
+<a class="flex items-center gap-4 py-3 px-4 rounded-r-lg text-[#e5e2e1] opacity-40 hover:bg-[#1c1b1b] hover:opacity-100 transition-all font-['Inter'] text-[0.75rem] uppercase tracking-widest active:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined">terminal</span>
+<span>Coding Lab</span>
+</a>
+<a class="flex items-center gap-4 py-3 px-4 rounded-r-lg text-[#e5e2e1] opacity-40 hover:bg-[#1c1b1b] hover:opacity-100 transition-all font-['Inter'] text-[0.75rem] uppercase tracking-widest active:translate-x-1 duration-200" href="#">
+<span class="material-symbols-outlined">quiz</span>
+<span>Exam Center</span>
+</a>
+</nav>
+<div class="mt-auto space-y-4 px-2">
+<div class="p-4 bg-gradient-to-br from-primary-container to-secondary-container rounded-xl">
+<p class="text-[0.7rem] font-bold text-on-primary mb-2 uppercase tracking-tight">Upgrade to Pro</p>
+<p class="text-[0.6rem] text-on-primary/80 leading-tight">Unlock Tier 2 Case Studies &amp; Enterprise Metrics.</p>
+</div>
+<div class="pt-4 border-t border-outline-variant/10">
+<a class="flex items-center gap-3 py-2 text-[#e5e2e1] opacity-40 hover:opacity-100 transition-opacity text-[0.75rem] uppercase tracking-widest" href="#">
+<span class="material-symbols-outlined text-sm">help_outline</span>
+<span>Support</span>
+</a>
+<a class="flex items-center gap-3 py-2 text-[#e5e2e1] opacity-40 hover:opacity-100 transition-opacity text-[0.75rem] uppercase tracking-widest" href="#">
+<span class="material-symbols-outlined text-sm">logout</span>
+<span>Sign Out</span>
+</a>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="md:ml-64 pt-28 pb-12 px-8 min-h-screen bg-surface-container-lowest overflow-x-hidden">
+<!-- Header Section -->
+<header class="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
+<div class="max-w-2xl">
+<p class="font-label text-sm text-secondary font-semibold tracking-[0.2em] uppercase mb-2">Certification Mastery</p>
+<h1 class="font-headline text-5xl md:text-7xl font-extrabold tracking-tighter text-on-background leading-[0.9]">
+                    Voice <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">Practice</span>
+</h1>
+</div>
+<div class="flex items-center gap-4">
+<div class="text-right">
+<p class="text-[0.65rem] font-label uppercase tracking-widest text-on-surface-variant">Session Status</p>
+<p class="text-sm font-bold text-secondary">ACTIVE PROTOCOL</p>
+</div>
+<div class="w-2 h-2 rounded-full bg-secondary shadow-[0_0_10px_#4cd7f6]"></div>
+</div>
+</header>
+<!-- Main Interaction Area (Bento Layout) -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+<!-- Left: Scenarios List -->
+<div class="lg:col-span-3 space-y-4 order-2 lg:order-1">
+<h3 class="font-headline text-lg font-bold px-2 mb-4">Architect Scenarios</h3>
+<button class="w-full text-left p-4 rounded-xl bg-surface-container border-l-4 border-primary shadow-lg transition-all hover:translate-x-1">
+<p class="text-[0.65rem] uppercase tracking-widest text-primary mb-1">Scenario 01</p>
+<h4 class="font-bold text-sm text-on-surface leading-tight">Shared Responsibility Model</h4>
+<div class="flex items-center gap-2 mt-3">
+<span class="px-2 py-0.5 rounded-sm bg-tertiary-container/30 text-[0.6rem] text-tertiary">CLOUD OPS</span>
+<span class="text-[0.6rem] text-on-surface-variant">4m practice</span>
+</div>
+</button>
+<button class="w-full text-left p-4 rounded-xl bg-surface-container-low opacity-60 hover:opacity-100 transition-all hover:bg-surface-container">
+<p class="text-[0.65rem] uppercase tracking-widest text-on-surface-variant mb-1">Scenario 02</p>
+<h4 class="font-bold text-sm text-on-surface leading-tight">Multi-Region Failover Strategy</h4>
+<div class="flex items-center gap-2 mt-3">
+<span class="px-2 py-0.5 rounded-sm bg-tertiary-container/30 text-[0.6rem] text-tertiary">RESILIENCY</span>
+<span class="text-[0.6rem] text-on-surface-variant">6m practice</span>
+</div>
+</button>
+<button class="w-full text-left p-4 rounded-xl bg-surface-container-low opacity-60 hover:opacity-100 transition-all hover:bg-surface-container">
+<p class="text-[0.65rem] uppercase tracking-widest text-on-surface-variant mb-1">Scenario 03</p>
+<h4 class="font-bold text-sm text-on-surface leading-tight">Serverless Architecture Trade-offs</h4>
+<div class="flex items-center gap-2 mt-3">
+<span class="px-2 py-0.5 rounded-sm bg-tertiary-container/30 text-[0.6rem] text-tertiary">SERVERLESS</span>
+<span class="text-[0.6rem] text-on-surface-variant">5m practice</span>
+</div>
+</button>
+</div>
+<!-- Center: Voice Interaction Module -->
+<div class="lg:col-span-6 space-y-6 order-1 lg:order-2">
+<div class="bg-surface-container relative overflow-hidden rounded-2xl p-8 min-h-[400px] flex flex-col items-center justify-center border border-outline-variant/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+<!-- Audio Waveform Visualizer -->
+<div class="flex items-center justify-center gap-1 h-32 mb-12">
+<div class="waveform-bar w-1.5 bg-primary rounded-full" style="animation-delay: 0.1s; height: 30px;"></div>
+<div class="waveform-bar w-1.5 bg-primary rounded-full" style="animation-delay: 0.3s; height: 50px;"></div>
+<div class="waveform-bar w-1.5 bg-secondary rounded-full" style="animation-delay: 0.2s; height: 80px;"></div>
+<div class="waveform-bar w-1.5 bg-primary rounded-full" style="animation-delay: 0.5s; height: 40px;"></div>
+<div class="waveform-bar w-1.5 bg-secondary rounded-full" style="animation-delay: 0.4s; height: 90px;"></div>
+<div class="waveform-bar w-1.5 bg-primary rounded-full" style="animation-delay: 0.7s; height: 50px;"></div>
+<div class="waveform-bar w-1.5 bg-primary rounded-full" style="animation-delay: 0.6s; height: 20px;"></div>
+<div class="waveform-bar w-1.5 bg-primary rounded-full" style="animation-delay: 0.8s; height: 40px;"></div>
+<div class="waveform-bar w-1.5 bg-secondary rounded-full" style="animation-delay: 1.0s; height: 70px;"></div>
+<div class="waveform-bar w-1.5 bg-primary rounded-full" style="animation-delay: 0.9s; height: 30px;"></div>
+</div>
+<!-- Voice Button -->
+<button class="group relative flex items-center justify-center mb-10">
+<div class="absolute inset-0 bg-primary/20 blur-2xl rounded-full group-active:scale-150 transition-transform"></div>
+<div class="relative w-24 h-24 bg-gradient-to-br from-primary-container to-secondary-container rounded-full flex items-center justify-center shadow-lg active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-4xl text-on-primary" style="font-variation-settings: 'FILL' 1;">mic</span>
+</div>
+</button>
+<p class="text-on-surface font-headline font-bold text-xl mb-2">Speak Now</p>
+<p class="text-on-surface-variant text-sm font-label opacity-60">Architect is listening to your explanation...</p>
+<!-- Real-time Transcript Panel -->
+<div class="mt-12 w-full p-6 bg-surface-container-lowest rounded-xl border border-outline-variant/10">
+<div class="flex items-center justify-between mb-4">
+<span class="text-[0.6rem] uppercase tracking-widest text-on-surface-variant">Live Transcript</span>
+<span class="flex items-center gap-1">
+<span class="w-1 h-1 rounded-full bg-secondary animate-pulse"></span>
+<span class="text-[0.6rem] text-secondary font-bold">STT ACTIVE</span>
+</span>
+</div>
+<p class="text-sm font-body leading-relaxed text-on-surface/80 italic">
+                            "In the Shared Responsibility Model, the provider is responsible for the security <span class="text-primary font-bold">OF</span> the cloud, while the customer manages security <span class="text-secondary font-bold">IN</span> the cloud. This includes data encryption, access controls..."
+                        </p>
+</div>
+</div>
+</div>
+<!-- Right: Metrics & Feedback -->
+<div class="lg:col-span-3 space-y-6 order-3">
+<h3 class="font-headline text-lg font-bold px-2 mb-4">Live Analysis</h3>
+<!-- Fluency Score -->
+<div class="bg-surface-container p-6 rounded-2xl border border-outline-variant/10 shadow-xl">
+<div class="flex justify-between items-start mb-6">
+<div>
+<p class="text-[0.65rem] uppercase tracking-widest text-on-surface-variant mb-1">Fluency Score</p>
+<h5 class="font-headline text-3xl font-black text-on-surface">8.4<span class="text-sm text-on-surface-variant font-normal">/10</span></h5>
+</div>
+<div class="p-2 bg-primary/10 rounded-lg">
+<span class="material-symbols-outlined text-primary">speed</span>
+</div>
+</div>
+<div class="w-full h-1.5 bg-surface-container-highest rounded-full overflow-hidden relative">
+<div class="absolute top-0 left-0 h-full w-[84%] bg-primary shadow-[0_0_10px_#c3c0ff]"></div>
+</div>
+<p class="mt-4 text-[0.65rem] text-on-surface-variant italic leading-snug">Excellent pacing. Minimal hesitation noted during technical transition.</p>
+</div>
+<!-- Technical Accuracy Gauge -->
+<div class="bg-surface-container p-6 rounded-2xl border border-outline-variant/10 shadow-xl">
+<div class="flex justify-between items-start mb-6">
+<div>
+<p class="text-[0.65rem] uppercase tracking-widest text-on-surface-variant mb-1">Technical Accuracy</p>
+<h5 class="font-headline text-3xl font-black text-on-surface">92<span class="text-sm text-on-surface-variant font-normal">%</span></h5>
+</div>
+<div class="p-2 bg-secondary/10 rounded-lg">
+<span class="material-symbols-outlined text-secondary">verified</span>
+</div>
+</div>
+<div class="flex items-end gap-1 h-12">
+<div class="flex-1 bg-secondary opacity-20 h-4 rounded-t-sm"></div>
+<div class="flex-1 bg-secondary opacity-40 h-8 rounded-t-sm"></div>
+<div class="flex-1 bg-secondary opacity-60 h-6 rounded-t-sm"></div>
+<div class="flex-1 bg-secondary opacity-80 h-10 rounded-t-sm"></div>
+<div class="flex-1 bg-secondary h-12 rounded-t-sm shadow-[0_-5px_15px_rgba(76,215,246,0.3)]"></div>
+</div>
+<div class="mt-4 flex flex-wrap gap-2">
+<span class="px-2 py-1 rounded bg-tertiary-container/10 text-[0.6rem] text-on-tertiary-container border border-outline-variant/20">IAM Identified</span>
+<span class="px-2 py-1 rounded bg-tertiary-container/10 text-[0.6rem] text-on-tertiary-container border border-outline-variant/20">KMS Identified</span>
+</div>
+</div>
+<!-- Session Tips -->
+<div class="p-6 bg-gradient-to-br from-surface-container to-surface-container-high rounded-2xl border border-outline-variant/10">
+<h6 class="text-[0.65rem] font-bold uppercase tracking-widest text-primary mb-3">Architect's Note</h6>
+<p class="text-xs text-on-surface-variant leading-relaxed">
+                        To hit 10/10, ensure you explicitly mention <span class="text-on-surface font-bold">compliance frameworks</span> such as SOC2 and HIPAA in the context of global shared responsibility.
+                    </p>
+</div>
+</div>
+</div>
+<!-- Progress Footer (Mobile Bottom Nav suppression rule active) -->
+<footer class="mt-16 flex flex-col md:flex-row items-center justify-between border-t border-outline-variant/10 pt-8 gap-6">
+<div class="flex gap-8">
+<div>
+<p class="text-[0.6rem] uppercase tracking-widest text-on-surface-variant">Daily Goal</p>
+<p class="text-sm font-bold text-on-surface">45 / 60 Minutes</p>
+</div>
+<div>
+<p class="text-[0.6rem] uppercase tracking-widest text-on-surface-variant">Rank</p>
+<p class="text-sm font-bold text-secondary">MASTER ARCHITECT</p>
+</div>
+</div>
+<div class="flex gap-4">
+<button class="px-6 py-3 rounded-lg border border-outline-variant text-[0.7rem] uppercase tracking-widest font-bold hover:bg-surface-container-high transition-colors">End Session</button>
+<button class="px-8 py-3 rounded-lg bg-gradient-to-r from-primary-container to-secondary-container text-on-primary text-[0.7rem] uppercase tracking-widest font-bold shadow-lg active:scale-95 transition-transform">Save Analysis</button>
+</div>
+</footer>
+</main>
+</body></html>

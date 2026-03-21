@@ -20,6 +20,12 @@ import path from "path";
 import { fileURLToPath } from "url";
 import crypto from "crypto";
 import { loadChannelsFromDb } from "./db-channels.mjs";
+import {
+  generateDiagramSync,
+  initDiagramDb,
+  diagramExists,
+  saveDiagram,
+} from "./generate-diagrams.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DB_PATH =
@@ -79,6 +85,22 @@ function openDb() {
     CREATE INDEX IF NOT EXISTS idx_channel ON generated_content(channel_id);
     CREATE INDEX IF NOT EXISTS idx_status ON generated_content(status);
     CREATE INDEX IF NOT EXISTS idx_quality ON generated_content(quality_score);
+
+    CREATE TABLE IF NOT EXISTS generated_diagrams (
+      id TEXT PRIMARY KEY,
+      hash TEXT UNIQUE NOT NULL,
+      svg_content TEXT NOT NULL,
+      channel_id TEXT NOT NULL,
+      question_id TEXT,
+      content_hash TEXT,
+      diagram_type TEXT,
+      keywords TEXT,
+      created_at INTEGER DEFAULT (strftime('%s', 'now'))
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_diag_hash ON generated_diagrams(hash);
+    CREATE INDEX IF NOT EXISTS idx_diag_channel ON generated_diagrams(channel_id);
+    CREATE INDEX IF NOT EXISTS idx_diag_question ON generated_diagrams(question_id);
   `);
   return db;
 }
@@ -173,6 +195,46 @@ function logGeneration(
 const FLASHCARD_FRONT_MAX = 120;
 const FLASHCARD_BACK_MAX = 600;
 
+const sessionDiagramHashes = new Set();
+
+function hashSvg(svg) {
+  const normalized = svg.replace(/\s+/g, " ").replace(/>\s+</g, "><").trim();
+  return crypto.createHash("md5").update(normalized).digest("hex");
+}
+
+function extractDiagram(data, type) {
+  if (type === "question" && data.sections) {
+    const diagramSection = data.sections.find(
+      (s) => s.type === "diagram" && s.svgContent,
+    );
+    return diagramSection ? diagramSection.svgContent : null;
+  }
+  return null;
+}
+
+function validateDiagramQuality(svgContent) {
+  if (!svgContent || typeof svgContent !== "string")
+    return { valid: false, reason: "missing", score: -3 };
+  const trimmed = svgContent.trim();
+  if (trimmed.length < 50)
+    return { valid: false, reason: "empty_too_small", score: -3 };
+  if (!trimmed.includes('viewBox="'))
+    return { valid: false, reason: "no_viewbox", score: -3 };
+  const genericPatterns = [
+    "TODO",
+    "placeholder",
+    "REPLACE THIS",
+    "example diagram",
+    "sample diagram",
+  ];
+  const lowerSvg = trimmed.toLowerCase();
+  for (const pattern of genericPatterns) {
+    if (lowerSvg.includes(pattern.toLowerCase()))
+      return { valid: false, reason: "generic_placeholder", score: -3 };
+  }
+  return { valid: true, reason: "valid", score: 2 };
+}
+
 function assessQuality(data, type) {
   let score = 0;
   const requirements = {
@@ -202,6 +264,18 @@ function assessQuality(data, type) {
     if (back.length > 300 && !hasBullets && !back.includes("\n")) score -= 2;
     if (back.length > FLASHCARD_BACK_MAX) score -= 1;
     if (data.mnemonic) score += 1;
+
+    const svgContent = data.diagram?.svgContent || null;
+    const diagramResult = validateDiagramQuality(svgContent);
+    score += diagramResult.score;
+    if (diagramResult.valid) {
+      const svgHash = hashSvg(svgContent);
+      if (sessionDiagramHashes.has(svgHash)) {
+        score -= 2;
+      } else {
+        sessionDiagramHashes.add(svgHash);
+      }
+    }
   } else if (type === "coding") {
     const starterCode = data.starterCode;
     if (starterCode && typeof starterCode === "object") {
@@ -210,18 +284,67 @@ function assessQuality(data, type) {
       if (starterCode.python && starterCode.python.length > 30) score += 1;
     }
     if (data.solution) score += 1;
+
+    const svgContent = data.diagram?.svgContent || null;
+    const diagramResult = validateDiagramQuality(svgContent);
+    score += diagramResult.score;
+    if (diagramResult.valid) {
+      const svgHash = hashSvg(svgContent);
+      if (sessionDiagramHashes.has(svgHash)) {
+        score -= 2;
+      } else {
+        sessionDiagramHashes.add(svgHash);
+      }
+    }
+  } else if (type === "exam") {
+    const svgContent = data.diagram?.svgContent || null;
+    const diagramResult = validateDiagramQuality(svgContent);
+    score += diagramResult.score;
+    if (diagramResult.valid) {
+      const svgHash = hashSvg(svgContent);
+      if (sessionDiagramHashes.has(svgHash)) {
+        score -= 2;
+      } else {
+        sessionDiagramHashes.add(svgHash);
+      }
+    }
+  } else if (type === "voice") {
+    const svgContent = data.diagram?.svgContent || null;
+    const diagramResult = validateDiagramQuality(svgContent);
+    score += diagramResult.score;
+    if (diagramResult.valid) {
+      const svgHash = hashSvg(svgContent);
+      if (sessionDiagramHashes.has(svgHash)) {
+        score -= 2;
+      } else {
+        sessionDiagramHashes.add(svgHash);
+      }
+    }
   } else if (type === "question" && data.sections) {
     const hasCode = data.sections.some(
       (s) => s.type === "code" && s.content && s.content.length > 30,
     );
     if (hasCode) score += 1;
+
+    const svgContent = extractDiagram(data, type);
+    const diagramResult = validateDiagramQuality(svgContent);
+    score += diagramResult.score;
+
+    if (diagramResult.valid) {
+      const svgHash = hashSvg(svgContent);
+      if (sessionDiagramHashes.has(svgHash)) {
+        score -= 2;
+      } else {
+        sessionDiagramHashes.add(svgHash);
+      }
+    }
   }
 
   if (dataStr.includes("REPLACE") || dataStr.includes("TODO")) {
     score -= 1;
   }
 
-  const maxScore = required.length + 5;
+  const maxScore = required.length + 8;
   return Math.max(0, Math.min(1, score / maxScore));
 }
 
@@ -355,6 +478,15 @@ CRITICAL REQUIREMENTS:
 - Use proper markdown with **bold** for key terms
 - Tags must be from: ${JSON.stringify(channel.tags)}
 
+DIAGRAM REQUIREMENT (MANDATORY):
+- Generate a UNIQUE, TOPIC-SPECIFIC SVG diagram that visually explains the concept
+- Diagram must be relevant to THIS specific question (not generic)
+- Include specific values, labels, or concepts from the question content
+- SVG must use dark theme with colors: #56d364 (green), #388bfd (blue), #d2a8ff (purple), #ffa657 (orange), #e3b341 (yellow), #21262d/#161b22 (backgrounds)
+- SVG viewBox should be appropriate size (e.g., 600x400 or 600x350)
+
+QUALITY CHECK: If no diagram section is present, the content is INVALID.
+
 Return ONLY a valid JSON object in a json code fence. No other text.
 
 \`\`\`json
@@ -372,6 +504,12 @@ Return ONLY a valid JSON object in a json code fence. No other text.
     {
       "type": "short",
       "content": "Comprehensive 2-3 paragraph explanation with **bold key terms** and \`inline code\`. Address common misconceptions."
+    },
+    {
+      "type": "diagram",
+      "title": "Topic-Specific Diagram Title",
+      "description": "Brief description of what the diagram illustrates",
+      "svgContent": "<svg viewBox=\"0 0 600 400\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"system-ui, sans-serif\"><rect x=\"10\" y=\"10\" width=\"580\" height=\"380\" rx=\"8\" fill=\"#21262d\" stroke=\"#30363d\" stroke-width=\"1.5\"/><text x=\"300\" y=\"35\" text-anchor=\"middle\" fill=\"#e3b341\" font-size=\"14\" font-weight=\"700\">DIAGRAM TITLE</text><!-- Add specific diagram elements here --></svg>"
     },
     {
       "type": "code",
@@ -403,6 +541,15 @@ STRICT FORMAT REQUIREMENTS:
 - commonConfusion: one sentence misconception (max 100 chars) — optional
 - Use **bold** for key terms; use \`backtick\` for inline code/commands
 
+DIAGRAM REQUIREMENT (MANDATORY):
+- Generate a UNIQUE, TOPIC-SPECIFIC SVG diagram that visually explains the flashcard concept
+- Diagram must illustrate the KEY CONCEPT from the front/back (not generic)
+- Consider: flowcharts for processes, state diagrams for concepts, comparison tables for alternatives, or annotated code blocks
+- SVG must use dark theme with colors: #56d364 (green), #388bfd (blue), #d2a8ff (purple), #ffa657 (orange), #e3b341 (yellow)
+- Keep diagrams minimal but informative (600x300 or similar)
+
+QUALITY CHECK: If no diagram section is present, the content is INVALID.
+
 BAD back (do NOT write prose paragraphs):
 "MVCC works by creating new row versions instead of locking. This allows readers to never block writers..."
 
@@ -417,11 +564,16 @@ Return ONLY valid JSON in a json code fence.
   "front": "Concise ${domain} concept question (max 100 chars)",
   "back": "- **Key concept**: brief explanation\\n- Second point with \`code\` example\\n- Third point",
   "hint": "One-line clue (max 80 chars)",
-  "tags": ["${channel.tags.slice(0, 2).join('\", \"')}"],
+  "tags": ["${channel.tags.slice(0, 2).join('", "')}"],
   "difficulty": "${difficulty}",
   "category": "${domain}",
   "mnemonic": "Short memory aid (optional)",
-  "commonConfusion": "Common misconception (optional, max 100 chars)"
+  "commonConfusion": "Common misconception (optional, max 100 chars)",
+  "diagram": {
+    "title": "Flashcard Concept Diagram",
+    "description": "What the diagram illustrates",
+    "svgContent": "<svg viewBox=\"0 0 600 300\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"system-ui, sans-serif\"><rect x=\"10\" y=\"10\" width=\"580\" height=\"280\" rx=\"8\" fill=\"#21262d\" stroke=\"#30363d\" stroke-width=\"1.5\"/><text x=\"300\" y=\"35\" text-anchor=\"middle\" fill=\"#e3b341\" font-size=\"14\" font-weight=\"700\">CONCEPT DIAGRAM</text><!-- Add specific diagram elements --></svg>"
+  }
 }
 \`\`\``;
 
@@ -436,6 +588,16 @@ CRITICAL REQUIREMENTS:
 - 2-3 sentence explanation of why correct answer is right
 - Mention why each distractor is wrong
 - Include domain/topic classification
+
+DIAGRAM REQUIREMENT (MANDATORY):
+- Generate a UNIQUE, TOPIC-SPECIFIC SVG diagram that illustrates the exam scenario
+- For scenarios: show the architecture, flow, or setup described
+- For comparisons: show side-by-side or comparison matrix
+- For processes: show step-by-step flow with decision points
+- SVG must use dark theme with colors: #56d364 (green), #388bfd (blue), #d2a8ff (purple), #ffa657 (orange), #e3b341 (yellow)
+- Diagrams should help visualize the exam scenario (600x350 recommended)
+
+QUALITY CHECK: If no diagram section is present, the content is INVALID.
 
 Return ONLY a valid JSON object in a json code fence.
 
@@ -457,7 +619,12 @@ Return ONLY a valid JSON object in a json code fence.
   "explanation": "Why A is correct. Why B is wrong (common misconception). Why C is wrong (partial understanding). Why D is wrong (overgeneralization).",
   "difficulty": "${difficulty}",
   "points": 1,
-  "timeEstimate": 90
+  "timeEstimate": 90,
+  "diagram": {
+    "title": "Scenario/Concept Diagram",
+    "description": "Visual representation of the exam scenario or concept",
+    "svgContent": "<svg viewBox=\"0 0 600 350\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"system-ui, sans-serif\"><rect x=\"10\" y=\"10\" width=\"580\" height=\"330\" rx=\"8\" fill=\"#21262d\" stroke=\"#30363d\" stroke-width=\"1.5\"/><text x=\"300\" y=\"35\" text-anchor=\"middle\" fill=\"#e3b341\" font-size=\"14\" font-weight=\"700\">SCENARIO DIAGRAM</text><!-- Add scenario-specific elements --></svg>"
+  }
 }
 \`\`\``;
 
@@ -470,6 +637,17 @@ CRITICAL REQUIREMENTS:
 - 4-6 key points the answer must cover
 - Natural follow-up question
 - Difficulty: ${difficulty}
+
+DIAGRAM REQUIREMENT (MANDATORY):
+- Generate a UNIQUE, TOPIC-SPECIFIC SVG diagram that helps visualize the concept to explain
+- For processes: show the workflow or steps visually
+- For comparisons: show pros/cons or feature comparison
+- For architectures: show component relationships
+- For concepts: show the key idea visually with annotations
+- SVG must use dark theme with colors: #56d364 (green), #388bfd (blue), #d2a8ff (purple), #ffa657 (orange), #e3b341 (yellow)
+- This diagram serves as a visual aid for the speaker to reference (600x320 recommended)
+
+QUALITY CHECK: If no diagram section is present, the content is INVALID.
 
 Return ONLY a valid JSON object in a json code fence.
 
@@ -494,7 +672,12 @@ Return ONLY a valid JSON object in a json code fence.
     "body": "Main points to cover",
     "conclusion": "How to wrap up"
   },
-  "commonMistakes": ["mistake 1", "mistake 2"]
+  "commonMistakes": ["mistake 1", "mistake 2"],
+  "diagram": {
+    "title": "Concept Visual Aid",
+    "description": "Visual representation to help structure the verbal explanation",
+    "svgContent": "<svg viewBox=\"0 0 600 320\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"system-ui, sans-serif\"><rect x=\"10\" y=\"10\" width=\"580\" height=\"300\" rx=\"8\" fill=\"#21262d\" stroke=\"#30363d\" stroke-width=\"1.5\"/><text x=\"300\" y=\"35\" text-anchor=\"middle\" fill=\"#e3b341\" font-size=\"14\" font-weight=\"700\">CONCEPT VISUAL</text><!-- Add visual elements for speaking points --></svg>"
+  }
 }
 \`\`\``;
 
@@ -508,6 +691,17 @@ CRITICAL REQUIREMENTS:
 - Time/space complexity analysis
 - Step-by-step approach explanation
 - Real-world analogy (ELI5)
+
+DIAGRAM REQUIREMENT (MANDATORY):
+- Generate a UNIQUE, TOPIC-SPECIFIC SVG diagram that illustrates the problem
+- For data structure problems: show the structure with annotations
+- For algorithm problems: show the algorithm steps/flow
+- For graph/tree problems: show example input/output with transformations
+- Include sample input/output values in the diagram
+- SVG must use dark theme with colors: #56d364 (green), #388bfd (blue), #d2a8ff (purple), #ffa657 (orange), #e3b341 (yellow)
+- Diagrams should show before/after states for transformations (600x380 recommended)
+
+QUALITY CHECK: If no diagram section is present, the content is INVALID.
 
 Return ONLY a valid JSON object in a json code fence.
 
@@ -560,7 +754,12 @@ Return ONLY a valid JSON object in a json code fence.
     "explanation": "Why this is the optimal complexity"
   },
   "relatedConcepts": ["concept 1", "concept 2", "concept 3"],
-  "commonErrors": ["error 1", "error 2"]
+  "commonErrors": ["error 1", "error 2"],
+  "diagram": {
+    "title": "Problem Visualization",
+    "description": "Visual representation of input, transformation, and expected output",
+    "svgContent": "<svg viewBox=\"0 0 600 380\" xmlns=\"http://www.w3.org/2000/svg\" font-family=\"system-ui, sans-serif\"><rect x=\"10\" y=\"10\" width=\"580\" height=\"360\" rx=\"8\" fill=\"#21262d\" stroke=\"#30363d\" stroke-width=\"1.5\"/><text x=\"300\" y=\"35\" text-anchor=\"middle\" fill=\"#e3b341\" font-size=\"14\" font-weight=\"700\">PROBLEM VISUALIZATION</text><!-- Show input state, transformation, output state --></svg>"
+  }
 }
 \`\`\``;
 
@@ -658,6 +857,8 @@ async function generateOne(db, type, channel) {
     parsed.channelId = parsed.channelId || channel.id;
   }
 
+  await injectUniqueDiagram(db, parsed, type, channel);
+
   const qualityScore = saveToDb(
     db,
     id,
@@ -668,6 +869,77 @@ async function generateOne(db, type, channel) {
     model,
   );
   return qualityScore >= QUALITY_THRESHOLD;
+}
+
+async function injectUniqueDiagram(db, parsed, type, channel) {
+  const diagramTypes = ["question", "flashcard", "exam", "voice", "coding"];
+  if (!diagramTypes.includes(type)) return;
+
+  try {
+    const diagramInfo = generateDiagramSync(parsed, channel.id);
+
+    if (diagramInfo && diagramInfo.svgContent) {
+      const existingHash = await diagramExists(db, diagramInfo.hash);
+
+      if (!existingHash) {
+        await saveDiagram(
+          db,
+          diagramInfo.hash,
+          diagramInfo.svgContent,
+          channel.id,
+          parsed.id,
+          diagramInfo,
+        );
+      }
+
+      if (type === "question" && parsed.sections) {
+        const diagramSection = parsed.sections.find(
+          (s) => s.type === "diagram" && s.svgContent,
+        );
+        if (!diagramSection || diagramSection.svgContent.length < 100) {
+          const idx = parsed.sections.findIndex((s) => s.type === "short");
+          if (idx !== -1) {
+            parsed.sections.splice(idx + 1, 0, {
+              type: "diagram",
+              title: `${parsed.title || "Concept"} Diagram`,
+              description: `Unique visual for ${channel.name} topic`,
+              svgContent: diagramInfo.svgContent,
+            });
+          } else {
+            parsed.sections.push({
+              type: "diagram",
+              title: `${parsed.title || "Concept"} Diagram`,
+              description: `Unique visual for ${channel.name} topic`,
+              svgContent: diagramInfo.svgContent,
+            });
+          }
+        } else {
+          diagramSection.svgContent = diagramInfo.svgContent;
+        }
+      } else if (
+        type === "flashcard" ||
+        type === "exam" ||
+        type === "voice" ||
+        type === "coding"
+      ) {
+        if (!parsed.diagram) {
+          parsed.diagram = {};
+        }
+        if (
+          !parsed.diagram.svgContent ||
+          parsed.diagram.svgContent.length < 100
+        ) {
+          parsed.diagram.title = `${parsed.title || parsed.prompt || "Concept"} Visual`;
+          parsed.diagram.description = `Unique diagram for ${channel.name}`;
+          parsed.diagram.svgContent = diagramInfo.svgContent;
+        } else {
+          parsed.diagram.svgContent = diagramInfo.svgContent;
+        }
+      }
+    }
+  } catch (err) {
+    console.warn(`   ⚠️  Diagram injection warning: ${err.message}`);
+  }
 }
 
 // ── Strategy Agent ────────────────────────────────────────────────────────────

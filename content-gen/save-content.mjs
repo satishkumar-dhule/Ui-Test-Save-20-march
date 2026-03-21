@@ -14,12 +14,14 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import crypto from "crypto";
+import { getTemplateForContent, hashDiagram } from "./diagram-templates.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const DB_PATH =
   process.env.DB_PATH || path.resolve(__dirname, "../data/devprep.db");
 const QUALITY_THRESHOLD = 0.5;
+const ENABLE_DIAGRAM_CHECK = true;
 
 // ── Parse args ────────────────────────────────────────────────────────────────
 const args = process.argv.slice(2);
@@ -148,6 +150,64 @@ if (!data || typeof data !== "object") {
   process.exit(1);
 }
 
+// ── Diagram Validation ────────────────────────────────────────────────────────
+function hasDiagram(data) {
+  if (!data.sections) return false;
+  return data.sections.some(
+    (s) =>
+      s.type === "diagram" ||
+      (s.type === "code" &&
+        (s.filename?.includes("diagram") ||
+          s.filename?.includes("architecture") ||
+          s.filename?.includes("flow") ||
+          s.filename?.includes("sequence") ||
+          s.filename?.includes("topology") ||
+          s.filename?.includes("pipeline"))),
+  );
+}
+
+function addFallbackDiagram(data, channelId) {
+  const template = getTemplateForContent(
+    channelId,
+    data.content_type || "question",
+  );
+  if (!data.sections) data.sections = [];
+  data.sections.push(template);
+  return template;
+}
+
+function checkDiagramUniqueness(db, svgContent) {
+  const hash = hashDiagram(svgContent);
+  const existing = db
+    .prepare(
+      `SELECT id, channel_id FROM generated_content 
+       WHERE data LIKE '%' || ? || '%' LIMIT 10`,
+    )
+    .all(hash);
+  return { hash, duplicates: existing };
+}
+
+function validateDiagramUniqueness(db, data, channelId, type) {
+  if (!ENABLE_DIAGRAM_CHECK || type !== "question") return { valid: true };
+
+  const diagrams = (data.sections || []).filter(
+    (s) => s.type === "diagram" && s.svgContent,
+  );
+
+  for (const diagram of diagrams) {
+    const { hash, duplicates } = checkDiagramUniqueness(db, diagram.svgContent);
+    if (duplicates.length > 0) {
+      return {
+        valid: false,
+        error: `Duplicate diagram detected (hash: ${hash}). ${duplicates.length} existing record(s) with identical diagram.`,
+        duplicates,
+      };
+    }
+  }
+
+  return { valid: true };
+}
+
 // ── Quality Assessment ────────────────────────────────────────────────────────
 // Flashcard quality constraints
 const FLASHCARD_FRONT_MAX = 120; // characters
@@ -195,6 +255,7 @@ function assessQuality(data, type) {
     data.sections?.some((s) => s.type === "code" && s.content?.length > 30)
   )
     score++;
+  if (hasDiagram(data)) score++;
   if (str.includes("REPLACE") || str.includes("TODO")) score--;
   return Math.max(0, Math.min(1, score / (required.length + 5)));
 }
@@ -236,6 +297,22 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_type ON generated_content(content_type);
   CREATE INDEX IF NOT EXISTS idx_channel ON generated_content(channel_id);
 `);
+
+if (!hasDiagram(data)) {
+  console.log(`   📊 No diagram found, adding fallback...`);
+  const template = addFallbackDiagram(data, channel);
+  console.log(`   ✅ Added fallback diagram: ${template.filename}`);
+}
+
+const uniquenessCheck = validateDiagramUniqueness(db, data, channel, type);
+if (!uniquenessCheck.valid) {
+  console.error(`❌ Diagram validation failed: ${uniquenessCheck.error}`);
+  console.error(
+    `   Duplicates: ${uniquenessCheck.duplicates.map((d) => d.id).join(", ")}`,
+  );
+  db.close();
+  process.exit(1);
+}
 
 const qualityScore = assessQuality(data, type);
 const status = qualityScore >= QUALITY_THRESHOLD ? "approved" : "pending";

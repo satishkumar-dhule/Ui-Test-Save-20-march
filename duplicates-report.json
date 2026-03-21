@@ -1,0 +1,37 @@
+{
+  "totalDuplicates": 3,
+  "duplicateGroups": [
+    {
+      "channel": "cissp",
+      "type": "question",
+      "count": 2,
+      "titlePrefix": "How would you design a key management system for a"
+    },
+    {
+      "channel": "javascript",
+      "type": "question",
+      "count": 2,
+      "titlePrefix": "Implement a paginated API consumer using async gen"
+    },
+    {
+      "channel": "react",
+      "type": "question",
+      "count": 2,
+      "titlePrefix": "Explain the difference between useTransition and u"
+    }
+  ],
+  "channelsWithIssues": ["cissp", "javascript", "react"],
+  "recommendations": [
+    "Add content deduplication based on title hash before insertion",
+    "Implement diagram section parsing in generate-content.mjs",
+    "Create generated_diagrams table for centralized diagram storage",
+    "Add tests for diagram generation and deduplication"
+  ],
+  "analysisTimestamp": "2026-03-21T00:30:00.000Z",
+  "databaseStatus": "populated",
+  "databasePath": "/home/runner/workspace/data/devprep.db",
+  "totalRecords": 1371,
+  "questionsWithDiagrams": 0,
+  "questionsWithProperSections": 292,
+  "notes": "Found 3 duplicate title groups. No diagram sections exist in any questions - this is the primary issue to fix."
+}
