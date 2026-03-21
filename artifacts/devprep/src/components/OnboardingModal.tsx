@@ -194,6 +194,7 @@ export function OnboardingModal({ onDone, initialSelected }: OnboardingModalProp
       <div
         ref={modalRef}
         className="glass-card-lg w-full max-w-2xl max-h-[88vh] flex flex-col rounded-2xl overflow-hidden"
+        style={{
           boxShadow: '0 24px 60px rgba(0,0,0,0.6)',
         }}
         data-testid="onboarding-modal"
