@@ -152,7 +152,6 @@ export default defineConfig({
       : path.resolve(import.meta.dirname, 'dist/public'),
     emptyOutDir: true,
     rollupOptions: {
-      external: ['sql.js'],
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom'],

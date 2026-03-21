@@ -1,4 +1,3 @@
-// sql.js loaded dynamically from CDN - no npm install needed
 type SqlJsDatabase = {
   run(sql: string, params?: unknown[]): void
   exec(sql: string): Array<{ columns: string[]; values: unknown[][] }>
@@ -48,22 +47,12 @@ export function subscribeDbState(listener: (state: DbState) => void): () => void
 async function loadSqlJs(): Promise<{
   Database: new (data?: ArrayLike<number>) => SqlJsDatabase
 }> {
-  return new Promise((resolve, reject) => {
-    const script = document.createElement('script')
-    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.min.js'
-    script.onload = () => {
-      const SQL = (
-        window as unknown as { SQL: { Database: new (data?: ArrayLike<number>) => SqlJsDatabase } }
-      ).SQL
-      if (SQL) {
-        resolve(SQL)
-      } else {
-        reject(new Error('sql.js failed to load'))
-      }
-    }
-    script.onerror = () => reject(new Error('Failed to load sql.js from CDN'))
-    document.head.appendChild(script)
-  })
+  const base = import.meta.env.BASE_URL ?? '/'
+  const wasmUrl = base.endsWith('/') ? `${base}sql-wasm.wasm` : `${base}/sql-wasm.wasm`
+  const { default: initSqlJs } = await import('sql.js')
+  return initSqlJs({ locateFile: () => wasmUrl }) as Promise<{
+    Database: new (data?: ArrayLike<number>) => SqlJsDatabase
+  }>
 }
 
 export async function initDatabase(): Promise<SqlJsDatabase> {

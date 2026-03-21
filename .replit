@@ -56,22 +56,27 @@ channel = "stable-25_05"
 packages = ["glib", "nss", "nspr", "atk", "cups", "dbus", "libdrm", "xorg.libX11", "xorg.libXcomposite", "xorg.libXdamage", "xorg.libXext", "xorg.libXfixes", "xorg.libXrandr", "libgbm", "libxkbcommon", "pango", "cairo", "alsa-lib", "gh"]
 
 [[ports]]
-localPort = 3000
-externalPort = 8000
+localPort = 3001
+externalPort = 6000
 
 [[ports]]
 localPort = 4096
-externalPort = 9000
-exposeLocalhost = true
 
 [[ports]]
 localPort = 5173
-externalPort = 80
+externalPort = 9000
 
 [[ports]]
 localPort = 5174
-externalPort = 8099
+
+[[ports]]
+localPort = 5175
+
+[[ports]]
+localPort = 5176
+
+[[ports]]
+localPort = 5177
 
 [[ports]]
 localPort = 9999
-externalPort = 6800

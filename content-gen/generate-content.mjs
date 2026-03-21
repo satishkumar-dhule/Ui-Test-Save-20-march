@@ -733,14 +733,197 @@ async function generateOne(db, type, channel) {
   return qualityScore >= QUALITY_THRESHOLD;
 }
 
+// ── Strategy Agent ────────────────────────────────────────────────────────────
+/**
+ * Calls opencode with a strategy prompt that includes the current DB state.
+ * The agent consciously decides which channels and content types to prioritize
+ * based on gaps, balance, and learning value.
+ *
+ * Returns an array of generation tasks: [{ channelId, type, count }]
+ */
+async function runStrategyAgent(db) {
+  const ALL_TYPES = ["question", "flashcard", "exam", "voice", "coding"];
+
+  // Build a comprehensive state snapshot for the strategy agent
+  const rows = db
+    .prepare(
+      `SELECT channel_id, content_type, COUNT(*) as n, AVG(quality_score) as avg_quality
+       FROM generated_content
+       WHERE status IN ('approved','published')
+       GROUP BY channel_id, content_type`,
+    )
+    .all();
+
+  const state = {};
+  for (const ch of CHANNELS) {
+    state[ch.id] = {
+      name: ch.name,
+      type: ch.type || "tech",
+      certCode: ch.certCode || null,
+      difficulty: ch.difficulty,
+      counts: {},
+      avgQuality: {},
+    };
+    for (const t of ALL_TYPES) {
+      state[ch.id].counts[t] = 0;
+      state[ch.id].avgQuality[t] = 0;
+    }
+  }
+  for (const row of rows) {
+    if (state[row.channel_id]) {
+      state[row.channel_id].counts[row.content_type] = row.n;
+      state[row.channel_id].avgQuality[row.content_type] = +(
+        row.avg_quality || 0
+      ).toFixed(2);
+    }
+  }
+
+  const stateJson = JSON.stringify(state, null, 2);
+  const totalCount = COUNT;
+
+  const strategyPrompt = `You are the Strategy Agent for DevPrep, an AI-powered developer interview prep platform.
+
+Your job is to analyze the current content database and decide exactly what content to generate next.
+
+## Current Database State
+${stateJson}
+
+## Channels Available
+${CHANNELS.map((c) => `- ${c.id} (${c.name}, ${c.type || "tech"}, ${c.difficulty}${c.certCode ? ", cert: " + c.certCode : ""})`).join("\n")}
+
+## Content Types
+- question: Technical interview Q&A with code examples
+- flashcard: Quick concept review cards
+- exam: Multiple-choice certification practice questions
+- voice: Interview prompts for verbal practice
+- coding: Coding challenges with starter code and solutions
+
+## Your Task
+Decide which ${totalCount} content item(s) to generate. Consider:
+1. Channels with the fewest items get priority (fill gaps first)
+2. Balance content types — don't over-index on one type
+3. Certification channels (aws-saa, aws-dev, cka, terraform) benefit most from exam questions
+4. Tech channels (javascript, react, algorithms, devops, kubernetes, networking, system-design) benefit from coding challenges and questions
+5. Aim for diversity across channels and types
+
+Return ONLY a valid JSON array in a json code fence. No other text.
+
+\`\`\`json
+[
+  { "channelId": "channel-id", "type": "content-type", "count": 1 }
+]
+\`\`\`
+
+Important: The total count across all items must equal ${totalCount}. Each item count must be >= 1.`;
+
+  console.log(
+    "\n🧠 Strategy Agent: Analyzing database and selecting targets...",
+  );
+  const startTime = Date.now();
+
+  let raw;
+  try {
+    raw = await runOpencode(strategyPrompt);
+  } catch (err) {
+    console.warn(
+      `   ⚠️  Strategy agent failed (${err.message}), falling back to auto-detect`,
+    );
+    return null;
+  }
+
+  const elapsed = Date.now() - startTime;
+  console.log(
+    `   Strategy response: ${raw.length} chars (${(elapsed / 1000).toFixed(1)}s)`,
+  );
+
+  const jsonStr = extractJson(raw);
+  const parsed = tryParseJson(jsonStr);
+
+  if (!Array.isArray(parsed) || parsed.length === 0) {
+    console.warn(`   ⚠️  Strategy agent returned invalid plan, falling back`);
+    return null;
+  }
+
+  // Validate each task
+  const validTypes = new Set(["question", "flashcard", "exam", "voice", "coding"]);
+  const validChannels = new Set(CHANNELS.map((c) => c.id));
+  const tasks = parsed
+    .filter(
+      (t) =>
+        t &&
+        typeof t.channelId === "string" &&
+        validChannels.has(t.channelId) &&
+        typeof t.type === "string" &&
+        validTypes.has(t.type) &&
+        typeof t.count === "number" &&
+        t.count >= 1,
+    )
+    .map((t) => ({
+      channelId: t.channelId,
+      type: t.type,
+      count: Math.min(Math.max(1, Math.floor(t.count)), 5),
+    }));
+
+  if (tasks.length === 0) {
+    console.warn(`   ⚠️  No valid tasks in strategy plan, falling back`);
+    return null;
+  }
+
+  console.log(`   ✅ Strategy plan (${tasks.length} task group(s)):`);
+  for (const t of tasks) {
+    console.log(
+      `      • ${t.type} × ${t.count} → ${CHANNELS.find((c) => c.id === t.channelId)?.name || t.channelId}`,
+    );
+  }
+
+  return tasks;
+}
+
+// ── Auto-detect fallback plan ─────────────────────────────────────────────────
+function buildFallbackPlan(db) {
+  const ALL_TYPES = ["question", "flashcard", "exam", "voice", "coding"];
+  const tasks = [];
+
+  if (TARGET_CHANNEL && CONTENT_TYPE !== "auto" && CONTENT_TYPE !== "all") {
+    const channel = CHANNELS.find((c) => c.id === TARGET_CHANNEL);
+    if (channel) {
+      tasks.push({ channelId: channel.id, type: CONTENT_TYPE, count: COUNT });
+    }
+    return tasks;
+  }
+
+  const typeKeys =
+    CONTENT_TYPE === "auto" || CONTENT_TYPE === "all" ? ALL_TYPES : [CONTENT_TYPE];
+
+  for (const typeKey of typeKeys) {
+    let channel;
+    if (TARGET_CHANNEL) {
+      channel = CHANNELS.find((c) => c.id === TARGET_CHANNEL);
+    } else {
+      const lowest = findLowestChannel(db, typeKey);
+      if (!lowest) continue;
+      channel = lowest.channel;
+    }
+    if (channel) {
+      tasks.push({
+        channelId: channel.id,
+        type: typeKey,
+        count: CONTENT_TYPE === "auto" ? 1 : COUNT,
+      });
+    }
+  }
+
+  return tasks;
+}
+
 // ── Main ──────────────────────────────────────────────────────────────────────
 async function main() {
-  console.log("🚀 DevPrep Content Generator — powered by opencode-ai");
+  console.log("🚀 DevPrep Content Generator — opencode Agent Team");
   console.log(`   DB Path:        ${DB_PATH}`);
   console.log(`   Vector Dir:     ${VECTOR_DIR}`);
   console.log(`   Content Type:   ${CONTENT_TYPE}`);
   console.log(
-    `   Channel:        ${TARGET_CHANNEL || "auto-detect (lowest per type)"}`,
+    `   Channel:        ${TARGET_CHANNEL || "strategy-agent (auto)"}`,
   );
   console.log(`   Count:         ${COUNT}`);
   console.log(
@@ -748,7 +931,6 @@ async function main() {
   );
   console.log(`   Quality Threshold: ${(QUALITY_THRESHOLD * 100).toFixed(0)}%`);
 
-  // Ensure directories exist
   fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
   if (ENABLE_VECTOR_DB) {
     fs.mkdirSync(VECTOR_DIR, { recursive: true });
@@ -756,53 +938,70 @@ async function main() {
 
   const db = openDb();
 
-  const ALL_TYPES = ["question", "flashcard", "exam", "voice", "coding"];
-  let typeKeys =
-    CONTENT_TYPE === "auto" || CONTENT_TYPE === "all"
-      ? ALL_TYPES
-      : [CONTENT_TYPE];
+  // ── Phase 1: Strategy Agent decides what to generate ───────────────────────
+  let plan;
+  if (CONTENT_TYPE === "auto" && !TARGET_CHANNEL) {
+    // Let the strategy agent make the conscious decision
+    plan = await runStrategyAgent(db);
+  }
 
+  if (!plan || plan.length === 0) {
+    // Fall back to deterministic auto-detect
+    console.log("\n📊 Using auto-detect to build generation plan...");
+    plan = buildFallbackPlan(db);
+  }
+
+  if (plan.length === 0) {
+    console.log("✓ All channels already have sufficient content.");
+    db.close();
+    return;
+  }
+
+  // ── Phase 2: Generation Agent Team runs in parallel ─────────────────────────
+  console.log(
+    `\n🤖 Generation Agent Team: Spawning ${plan.reduce((s, t) => s + t.count, 0)} agent(s) in parallel...`,
+  );
+
+  // Expand plan into individual tasks for parallel execution
+  const individualTasks = [];
+  for (const task of plan) {
+    const channel = CHANNELS.find((c) => c.id === task.channelId);
+    if (!channel) continue;
+    for (let i = 0; i < task.count; i++) {
+      individualTasks.push({ channel, type: task.type, index: i });
+    }
+  }
+
+  // Run all generation tasks in parallel
+  const results = await Promise.allSettled(
+    individualTasks.map(async ({ channel, type, index }) => {
+      const agentId = `${type}-${channel.id}-${index + 1}`;
+      console.log(
+        `   🔧 Agent [${agentId}]: generating ${type} for "${channel.name}"`,
+      );
+      const ok = await generateOne(db, type, channel);
+      return { agentId, type, channel: channel.name, ok };
+    }),
+  );
+
+  // ── Phase 3: Summary ────────────────────────────────────────────────────────
   let totalGenerated = 0;
-  let totalFailed = 0;
   let totalLowQuality = 0;
+  let totalFailed = 0;
 
-  for (const typeKey of typeKeys) {
-    const itemsForType = CONTENT_TYPE === "auto" ? 1 : COUNT;
-
-    for (let i = 0; i < itemsForType; i++) {
-      let channel;
-
-      if (TARGET_CHANNEL) {
-        channel = CHANNELS.find((c) => c.id === TARGET_CHANNEL);
-        if (!channel) {
-          console.error(`❌ Unknown channel: ${TARGET_CHANNEL}`);
-          process.exit(1);
-        }
+  for (const result of results) {
+    if (result.status === "fulfilled") {
+      if (result.value.ok) {
+        totalGenerated++;
       } else {
-        const lowest = findLowestChannel(db, typeKey);
-        if (!lowest) {
-          console.log(
-            `✓ ${typeKey}: all channels already have ≥${LOW_THRESHOLD} items`,
-          );
-          break;
-        }
-        channel = lowest.channel;
+        totalLowQuality++;
         console.log(
-          `\n📊 ${typeKey}: lowest is "${channel.name}" (${lowest.count} items)`,
+          `   ⚠️  [${result.value.agentId}] Low quality (pending review)`,
         );
       }
-
-      try {
-        const ok = await generateOne(db, typeKey, channel);
-        if (ok) totalGenerated++;
-        else {
-          totalLowQuality++;
-          console.log(`   ⚠️  Low quality content (will be reviewed)`);
-        }
-      } catch (err) {
-        console.error(`\n❌ ${typeKey} for ${channel.name}:`, err.message);
-        totalFailed++;
-      }
+    } else {
+      totalFailed++;
+      console.error(`   ❌ Agent failed: ${result.reason?.message || result.reason}`);
     }
   }
 
@@ -815,14 +1014,6 @@ async function main() {
   if (totalFailed > 0) console.log(`❌ Failed:        ${totalFailed} item(s)`);
   console.log(`📁 Database:     ${DB_PATH}`);
   console.log(`🔢 Vector Dir:   ${VECTOR_DIR}`);
-
-  if (totalGenerated > 0) {
-    console.log(`\nNext steps:`);
-    console.log(
-      `  1. Run vector indexing: python scripts/build-vector-index.py`,
-    );
-    console.log(`  2. Commit changes: git add data/devprep.db && git commit`);
-  }
 }
 
 main().catch((err) => {
