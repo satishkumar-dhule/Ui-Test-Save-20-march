@@ -20,10 +20,12 @@
   },
   "private": true,
   "devDependencies": {
-    "typescript": "~5.9.2",
-    "prettier": "^3.8.1"
+    "prettier": "^3.8.1",
+    "typescript": "~5.9.2"
   },
   "dependencies": {
+    "better-sqlite3": "^12.8.0",
+    "opencode-ai": "^1.2.27",
     "yaml-language-server": ""
   },
   "workspaces": {
