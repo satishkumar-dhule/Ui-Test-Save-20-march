@@ -3,6 +3,7 @@ import type { JobRole, SkillLevel } from '@/data/channels'
 import { JOB_ROLES, SKILL_LEVELS, JOB_ROLE_PRESETS } from '@/data/channels'
 import { useChannels } from '@/hooks/useChannels'
 import { ChannelCard } from '@/components/OnboardingModal'
+import { useToast } from '@/hooks/use-toast'
 
 interface OnboardingPageProps {
   onDone: (selected: Set<string>) => void
@@ -38,6 +39,8 @@ export function OnboardingPage({ onDone, initialSelected }: OnboardingPageProps)
   const [selectedSkillLevels, setSelectedSkillLevels] = useState<Set<SkillLevel>>(new Set())
   const [activeTab, setActiveTab] = useState<TabType>('all')
 
+  const { toast } = useToast()
+
   // Persist draft to localStorage
   useEffect(() => {
     try {
@@ -71,9 +74,15 @@ export function OnboardingPage({ onDone, initialSelected }: OnboardingPageProps)
           presetChannels.forEach(ch => next.add(ch))
           return next
         })
+        const roleLabel = JOB_ROLES.find(r => r.id === roleId)?.label || roleId
+        toast({
+          title: `${roleLabel} preset applied`,
+          description: `Selected ${presetChannels.length} recommended channels for ${roleLabel}.`,
+          duration: 2000,
+        })
       }
     },
-    [activeJobRole]
+    [activeJobRole, toast]
   )
 
   const toggleSkillLevel = useCallback((level: SkillLevel) => {
@@ -86,6 +95,13 @@ export function OnboardingPage({ onDone, initialSelected }: OnboardingPageProps)
       }
       return next
     })
+  }, [])
+
+  const clearAllFilters = useCallback(() => {
+    setSearchQuery('')
+    setSelectedSkillLevels(new Set())
+    setActiveTab('all')
+    setActiveJobRole(null)
   }, [])
 
   // Filter channels based on tab, search, and skill level
@@ -113,7 +129,10 @@ export function OnboardingPage({ onDone, initialSelected }: OnboardingPageProps)
     // Skill level filter (OR logic - show channels matching any selected level)
     if (selectedSkillLevels.size > 0) {
       result = result.filter(
-        ch => ch.skillLevel?.some(level => selectedSkillLevels.has(level)) ?? false
+        ch =>
+          !ch.skillLevel ||
+          ch.skillLevel.length === 0 ||
+          ch.skillLevel.some(level => selectedSkillLevels.has(level))
       )
     }
 
@@ -122,6 +141,11 @@ export function OnboardingPage({ onDone, initialSelected }: OnboardingPageProps)
 
   const techCount = filteredChannels.filter(c => c.type === 'tech').length
   const certCount = filteredChannels.filter(c => c.type === 'cert').length
+  const activeFilterCount =
+    (searchQuery ? 1 : 0) +
+    selectedSkillLevels.size +
+    (activeJobRole ? 1 : 0) +
+    (activeTab !== 'all' ? 1 : 0)
 
   const selectAll = useCallback(() => {
     setSelected(new Set(filteredChannels.map(ch => ch.id)))
@@ -265,7 +289,7 @@ export function OnboardingPage({ onDone, initialSelected }: OnboardingPageProps)
                   onClick={() => toggleSkillLevel(level.id)}
                   className={`
                     flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium
-                    transition-all duration-200 cursor-pointer btn-micro touch-target
+                    transition-all duration-200 cursor-pointer btn-micro touch-target hover:scale-105 active:scale-95
                     ${
                       isActive
                         ? 'border-primary/50 bg-primary/10 text-foreground'
@@ -361,6 +385,28 @@ export function OnboardingPage({ onDone, initialSelected }: OnboardingPageProps)
               >
                 Channels
               </span>
+              {activeFilterCount > 0 && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-primary/10 text-primary border border-primary/20">
+                  {activeFilterCount} filter{activeFilterCount > 1 ? 's' : ''} active
+                  <button
+                    onClick={clearAllFilters}
+                    className="ml-0.5 hover:text-primary/80 transition-colors"
+                    aria-label="Clear all filters"
+                  >
+                    <svg
+                      width="10"
+                      height="10"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                    >
+                      <path d="M4 4l8 8M12 4l-8 8" />
+                    </svg>
+                  </button>
+                </span>
+              )}
               <span className="text-xs text-muted-foreground/60">
                 {filteredChannels.length} available
               </span>
@@ -418,13 +464,61 @@ export function OnboardingPage({ onDone, initialSelected }: OnboardingPageProps)
           {/* Channels Grid */}
           {filteredChannels.length === 0 ? (
             <div className="text-center py-16 border border-dashed border-border rounded-xl">
-              <div className="text-4xl mb-3" aria-hidden="true">
-                🔍
+              <div className="text-6xl mb-4" aria-hidden="true">
+                🔎
               </div>
-              <p className="text-muted-foreground text-sm">No channels match your filters.</p>
-              <p className="text-muted-foreground/60 text-xs mt-1">
-                Try adjusting your search or filter criteria.
+              <h3 className="text-lg font-semibold text-foreground mb-2">
+                No channels match your filters
+              </h3>
+              <p className="text-muted-foreground text-sm max-w-md mx-auto mb-4">
+                {activeFilterCount > 0 ? (
+                  <>
+                    You have {activeFilterCount} active filter{activeFilterCount > 1 ? 's' : ''}.
+                    Try adjusting your search, skill level, or category to see more channels.
+                  </>
+                ) : (
+                  'All channels are currently hidden. Try adjusting your search or category filters.'
+                )}
               </p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <button
+                  onClick={clearAllFilters}
+                  className="px-5 py-2.5 rounded-lg text-sm font-medium border border-primary/30 bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                >
+                  Clear all filters
+                </button>
+                <button
+                  onClick={selectRecommended}
+                  className="px-5 py-2.5 rounded-lg text-sm font-medium border border-border bg-card text-muted-foreground hover:text-foreground hover:border-border transition-colors"
+                >
+                  Select recommended channels
+                </button>
+              </div>
+              {activeFilterCount === 0 && (
+                <div className="mt-6 text-left max-w-xs mx-auto">
+                  <p className="text-xs text-muted-foreground/60 mb-2">
+                    Popular channels you might like:
+                  </p>
+                  <div className="flex flex-wrap gap-2 justify-center">
+                    {['javascript', 'python', 'react'].map(id => {
+                      const ch = channels.find(c => c.id === id)
+                      return ch ? (
+                        <button
+                          key={id}
+                          onClick={() => toggle(id)}
+                          className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                            selected.has(id)
+                              ? 'bg-primary/20 text-primary border border-primary/30'
+                              : 'bg-muted/50 text-muted-foreground hover:text-foreground border border-transparent hover:border-border'
+                          }`}
+                        >
+                          {ch.emoji} {ch.name}
+                        </button>
+                      ) : null
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
