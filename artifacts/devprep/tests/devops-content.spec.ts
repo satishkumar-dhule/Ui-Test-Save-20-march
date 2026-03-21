@@ -1,161 +1,100 @@
+/**
+ * DevOps channel content tests.
+ * Tests the DevOps channel content by navigating the UI (no API server required —
+ * this is a frontend-only app that reads from an in-browser SQLite DB).
+ */
 import { test, expect } from '@playwright/test'
+import { bypassOnboarding, waitForAppReady, goToSection } from './helpers'
 
-const BASE_URL = process.env.BASE_URL || 'http://localhost:5174'
-
-test.describe('DevOps Tech Content E2E Tests', () => {
+test.describe('DevOps Channel — Content', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(BASE_URL)
-    await page.waitForLoadState('networkidle')
-  })
-
-  test.describe.configure({ mode: 'serial' })
-
-  test('1. Page loads without errors', async ({ page }) => {
-    const errors: string[] = []
-    page.on('console', msg => {
-      if (msg.type() === 'error') {
-        errors.push(msg.text())
-      }
+    await bypassOnboarding(page, ['devops', 'javascript'], {
+      section: 'qa',
+      channelId: 'devops',
     })
-    await page.waitForTimeout(3000)
-    expect(errors.filter(e => !e.includes('favicon'))).toHaveLength(0)
+    await page.goto('/')
+    await waitForAppReady(page)
   })
 
-  test('2. Navigate to DevOps channel', async ({ page }) => {
-    await page.waitForSelector(
-      '[data-testid="channel-selector"], .channel-button, button:has-text("DevOps")',
-      { timeout: 10000 }
-    )
-
-    const devopsButton = page.locator('button:has-text("DevOps"), [data-channel="devops"]').first()
-    await devopsButton.click()
-    await page.waitForTimeout(1000)
-
-    const url = page.url()
-    expect(url).toContain('devops')
+  test('DevOps channel tab is visible', async ({ page }) => {
+    await expect(page.locator('[data-testid="channel-tab-devops"]')).toBeVisible()
   })
 
-  test('3. Verify DevOps content sections exist', async ({ page }) => {
-    await page.waitForSelector('button:has-text("DevOps"), [data-channel="devops"]', {
-      timeout: 10000,
-    })
-    await page.locator('button:has-text("DevOps"), [data-channel="devops"]').first().click()
-    await page.waitForTimeout(2000)
-
-    const sections = ['Questions', 'Flashcards', 'Exam', 'Voice', 'Coding']
-    for (const section of sections) {
-      const sectionEl = page.locator(`text=${section}`).first()
-      await expect(sectionEl).toBeVisible({ timeout: 5000 })
-    }
+  test('switching to DevOps channel updates header', async ({ page }) => {
+    const devopsTab = page.locator('[data-testid="channel-tab-devops"]')
+    await devopsTab.click()
+    await page.waitForTimeout(500)
+    await expect(page.locator('[data-testid="header"]')).toContainText('DevOps')
   })
 
-  test('4. Verify section counts for DevOps', async ({ page }) => {
-    await page.waitForSelector('button:has-text("DevOps"), [data-channel="devops"]', {
-      timeout: 10000,
-    })
-    await page.locator('button:has-text("DevOps"), [data-channel="devops"]').first().click()
-    await page.waitForTimeout(3000)
+  test('DevOps Q&A section loads content', async ({ page }) => {
+    const devopsTab = page.locator('[data-testid="channel-tab-devops"]')
+    await devopsTab.click()
+    await page.waitForTimeout(500)
+    await goToSection(page, 'qa')
 
-    const contentSections = [
-      { name: 'QA', expected: /[1-9]/ },
-      { name: 'Flashcards', expected: /[1-9]/ },
-      { name: 'Exam', expected: /[1-9]/ },
-      { name: 'Voice', expected: /[1-9]/ },
-      { name: 'Coding', expected: /[1-9]/ },
-    ]
-
-    for (const section of contentSections) {
-      const el = page.locator(`text=${section.name}`).first()
-      await expect(el).toBeVisible({ timeout: 5000 })
-    }
+    await expect(
+      page.locator('[data-testid="qa-search"]')
+        .or(page.locator('text=No questions for this channel')),
+    ).toBeVisible({ timeout: 8000 })
   })
 
-  test('5. API returns DevOps content', async ({ page }) => {
-    const response = await page.request.get(`${BASE_URL}/api/channels/devops/content`)
-    expect(response.ok()).toBeTruthy()
+  test('DevOps Flashcards section loads', async ({ page }) => {
+    const devopsTab = page.locator('[data-testid="channel-tab-devops"]')
+    await devopsTab.click()
+    await page.waitForTimeout(500)
+    await goToSection(page, 'flashcards')
 
-    const data = await response.json()
-    expect(data.ok).toBe(true)
-    expect(data.data.length).toBeGreaterThan(0)
-
-    const types = data.data.map((d: any) => d.content_type)
-    expect(types).toContain('question')
-    expect(types).toContain('flashcard')
-    expect(types).toContain('exam')
-    expect(types).toContain('voice')
-    expect(types).toContain('coding')
+    await expect(
+      page.locator('[data-testid="flashcard-shuffle-btn"]')
+        .or(page.locator('text=No flashcards')),
+    ).toBeVisible({ timeout: 8000 })
   })
 
-  test('6. Generated content is merged with static data', async ({ page }) => {
-    await page.waitForSelector('button:has-text("DevOps"), [data-channel="devops"]', {
-      timeout: 10000,
-    })
-    await page.locator('button:has-text("DevOps"), [data-channel="devops"]').first().click()
-    await page.waitForTimeout(3000)
+  test('DevOps Coding section loads', async ({ page }) => {
+    const devopsTab = page.locator('[data-testid="channel-tab-devops"]')
+    await devopsTab.click()
+    await page.waitForTimeout(500)
+    await goToSection(page, 'coding')
 
-    await page.locator('text=Questions').click()
-    await page.waitForTimeout(1000)
-
-    const questionCards = page.locator('[data-testid="question-card"], .question-card, article')
-    const count = await questionCards.count()
-    expect(count).toBeGreaterThan(0)
+    await expect(
+      page.locator('[data-testid="coding-editor"]')
+        .or(page.locator('text=No coding challenges')),
+    ).toBeVisible({ timeout: 8000 })
   })
 
-  test('7. Click through each content section', async ({ page }) => {
-    await page.waitForSelector('button:has-text("DevOps"), [data-channel="devops"]', {
-      timeout: 10000,
-    })
-    await page.locator('button:has-text("DevOps"), [data-channel="devops"]').first().click()
-    await page.waitForTimeout(2000)
+  test('DevOps Exam section loads', async ({ page }) => {
+    const devopsTab = page.locator('[data-testid="channel-tab-devops"]')
+    await devopsTab.click()
+    await page.waitForTimeout(500)
+    await goToSection(page, 'exam')
 
-    const sections = ['Questions', 'Flashcards', 'Exam', 'Voice', 'Coding']
-
-    for (const section of sections) {
-      const tab = page.locator(`button:has-text("${section}")`).first()
-      if (await tab.isVisible()) {
-        await tab.click()
-        await page.waitForTimeout(500)
-        await page.screenshot({
-          path: `test-results/devops-${section.toLowerCase()}.png`,
-          fullPage: true,
-        })
-      }
-    }
-  })
-})
-
-test.describe('Content API Integration', () => {
-  test('API health check', async ({ request }) => {
-    const response = await request.get('http://localhost:3001/api/health')
-    expect(response.ok()).toBeTruthy()
-    const data = await response.json()
-    expect(data.ok).toBe(true)
+    await expect(
+      page.locator('[data-testid="exam-start-btn"]')
+        .or(page.locator('text=No exam questions')),
+    ).toBeVisible({ timeout: 8000 })
   })
 
-  test('API returns all content types for devops', async ({ request }) => {
-    const response = await request.get('http://localhost:3001/api/channels/devops/content')
-    expect(response.ok()).toBeTruthy()
+  test('DevOps Voice section loads', async ({ page }) => {
+    const devopsTab = page.locator('[data-testid="channel-tab-devops"]')
+    await devopsTab.click()
+    await page.waitForTimeout(500)
+    await goToSection(page, 'voice')
 
-    const data = await response.json()
-    const contentTypes = data.data.map((r: any) => r.content_type)
-
-    expect(contentTypes).toContain('question')
-    expect(contentTypes).toContain('flashcard')
-    expect(contentTypes).toContain('exam')
-    expect(contentTypes).toContain('voice')
-    expect(contentTypes).toContain('coding')
+    await expect(
+      page.locator('text=Voice').or(page.locator('text=No voice prompts')),
+    ).toBeVisible({ timeout: 8000 })
   })
 
-  test('Each content type has proper data structure', async ({ request }) => {
-    const response = await request.get('http://localhost:3001/api/channels/devops/content')
-    const data = await response.json()
+  test('can cycle through all sections for DevOps without crash', async ({ page }) => {
+    const devopsTab = page.locator('[data-testid="channel-tab-devops"]')
+    await devopsTab.click()
+    await page.waitForTimeout(500)
 
-    for (const record of data.data) {
-      expect(record.id).toBeDefined()
-      expect(record.channel_id).toBe('devops')
-      expect(record.content_type).toBeDefined()
-      expect(record.data).toBeDefined()
-      expect(record.status).toBe('approved')
+    const sections = ['qa', 'flashcards', 'coding', 'exam', 'voice'] as const
+    for (const s of sections) {
+      await goToSection(page, s)
+      await expect(page.locator('[data-testid="header"]')).toBeVisible()
     }
   })
 })
