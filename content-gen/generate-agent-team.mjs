@@ -212,10 +212,8 @@ DB: ${DB_PATH}
 
 STEP 1 - Check current DB state with bash:
 node -e "
-const {createRequire}=require('module');
-const r=createRequire('file:///x.js');
-const DB=r('better-sqlite3');
-try{const db=new DB('${DB_PATH}',{readonly:true});const rows=db.prepare('SELECT channel_id,content_type,COUNT(*) as n FROM generated_content GROUP BY channel_id,content_type').all();console.log(JSON.stringify(rows));db.close();}catch(e){console.log('[]');}
+const DB=require('${WORKSPACE}/node_modules/better-sqlite3');
+try{const db=new DB('${DB_PATH}',{readonly:true});const rows=db.prepare('SELECT channel_id,content_type,COUNT(*) as n FROM generated_content GROUP BY channel_id,content_type').all();console.log(JSON.stringify(rows));db.close();}catch(e){console.log('[]',e.message);}
 "
 
 STEP 2 - Use the task tool to launch ALL 5 specialist agents in parallel (do not wait for one before starting the others):
