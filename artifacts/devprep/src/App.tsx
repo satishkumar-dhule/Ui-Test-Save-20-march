@@ -107,11 +107,11 @@ export default function App() {
   // Derived Data
   // =========================================================================
   const currentChannel = useMemo(
-    () => channels.find(c => c.id === channelId) || channels[0],
-    [channelId]
+    () => channels.find(c => c.id === channelId) ?? channels[0] ?? null,
+    [channelId, channels]
   )
 
-  const selectedChannels = useMemo(() => channels.filter(c => selectedIds.has(c.id)), [selectedIds])
+  const selectedChannels = useMemo(() => channels.filter(c => selectedIds.has(c.id)), [selectedIds, channels])
   const selectedTechChannels = useMemo(() => selectedChannels.filter(c => c.type === 'tech'), [selectedChannels])
   const selectedCertChannels = useMemo(() => selectedChannels.filter(c => c.type === 'cert'), [selectedChannels])
 
@@ -444,7 +444,7 @@ export default function App() {
               onExamComplete={(score, total, passed, durationMs) => {
                 analytics.trackExamAttempt({
                   channelId,
-                  channelName: currentChannel.name || channelId,
+                  channelName: currentChannel?.name || channelId,
                   score,
                   totalQuestions: total,
                   passed,
