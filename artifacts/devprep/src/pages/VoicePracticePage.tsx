@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback } from 'react'
 import {
   Volume2,
   Shuffle,
@@ -10,211 +10,207 @@ import {
   Gauge,
   BadgeCheck,
   Lightbulb,
-} from "lucide-react";
-import type { VoicePrompt } from "@/data/voicePractice";
-import { progressApi } from "@/services/progressApi";
-import { cn } from "@/lib/utils";
+} from 'lucide-react'
+import type { VoicePrompt } from '@/data/voicePractice'
+import { progressApi } from '@/services/progressApi'
+import { cn } from '@/lib/utils'
 
 const DIFF_BADGE: Record<string, { label: string; cls: string }> = {
-  beginner: { label: "BEGINNER", cls: "text-emerald-400 bg-emerald-400/10" },
-  intermediate: { label: "INTERMEDIATE", cls: "text-amber-400 bg-amber-400/10" },
-  advanced: { label: "ADVANCED", cls: "text-rose-400 bg-rose-400/10" },
-};
-
-const WAVEFORM_HEIGHTS = [30, 50, 80, 40, 90, 50, 20, 40, 70, 30];
-const WAVEFORM_DELAYS = [0.1, 0.3, 0.2, 0.5, 0.4, 0.7, 0.6, 0.8, 1.0, 0.9];
-const WAVEFORM_COLORS = [
-  "bg-[#c3c0ff]",
-  "bg-[#c3c0ff]",
-  "bg-[#4cd7f6]",
-  "bg-[#c3c0ff]",
-  "bg-[#4cd7f6]",
-  "bg-[#c3c0ff]",
-  "bg-[#c3c0ff]",
-  "bg-[#c3c0ff]",
-  "bg-[#4cd7f6]",
-  "bg-[#c3c0ff]",
-];
-
-type RecordPhase = "idle" | "countdown" | "recording" | "done";
-
-interface VoicePracticePageProps {
-  prompts: VoicePrompt[];
-  channelId: string;
-  onVoicePractice?: (promptId: string, rating: number | null) => void;
+  beginner: { label: 'BEGINNER', cls: 'text-emerald-400 bg-emerald-400/10' },
+  intermediate: { label: 'INTERMEDIATE', cls: 'text-amber-400 bg-amber-400/10' },
+  advanced: { label: 'ADVANCED', cls: 'text-rose-400 bg-rose-400/10' },
 }
 
-export function VoicePracticePage({
-  prompts,
-  channelId,
-  onVoicePractice,
-}: VoicePracticePageProps) {
-  const [activeIdx, setActiveIdx] = useState(0);
-  const [shuffle, setShuffle] = useState(false);
-  const [order, setOrder] = useState<number[]>([]);
-  const [phase, setPhase] = useState<RecordPhase>("idle");
-  const [countdown, setCountdown] = useState(3);
-  const [elapsed, setElapsed] = useState(0);
-  const [transcript, setTranscript] = useState("");
-  const [rating, setRating] = useState(0);
-  const [keyPointsOpen, setKeyPointsOpen] = useState(false);
-  const [ratings, setRatings] = useState<Record<string, number>>({});
-  const [srSupported, setSrSupported] = useState(true);
-  const [isAnimating, setIsAnimating] = useState(false);
+const WAVEFORM_HEIGHTS = [30, 50, 80, 40, 90, 50, 20, 40, 70, 30]
+const WAVEFORM_DELAYS = [0.1, 0.3, 0.2, 0.5, 0.4, 0.7, 0.6, 0.8, 1.0, 0.9]
+const WAVEFORM_COLORS = [
+  'bg-[#c3c0ff]',
+  'bg-[#c3c0ff]',
+  'bg-[#4cd7f6]',
+  'bg-[#c3c0ff]',
+  'bg-[#4cd7f6]',
+  'bg-[#c3c0ff]',
+  'bg-[#c3c0ff]',
+  'bg-[#c3c0ff]',
+  'bg-[#4cd7f6]',
+  'bg-[#c3c0ff]',
+]
 
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const cdRef = useRef<NodeJS.Timeout | null>(null);
-  const recognitionRef = useRef<any>(null);
-  const isMountedRef = useRef(true);
+type RecordPhase = 'idle' | 'countdown' | 'recording' | 'done'
+
+interface VoicePracticePageProps {
+  prompts: VoicePrompt[]
+  channelId: string
+  onVoicePractice?: (promptId: string, rating: number | null) => void
+}
+
+export function VoicePracticePage({ prompts, channelId, onVoicePractice }: VoicePracticePageProps) {
+  const [activeIdx, setActiveIdx] = useState(0)
+  const [shuffle, setShuffle] = useState(false)
+  const [order, setOrder] = useState<number[]>([])
+  const [phase, setPhase] = useState<RecordPhase>('idle')
+  const [countdown, setCountdown] = useState(3)
+  const [elapsed, setElapsed] = useState(0)
+  const [transcript, setTranscript] = useState('')
+  const [rating, setRating] = useState(0)
+  const [keyPointsOpen, setKeyPointsOpen] = useState(false)
+  const [ratings, setRatings] = useState<Record<string, number>>({})
+  const [srSupported, setSrSupported] = useState(true)
+  const [isAnimating, setIsAnimating] = useState(false)
+
+  const timerRef = useRef<NodeJS.Timeout | null>(null)
+  const cdRef = useRef<NodeJS.Timeout | null>(null)
+  const recognitionRef = useRef<any>(null)
+  const isMountedRef = useRef(true)
 
   useEffect(() => {
-    const SR =
-      (window as any).SpeechRecognition ||
-      (window as any).webkitSpeechRecognition;
-    setSrSupported(!!SR);
-  }, []);
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+    setSrSupported(!!SR)
+  }, [])
 
   useEffect(() => {
-    setActiveIdx(0);
-    setPhase("idle");
-    setTranscript("");
-    setRating(0);
-    setKeyPointsOpen(false);
-    setOrder(prompts.map((_, i) => i));
-  }, [channelId, prompts]);
+    setActiveIdx(0)
+    setPhase('idle')
+    setTranscript('')
+    setRating(0)
+    setKeyPointsOpen(false)
+    setOrder(prompts.map((_, i) => i))
+  }, [channelId, prompts])
 
   useEffect(() => {
-    isMountedRef.current = true;
+    isMountedRef.current = true
     return () => {
-      isMountedRef.current = false;
-      if (timerRef.current) clearInterval(timerRef.current);
-      if (cdRef.current) clearInterval(cdRef.current);
+      isMountedRef.current = false
+      if (timerRef.current) clearInterval(timerRef.current)
+      if (cdRef.current) clearInterval(cdRef.current)
       if (recognitionRef.current) {
-        try { recognitionRef.current.stop(); } catch {}
+        try {
+          recognitionRef.current.stop()
+        } catch {}
       }
-    };
-  }, []);
+    }
+  }, [])
 
   useEffect(() => {
-    setIsAnimating(phase === "recording" || phase === "countdown");
-  }, [phase]);
+    setIsAnimating(phase === 'recording' || phase === 'countdown')
+  }, [phase])
 
-  const displayPrompts = order.map((i) => prompts[i]).filter(Boolean);
-  const active = displayPrompts[activeIdx];
+  const displayPrompts = order.map(i => prompts[i]).filter(Boolean)
+  const active = displayPrompts[activeIdx]
 
   const stopRecording = useCallback(() => {
-    if (timerRef.current) clearInterval(timerRef.current);
-    if (cdRef.current) clearInterval(cdRef.current);
+    if (timerRef.current) clearInterval(timerRef.current)
+    if (cdRef.current) clearInterval(cdRef.current)
     if (recognitionRef.current) {
-      try { recognitionRef.current.stop(); } catch {}
+      try {
+        recognitionRef.current.stop()
+      } catch {}
     }
-  }, []);
+  }, [])
 
   const go = useCallback(
     (dir: 1 | -1) => {
-      stopRecording();
-      setActiveIdx((i) => {
-        const max = displayPrompts.length - 1;
-        return Math.max(0, Math.min(max, i + dir));
-      });
-      setPhase("idle");
-      setElapsed(0);
-      setTranscript("");
-      setRating(0);
-      setKeyPointsOpen(false);
+      stopRecording()
+      setActiveIdx(i => {
+        const max = displayPrompts.length - 1
+        return Math.max(0, Math.min(max, i + dir))
+      })
+      setPhase('idle')
+      setElapsed(0)
+      setTranscript('')
+      setRating(0)
+      setKeyPointsOpen(false)
     },
     [displayPrompts.length, stopRecording]
-  );
+  )
 
   const doShuffle = () => {
-    const arr = prompts.map((_, i) => i);
+    const arr = prompts.map((_, i) => i)
     for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [arr[i], arr[j]] = [arr[j], arr[i]];
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[arr[i], arr[j]] = [arr[j], arr[i]]
     }
-    setOrder(arr);
-    setActiveIdx(0);
-    setShuffle(true);
-    setPhase("idle");
-    setElapsed(0);
-    setTranscript("");
-  };
+    setOrder(arr)
+    setActiveIdx(0)
+    setShuffle(true)
+    setPhase('idle')
+    setElapsed(0)
+    setTranscript('')
+  }
 
   const startCountdown = () => {
-    setPhase("countdown");
-    setCountdown(3);
-    let cd = 3;
+    setPhase('countdown')
+    setCountdown(3)
+    let cd = 3
     cdRef.current = setInterval(() => {
-      cd--;
-      setCountdown(cd);
+      cd--
+      setCountdown(cd)
       if (cd <= 0) {
-        clearInterval(cdRef.current!);
-        startRecording();
+        clearInterval(cdRef.current!)
+        startRecording()
       }
-    }, 1000);
-  };
+    }, 1000)
+  }
 
   const startRecording = () => {
-    setPhase("recording");
-    setElapsed(0);
-    setTranscript("");
-    timerRef.current = setInterval(() => setElapsed((e) => e + 1), 1000);
+    setPhase('recording')
+    setElapsed(0)
+    setTranscript('')
+    timerRef.current = setInterval(() => setElapsed(e => e + 1), 1000)
 
-    const SR =
-      (window as any).SpeechRecognition ||
-      (window as any).webkitSpeechRecognition;
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
     if (SR) {
-      const recognition = new SR();
-      recognition.continuous = true;
-      recognition.interimResults = true;
+      const recognition = new SR()
+      recognition.continuous = true
+      recognition.interimResults = true
       recognition.onresult = (e: any) => {
-        let full = "";
+        let full = ''
         for (let i = 0; i < e.results.length; i++) {
-          full += e.results[i][0].transcript + " ";
+          full += e.results[i][0].transcript + ' '
         }
-        setTranscript(full.trim());
-      };
+        setTranscript(full.trim())
+      }
       recognition.onerror = (e: any) => {
-        console.warn("Speech recognition error:", e.error);
-      };
-      recognition.start();
-      recognitionRef.current = recognition;
+        console.warn('Speech recognition error:', e.error)
+      }
+      recognition.start()
+      recognitionRef.current = recognition
     }
-  };
+  }
 
   const stop = () => {
-    stopRecording();
-    setPhase("done");
-  };
+    stopRecording()
+    setPhase('done')
+  }
 
   const retry = () => {
-    stopRecording();
-    setPhase("idle");
-    setElapsed(0);
-    setTranscript("");
-    setRating(0);
-  };
+    stopRecording()
+    setPhase('idle')
+    setElapsed(0)
+    setTranscript('')
+    setRating(0)
+  }
 
   const rateAndNext = (r: number) => {
     if (active) {
-      setRatings((prev) => ({ ...prev, [active.id]: r }));
-      onVoicePractice?.(active.id, r);
-      progressApi.saveVoice(channelId, active.id, r);
+      setRatings(prev => ({ ...prev, [active.id]: r }))
+      onVoicePractice?.(active.id, r)
+      progressApi.saveVoice(channelId, active.id, r)
     }
-    setRating(r);
+    setRating(r)
     if (activeIdx < displayPrompts.length - 1) {
-      setTimeout(() => go(1), 500);
+      setTimeout(() => go(1), 500)
     }
-  };
+  }
 
   const handleMicClick = () => {
-    if (phase === "idle") startCountdown();
-    else if (phase === "recording") stop();
-    else if (phase === "done") retry();
-  };
+    if (phase === 'idle') startCountdown()
+    else if (phase === 'recording') stop()
+    else if (phase === 'done') retry()
+  }
 
-  const mm = String(Math.floor(elapsed / 60)).padStart(2, "0");
-  const ss = String(elapsed % 60).padStart(2, "0");
+  const mm = String(Math.floor(elapsed / 60)).padStart(2, '0')
+  const ss = String(elapsed % 60).padStart(2, '0')
 
   if (prompts.length === 0) {
     return (
@@ -225,7 +221,7 @@ export function VoicePracticePage({
           Try JavaScript, React, or System Design channels.
         </p>
       </div>
-    );
+    )
   }
 
   return (
@@ -241,67 +237,76 @@ export function VoicePracticePage({
       `}</style>
 
       {/* Page Header */}
-      <div className="px-6 pt-6 pb-2 flex flex-col md:flex-row md:items-end justify-between gap-4">
+      <div className="px-4 pt-5 pb-3 flex flex-col sm:flex-row sm:items-end justify-between gap-3">
         <div>
           <p className="text-xs font-semibold tracking-[0.2em] uppercase text-[#4cd7f6] mb-1">
             Certification Mastery
           </p>
-          <h1 className="text-4xl md:text-6xl font-extrabold tracking-tighter leading-none">
-            Voice{" "}
+          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tighter leading-none">
+            Voice{' '}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#c3c0ff] to-[#4cd7f6]">
               Practice
             </span>
           </h1>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           {/* Navigation controls */}
           <div className="flex items-center gap-2">
             <button
               onClick={
                 shuffle
-                  ? () => { setOrder(prompts.map((_, i) => i)); setShuffle(false); }
+                  ? () => {
+                      setOrder(prompts.map((_, i) => i))
+                      setShuffle(false)
+                    }
                   : doShuffle
               }
               className={cn(
-                "flex items-center gap-1.5 text-[0.65rem] px-2.5 py-1.5 rounded border uppercase tracking-widest font-bold transition-colors",
+                'flex items-center gap-1 text-[0.6rem] px-2 py-1 rounded border uppercase tracking-widest font-bold transition-colors',
                 shuffle
-                  ? "border-[#4f46e5] text-[#c3c0ff] bg-[#4f46e5]/10"
-                  : "border-[#464555]/40 text-[#c7c4d8] hover:bg-[#1c1b1b]"
+                  ? 'border-[#4f46e5] text-[#c3c0ff] bg-[#4f46e5]/10'
+                  : 'border-[#464555]/40 text-[#c7c4d8] hover:bg-[#1c1b1b]'
               )}
             >
-              <Shuffle size={11} /> {shuffle ? "Shuffled" : "Shuffle"}
+              <Shuffle size={10} /> {shuffle ? 'Shuffled' : 'Shuffle'}
             </button>
             <button
               onClick={() => go(-1)}
               disabled={activeIdx === 0}
-              className="w-8 h-8 rounded flex items-center justify-center border border-[#464555]/40 hover:bg-[#1c1b1b] disabled:opacity-30 transition-colors"
+              className="w-7 h-7 rounded flex items-center justify-center border border-[#464555]/40 hover:bg-[#1c1b1b] disabled:opacity-30 transition-colors"
             >
-              <ChevronLeft size={14} />
+              <ChevronLeft size={12} />
             </button>
-            <span className="text-xs text-[#918fa1] font-mono w-12 text-center">
+            <span className="text-xs text-[#918fa1] font-mono w-10 text-center">
               {activeIdx + 1}/{displayPrompts.length}
             </span>
             <button
               onClick={() => go(1)}
               disabled={activeIdx === displayPrompts.length - 1}
-              className="w-8 h-8 rounded flex items-center justify-center border border-[#464555]/40 hover:bg-[#1c1b1b] disabled:opacity-30 transition-colors"
+              className="w-7 h-7 rounded flex items-center justify-center border border-[#464555]/40 hover:bg-[#1c1b1b] disabled:opacity-30 transition-colors"
             >
-              <ChevronRight size={14} />
+              <ChevronRight size={12} />
             </button>
           </div>
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden sm:flex items-center gap-2">
             <div className="text-right">
-              <p className="text-[0.6rem] uppercase tracking-widest text-[#c7c4d8]">Session Status</p>
+              <p className="text-[0.55rem] uppercase tracking-widest text-[#c7c4d8]">
+                Session Status
+              </p>
               <p className="text-xs font-bold text-[#4cd7f6]">
-                {phase === "recording" ? "RECORDING" : phase === "countdown" ? "STARTING" : "ACTIVE PROTOCOL"}
+                {phase === 'recording'
+                  ? 'RECORDING'
+                  : phase === 'countdown'
+                    ? 'STARTING'
+                    : 'ACTIVE PROTOCOL'}
               </p>
             </div>
             <div
               className={cn(
-                "w-2 h-2 rounded-full",
-                phase === "recording"
-                  ? "bg-rose-400 shadow-[0_0_10px_rgba(251,113,133,0.8)] animate-pulse"
-                  : "bg-[#4cd7f6] shadow-[0_0_10px_#4cd7f6]"
+                'w-2 h-2 rounded-full',
+                phase === 'recording'
+                  ? 'bg-rose-400 shadow-[0_0_8px_rgba(251,113,133,0.6)] animate-pulse'
+                  : 'bg-[#4cd7f6] shadow-[0_0_8px_#4cd7f6]'
               )}
             />
           </div>
@@ -309,54 +314,63 @@ export function VoicePracticePage({
       </div>
 
       {/* Bento Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 px-6 pb-6 pt-4 flex-1">
-
+      <div className="grid grid-cols-1 gap-4 px-4 pb-4 pt-3 flex-1">
         {/* Left: Prompt List */}
-        <div className="lg:col-span-3 space-y-3 order-2 lg:order-1">
-          <h3 className="text-sm font-bold px-1 mb-3 uppercase tracking-widest text-[#c7c4d8]">
+        <div className="col-span-3 space-y-2">
+          <h3 className="text-xs font-bold uppercase tracking-widest text-[#c7c4d8] mb-2">
             Practice Scenarios
           </h3>
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             {displayPrompts.map((p, i) => {
-              const isActive = i === activeIdx;
-              const diff = DIFF_BADGE[p.difficulty];
+              const isActive = i === activeIdx
+              const diff = DIFF_BADGE[p.difficulty] ?? DIFF_BADGE['intermediate']
               return (
                 <button
                   key={p.id}
                   onClick={() => {
-                    stopRecording();
-                    setActiveIdx(i);
-                    setPhase("idle");
-                    setElapsed(0);
-                    setTranscript("");
-                    setRating(0);
-                    setKeyPointsOpen(false);
+                    stopRecording()
+                    setActiveIdx(i)
+                    setPhase('idle')
+                    setElapsed(0)
+                    setTranscript('')
+                    setRating(0)
+                    setKeyPointsOpen(false)
                   }}
                   className={cn(
-                    "w-full text-left p-3.5 rounded-xl transition-all duration-200 border",
+                    'w-full text-left p-2.5 rounded-lg transition-all duration-200 border',
                     isActive
-                      ? "bg-[#201f1f] border-l-4 border-l-[#c3c0ff] border-t-transparent border-r-transparent border-b-transparent shadow-lg"
-                      : "bg-[#1c1b1b]/60 border-[#464555]/20 opacity-60 hover:opacity-100 hover:bg-[#201f1f]"
+                      ? 'bg-[#201f1f] border-l-2 border-l-[#c3c0ff] border-t-transparent border-r-transparent border-b-transparent shadow-md'
+                      : 'bg-[#1c1b1b]/50 border-[#464555]/20 opacity-60 hover:opacity-100 hover:bg-[#201f1f]'
                   )}
                 >
-                  <p className={cn("text-[0.6rem] uppercase tracking-widest mb-1", isActive ? "text-[#c3c0ff]" : "text-[#918fa1]")}>
-                    Scenario {String(i + 1).padStart(2, "0")}
+                  <p
+                    className={cn(
+                      'text-[0.55rem] uppercase tracking-widest mb-1',
+                      isActive ? 'text-[#c3c0ff]' : 'text-[#918fa1]'
+                    )}
+                  >
+                    Scenario {String(i + 1).padStart(2, '0')}
                   </p>
-                  <h4 className="font-bold text-xs text-[#e5e2e1] leading-snug line-clamp-2">
-                    {p.prompt.length > 60 ? p.prompt.slice(0, 60) + "…" : p.prompt}
+                  <h4 className="font-medium text-[0.875rem] text-[#e5e2e1] leading-snug line-clamp-2">
+                    {p.prompt.length > 50 ? p.prompt.slice(0, 50) + '…' : p.prompt}
                   </h4>
-                  <div className="flex items-center gap-2 mt-2.5 flex-wrap">
-                    <span className={cn("px-1.5 py-0.5 rounded text-[0.55rem] font-bold uppercase", diff.cls)}>
+                  <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+                    <span
+                      className={cn(
+                        'px-1 py-0.5 rounded text-[0.5rem] font-bold uppercase',
+                        diff.cls
+                      )}
+                    >
                       {p.domain}
                     </span>
-                    <span className="text-[0.55rem] text-[#918fa1]">{p.timeLimit}s practice</span>
+                    <span className="text-[0.5rem] text-[#918fa1]">{p.timeLimit}s</span>
                     {ratings[p.id] && (
                       <div className="flex gap-0.5 ml-auto">
                         {Array.from({ length: 5 }).map((_, si) => (
                           <Star
                             key={si}
-                            size={8}
-                            fill={si < ratings[p.id] ? "#f59e0b" : "none"}
+                            size={6}
+                            fill={si < ratings[p.id] ? '#f59e0b' : 'none'}
                             className="text-amber-400"
                           />
                         ))}
@@ -364,7 +378,7 @@ export function VoicePracticePage({
                     )}
                   </div>
                 </button>
-              );
+              )
             })}
           </div>
         </div>
@@ -381,7 +395,12 @@ export function VoicePracticePage({
                 <span className="text-[0.6rem] font-bold uppercase px-1.5 py-0.5 rounded bg-[#4f46e5]/20 text-[#c3c0ff]">
                   {active.type}
                 </span>
-                <span className={cn("text-[0.6rem] font-bold uppercase px-1.5 py-0.5 rounded ml-auto", DIFF_BADGE[active.difficulty].cls)}>
+                <span
+                  className={cn(
+                    'text-[0.6rem] font-bold uppercase px-1.5 py-0.5 rounded ml-auto',
+                    (DIFF_BADGE[active.difficulty] ?? DIFF_BADGE['intermediate']).cls
+                  )}
+                >
                   {active.difficulty}
                 </span>
               </div>
@@ -391,9 +410,8 @@ export function VoicePracticePage({
 
           {/* Main Voice Panel */}
           <div className="bg-[#201f1f] relative overflow-hidden rounded-2xl p-8 flex flex-col items-center justify-center border border-[#464555]/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] min-h-[340px]">
-
             {/* Countdown overlay */}
-            {phase === "countdown" && (
+            {phase === 'countdown' && (
               <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#0e0e0e]/80 z-10 rounded-2xl">
                 <div
                   data-testid="voice-countdown"
@@ -410,7 +428,11 @@ export function VoicePracticePage({
               {WAVEFORM_HEIGHTS.map((h, i) => (
                 <div
                   key={i}
-                  className={cn("w-1.5 rounded-full transition-all", WAVEFORM_COLORS[i], isAnimating ? "waveform-bar-active" : "")}
+                  className={cn(
+                    'w-1.5 rounded-full transition-all',
+                    WAVEFORM_COLORS[i],
+                    isAnimating ? 'waveform-bar-active' : ''
+                  )}
                   style={{
                     height: isAnimating ? undefined : `${Math.max(8, h * 0.3)}px`,
                     animationDelay: `${WAVEFORM_DELAYS[i]}s`,
@@ -423,27 +445,35 @@ export function VoicePracticePage({
             {/* Mic Button */}
             <button
               onClick={handleMicClick}
-              disabled={!srSupported && phase === "idle"}
+              disabled={!srSupported && phase === 'idle'}
               className="group relative flex items-center justify-center mb-6"
-              data-testid={phase === "idle" ? "voice-start-btn" : phase === "recording" ? "voice-stop-btn" : "voice-retry-btn"}
+              data-testid={
+                phase === 'idle'
+                  ? 'voice-start-btn'
+                  : phase === 'recording'
+                    ? 'voice-stop-btn'
+                    : 'voice-retry-btn'
+              }
             >
               <div
                 className={cn(
-                  "absolute inset-0 blur-2xl rounded-full transition-transform",
-                  phase === "recording" ? "bg-rose-400/20 group-active:scale-150" : "bg-[#c3c0ff]/20 group-active:scale-150"
+                  'absolute inset-0 blur-2xl rounded-full transition-transform',
+                  phase === 'recording'
+                    ? 'bg-rose-400/20 group-active:scale-150'
+                    : 'bg-[#c3c0ff]/20 group-active:scale-150'
                 )}
               />
               <div
                 className={cn(
-                  "relative w-20 h-20 rounded-full flex items-center justify-center shadow-lg transition-transform active:scale-90",
-                  phase === "recording"
-                    ? "bg-gradient-to-br from-rose-500 to-rose-700"
-                    : "bg-gradient-to-br from-[#4f46e5] to-[#03b5d3]"
+                  'relative w-20 h-20 rounded-full flex items-center justify-center shadow-lg transition-transform active:scale-90',
+                  phase === 'recording'
+                    ? 'bg-gradient-to-br from-rose-500 to-rose-700'
+                    : 'bg-gradient-to-br from-[#4f46e5] to-[#03b5d3]'
                 )}
               >
                 <Mic
                   size={32}
-                  className={cn("text-white", phase === "recording" && "animate-pulse")}
+                  className={cn('text-white', phase === 'recording' && 'animate-pulse')}
                   fill="white"
                 />
               </div>
@@ -451,24 +481,29 @@ export function VoicePracticePage({
 
             {/* State label */}
             <p className="text-[#e5e2e1] font-bold text-base mb-1">
-              {phase === "idle" && (srSupported ? "Tap to Speak" : "Not Supported")}
-              {phase === "countdown" && "Get Ready…"}
-              {phase === "recording" && `Recording  ${mm}:${ss}`}
-              {phase === "done" && "Session Complete"}
+              {phase === 'idle' && (srSupported ? 'Tap to Speak' : 'Not Supported')}
+              {phase === 'countdown' && 'Get Ready…'}
+              {phase === 'recording' && `Recording  ${mm}:${ss}`}
+              {phase === 'done' && 'Session Complete'}
             </p>
             <p className="text-[#918fa1] text-xs">
-              {phase === "idle" && (srSupported ? "Tap the mic to begin your practice session" : "Please use Google Chrome for voice features")}
-              {phase === "countdown" && "Preparing speech recognition…"}
-              {phase === "recording" && "Architect is listening to your explanation…"}
-              {phase === "done" && "Tap the mic to retry, or rate your response below"}
+              {phase === 'idle' &&
+                (srSupported
+                  ? 'Tap the mic to begin your practice session'
+                  : 'Please use Google Chrome for voice features')}
+              {phase === 'countdown' && 'Preparing speech recognition…'}
+              {phase === 'recording' && 'Architect is listening to your explanation…'}
+              {phase === 'done' && 'Tap the mic to retry, or rate your response below'}
             </p>
 
             {/* Transcript */}
-            {(transcript || phase === "done") && (
+            {(transcript || phase === 'done') && (
               <div className="mt-8 w-full p-5 bg-[#0e0e0e] rounded-xl border border-[#464555]/10">
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-[0.6rem] uppercase tracking-widest text-[#918fa1]">Live Transcript</span>
-                  {phase === "recording" && (
+                  <span className="text-[0.6rem] uppercase tracking-widest text-[#918fa1]">
+                    Live Transcript
+                  </span>
+                  {phase === 'recording' && (
                     <span className="flex items-center gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-[#4cd7f6] animate-pulse" />
                       <span className="text-[0.6rem] text-[#4cd7f6] font-bold">STT ACTIVE</span>
@@ -478,7 +513,7 @@ export function VoicePracticePage({
                 <p className="text-xs leading-relaxed text-[#e5e2e1]/80 italic">
                   {transcript
                     ? `"${transcript}"`
-                    : "No speech detected. Try again in a Chrome browser."}
+                    : 'No speech detected. Try again in a Chrome browser.'}
                 </p>
               </div>
             )}
@@ -488,14 +523,14 @@ export function VoicePracticePage({
           {active && (
             <div className="rounded-xl border border-[#464555]/20 bg-[#201f1f] overflow-hidden">
               <button
-                onClick={() => setKeyPointsOpen((o) => !o)}
+                onClick={() => setKeyPointsOpen(o => !o)}
                 className="w-full flex items-center justify-between px-5 py-3.5 text-xs font-bold text-[#e5e2e1] hover:bg-[#2a2a2a] transition-colors uppercase tracking-widest"
               >
                 <span className="flex items-center gap-2">
                   <CheckCircle2 size={13} className="text-[#4cd7f6]" />
                   Key Points to Cover
                 </span>
-                <span className="text-[#918fa1]">{keyPointsOpen ? "▲" : "▼"}</span>
+                <span className="text-[#918fa1]">{keyPointsOpen ? '▲' : '▼'}</span>
               </button>
               {keyPointsOpen && (
                 <div className="px-5 pb-5 space-y-2 border-t border-[#464555]/20">
@@ -507,7 +542,9 @@ export function VoicePracticePage({
                   ))}
                   {active.followUp && (
                     <div className="mt-3 pt-3 border-t border-[#464555]/20">
-                      <span className="text-[0.6rem] font-bold text-[#918fa1] uppercase tracking-widest">Follow-up: </span>
+                      <span className="text-[0.6rem] font-bold text-[#918fa1] uppercase tracking-widest">
+                        Follow-up:{' '}
+                      </span>
                       <span className="text-xs text-[#e5e2e1]">{active.followUp}</span>
                     </div>
                   )}
@@ -517,11 +554,13 @@ export function VoicePracticePage({
           )}
 
           {/* Self-rating */}
-          {phase === "done" && (
+          {phase === 'done' && (
             <div className="flex flex-col items-center gap-3 p-5 rounded-xl border border-[#464555]/20 bg-[#201f1f]">
-              <p className="text-xs font-bold uppercase tracking-widest text-[#c7c4d8]">Rate Your Response</p>
+              <p className="text-xs font-bold uppercase tracking-widest text-[#c7c4d8]">
+                Rate Your Response
+              </p>
               <div className="flex gap-2">
-                {[1, 2, 3, 4, 5].map((s) => (
+                {[1, 2, 3, 4, 5].map(s => (
                   <button
                     key={s}
                     data-testid={`voice-star-${s}`}
@@ -530,7 +569,7 @@ export function VoicePracticePage({
                   >
                     <Star
                       size={28}
-                      fill={s <= rating ? "#f59e0b" : "none"}
+                      fill={s <= rating ? '#f59e0b' : 'none'}
                       className="text-amber-400"
                     />
                   </button>
@@ -558,11 +597,17 @@ export function VoicePracticePage({
           <div className="bg-[#201f1f] p-5 rounded-2xl border border-[#464555]/10 shadow-xl">
             <div className="flex justify-between items-start mb-5">
               <div>
-                <p className="text-[0.6rem] uppercase tracking-widest text-[#918fa1] mb-1">Fluency Score</p>
+                <p className="text-[0.6rem] uppercase tracking-widest text-[#918fa1] mb-1">
+                  Fluency Score
+                </p>
                 <h5 className="text-3xl font-black text-[#e5e2e1]">
-                  {phase === "recording"
-                    ? elapsed < 10 ? "—" : "7.8"
-                    : phase === "done" ? "8.4" : "—"}
+                  {phase === 'recording'
+                    ? elapsed < 10
+                      ? '—'
+                      : '7.8'
+                    : phase === 'done'
+                      ? '8.4'
+                      : '—'}
                   <span className="text-xs text-[#918fa1] font-normal">/10</span>
                 </h5>
               </div>
@@ -573,13 +618,16 @@ export function VoicePracticePage({
             <div className="w-full h-1.5 bg-[#353534] rounded-full overflow-hidden">
               <div
                 className="h-full bg-[#c3c0ff] shadow-[0_0_10px_#c3c0ff] transition-all duration-1000 rounded-full"
-                style={{ width: phase === "done" ? "84%" : phase === "recording" && elapsed > 10 ? "78%" : "0%" }}
+                style={{
+                  width:
+                    phase === 'done' ? '84%' : phase === 'recording' && elapsed > 10 ? '78%' : '0%',
+                }}
               />
             </div>
             <p className="mt-3 text-[0.6rem] text-[#918fa1] italic leading-snug">
-              {phase === "done"
-                ? "Excellent pacing. Minimal hesitation noted during technical transition."
-                : "Begin speaking to generate analysis."}
+              {phase === 'done'
+                ? 'Excellent pacing. Minimal hesitation noted during technical transition.'
+                : 'Begin speaking to generate analysis.'}
             </p>
           </div>
 
@@ -587,9 +635,11 @@ export function VoicePracticePage({
           <div className="bg-[#201f1f] p-5 rounded-2xl border border-[#464555]/10 shadow-xl">
             <div className="flex justify-between items-start mb-5">
               <div>
-                <p className="text-[0.6rem] uppercase tracking-widest text-[#918fa1] mb-1">Technical Accuracy</p>
+                <p className="text-[0.6rem] uppercase tracking-widest text-[#918fa1] mb-1">
+                  Technical Accuracy
+                </p>
                 <h5 className="text-3xl font-black text-[#e5e2e1]">
-                  {phase === "done" ? "92" : phase === "recording" && elapsed > 10 ? "87" : "—"}
+                  {phase === 'done' ? '92' : phase === 'recording' && elapsed > 10 ? '87' : '—'}
                   <span className="text-xs text-[#918fa1] font-normal">%</span>
                 </h5>
               </div>
@@ -603,17 +653,21 @@ export function VoicePracticePage({
                   key={i}
                   className="flex-1 bg-[#4cd7f6] rounded-t-sm transition-all duration-700"
                   style={{
-                    height: phase === "done" || (phase === "recording" && elapsed > 10) ? `${h}%` : "0%",
+                    height:
+                      phase === 'done' || (phase === 'recording' && elapsed > 10) ? `${h}%` : '0%',
                     opacity: 0.2 + i * 0.2,
-                    boxShadow: i === 4 ? "0 -5px 15px rgba(76,215,246,0.3)" : "none",
+                    boxShadow: i === 4 ? '0 -5px 15px rgba(76,215,246,0.3)' : 'none',
                   }}
                 />
               ))}
             </div>
-            {phase === "done" && (
+            {phase === 'done' && (
               <div className="mt-3 flex flex-wrap gap-1.5">
                 {active?.keyPoints.slice(0, 2).map((kp, i) => (
-                  <span key={i} className="px-2 py-0.5 rounded bg-[#566175]/20 text-[0.55rem] text-[#bcc7de] border border-[#464555]/20">
+                  <span
+                    key={i}
+                    className="px-2 py-0.5 rounded bg-[#566175]/20 text-[0.55rem] text-[#bcc7de] border border-[#464555]/20"
+                  >
                     {kp.split(/[—–,]/)[0].trim().slice(0, 20)}
                   </span>
                 ))}
@@ -629,35 +683,50 @@ export function VoicePracticePage({
             </h6>
             <p className="text-xs text-[#918fa1] leading-relaxed">
               {active
-                ? `To maximize your score, ensure you cover all ${active.keyPoints.length} key points clearly.${active.followUp ? ` Also prepare for: "${active.followUp}"` : ""}`
-                : "Select a scenario to receive personalized coaching notes."}
+                ? `To maximize your score, ensure you cover all ${active.keyPoints.length} key points clearly.${active.followUp ? ` Also prepare for: "${active.followUp}"` : ''}`
+                : 'Select a scenario to receive personalized coaching notes.'}
             </p>
           </div>
 
           {/* Session Stats */}
           <div className="p-5 bg-[#201f1f] rounded-2xl border border-[#464555]/10">
-            <h6 className="text-[0.6rem] font-bold uppercase tracking-widest text-[#918fa1] mb-3">Session Stats</h6>
+            <h6 className="text-[0.6rem] font-bold uppercase tracking-widest text-[#918fa1] mb-3">
+              Session Stats
+            </h6>
             <div className="space-y-2">
               <div className="flex justify-between">
-                <span className="text-[0.6rem] uppercase tracking-widest text-[#918fa1]">Completed</span>
-                <span className="text-xs font-bold text-[#e5e2e1]">{Object.keys(ratings).length} / {displayPrompts.length}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[0.6rem] uppercase tracking-widest text-[#918fa1]">Avg Rating</span>
-                <span className="text-xs font-bold text-[#4cd7f6]">
-                  {Object.keys(ratings).length === 0
-                    ? "—"
-                    : (Object.values(ratings).reduce((a, b) => a + b, 0) / Object.keys(ratings).length).toFixed(1) + " / 5"}
+                <span className="text-[0.6rem] uppercase tracking-widest text-[#918fa1]">
+                  Completed
+                </span>
+                <span className="text-xs font-bold text-[#e5e2e1]">
+                  {Object.keys(ratings).length} / {displayPrompts.length}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-[0.6rem] uppercase tracking-widest text-[#918fa1]">Time Limit</span>
-                <span className="text-xs font-bold text-[#e5e2e1]">{active ? `${active.timeLimit}s` : "—"}</span>
+                <span className="text-[0.6rem] uppercase tracking-widest text-[#918fa1]">
+                  Avg Rating
+                </span>
+                <span className="text-xs font-bold text-[#4cd7f6]">
+                  {Object.keys(ratings).length === 0
+                    ? '—'
+                    : (
+                        Object.values(ratings).reduce((a, b) => a + b, 0) /
+                        Object.keys(ratings).length
+                      ).toFixed(1) + ' / 5'}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[0.6rem] uppercase tracking-widest text-[#918fa1]">
+                  Time Limit
+                </span>
+                <span className="text-xs font-bold text-[#e5e2e1]">
+                  {active ? `${active.timeLimit}s` : '—'}
+                </span>
               </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-  );
+  )
 }
