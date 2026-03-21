@@ -1,0 +1,420 @@
+/* Apple Typography Scale */
+/* Based on Apple Human Interface Guidelines */
+
+:root {
+  /* Font stack */
+  --apple-font-family:
+    -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif;
+
+  /* Typography scale */
+  --display-font-size: 48px;
+  --display-line-height: 56px;
+  --display-font-weight: 700;
+  --display-font-family: var(--apple-font-family);
+
+  --title1-font-size: 34px;
+  --title1-line-height: 40px;
+  --title1-font-weight: 600;
+  --title1-font-family: var(--apple-font-family);
+
+  --title2-font-size: 28px;
+  --title2-line-height: 34px;
+  --title2-font-weight: 600;
+  --title2-font-family: var(--apple-font-family);
+
+  --headline-font-size: 22px;
+  --headline-line-height: 28px;
+  --headline-font-weight: 600;
+  --headline-font-family: var(--apple-font-family);
+
+  --body-font-size: 17px;
+  --body-line-height: 24px;
+  --body-font-weight: 400;
+  --body-font-family: var(--apple-font-family);
+
+  --callout-font-size: 16px;
+  --callout-line-height: 22px;
+  --callout-font-weight: 400;
+  --callout-font-family: var(--apple-font-family);
+
+  --subhead-font-size: 15px;
+  --subhead-line-height: 20px;
+  --subhead-font-weight: 400;
+  --subhead-font-family: var(--apple-font-family);
+
+  --footnote-font-size: 13px;
+  --footnote-line-height: 18px;
+  --footnote-font-weight: 400;
+  --footnote-font-family: var(--apple-font-family);
+
+  --caption1-font-size: 12px;
+  --caption1-line-height: 16px;
+  --caption1-font-weight: 400;
+  --caption1-font-family: var(--apple-font-family);
+
+  --caption2-font-size: 11px;
+  --caption2-line-height: 13px;
+  --caption2-font-weight: 400;
+  --caption2-font-family: var(--apple-font-family);
+}
+
+/* Typography utility classes */
+@layer utilities {
+  .apple-display {
+    font-family: var(--display-font-family);
+    font-size: var(--display-font-size);
+    line-height: var(--display-line-height);
+    font-weight: var(--display-font-weight);
+    letter-spacing: -0.015em;
+  }
+
+  .apple-title-1 {
+    font-family: var(--title1-font-family);
+    font-size: var(--title1-font-size);
+    line-height: var(--title1-line-height);
+    font-weight: var(--title1-font-weight);
+    letter-spacing: 0.015em;
+  }
+
+  .apple-title-2 {
+    font-family: var(--title2-font-family);
+    font-size: var(--title2-font-size);
+    line-height: var(--title2-line-height);
+    font-weight: var(--title2-font-weight);
+    letter-spacing: 0.015em;
+  }
+
+  .apple-headline {
+    font-family: var(--headline-font-family);
+    font-size: var(--headline-font-size);
+    line-height: var(--headline-line-height);
+    font-weight: var(--headline-font-weight);
+    letter-spacing: 0.015em;
+  }
+
+  .apple-body {
+    font-family: var(--body-font-family);
+    font-size: var(--body-font-size);
+    line-height: var(--body-line-height);
+    font-weight: var(--body-font-weight);
+    letter-spacing: 0.015em;
+  }
+
+  .apple-callout {
+    font-family: var(--callout-font-family);
+    font-size: var(--callout-font-size);
+    line-height: var(--callout-line-height);
+    font-weight: var(--callout-font-weight);
+    letter-spacing: 0.015em;
+  }
+
+  .apple-subhead {
+    font-family: var(--subhead-font-family);
+    font-size: var(--subhead-font-size);
+    line-height: var(--subhead-line-height);
+    font-weight: var(--subhead-font-weight);
+    letter-spacing: 0.015em;
+  }
+
+  .apple-footnote {
+    font-family: var(--footnote-font-family);
+    font-size: var(--footnote-font-size);
+    line-height: var(--footnote-line-height);
+    font-weight: var(--footnote-font-weight);
+    letter-spacing: 0.015em;
+  }
+
+  .apple-caption-1 {
+    font-family: var(--caption1-font-family);
+    font-size: var(--caption1-font-size);
+    line-height: var(--caption1-line-height);
+    font-weight: var(--caption1-font-weight);
+    letter-spacing: 0.015em;
+  }
+
+  .apple-caption-2 {
+    font-family: var(--caption2-font-family);
+    font-size: var(--caption2-font-size);
+    line-height: var(--caption2-line-height);
+    font-weight: var(--caption2-font-weight);
+    letter-spacing: 0.015em;
+  }
+}
+
+/* Semantic HTML typography */
+h1,
+.h1 {
+  font-family: var(--title1-font-family);
+  font-size: var(--title1-font-size);
+  line-height: var(--title1-line-height);
+  font-weight: var(--title1-font-weight);
+  letter-spacing: 0.015em;
+}
+
+h2,
+.h2 {
+  font-family: var(--title2-font-family);
+  font-size: var(--title2-font-size);
+  line-height: var(--title2-line-height);
+  font-weight: var(--title2-font-weight);
+  letter-spacing: 0.015em;
+}
+
+h3,
+.h3 {
+  font-family: var(--headline-font-family);
+  font-size: var(--headline-font-size);
+  line-height: var(--headline-line-height);
+  font-weight: var(--headline-font-weight);
+  letter-spacing: 0.015em;
+}
+
+h4,
+.h4 {
+  font-family: var(--subhead-font-family);
+  font-size: var(--subhead-font-size);
+  line-height: var(--subhead-line-height);
+  font-weight: var(--subhead-font-weight);
+  letter-spacing: 0.015em;
+}
+
+p,
+.p {
+  font-family: var(--body-font-family);
+  font-size: var(--body-font-size);
+  line-height: var(--body-line-height);
+  font-weight: var(--body-font-weight);
+  letter-spacing: 0.015em;
+}
+
+small,
+.small {
+  font-family: var(--footnote-font-family);
+  font-size: var(--footnote-font-size);
+  line-height: var(--footnote-line-height);
+  font-weight: var(--footnote-font-weight);
+  letter-spacing: 0.015em;
+}
+
+/* Font smoothing for Apple */
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Typography for dark mode adjustments */
+.dark {
+  --display-font-family: var(--apple-font-family);
+  --title1-font-family: var(--apple-font-family);
+  --title2-font-family: var(--apple-font-family);
+  --headline-font-family: var(--apple-font-family);
+  --body-font-family: var(--apple-font-family);
+  --callout-font-family: var(--apple-font-family);
+  --subhead-font-family: var(--apple-font-family);
+  --footnote-font-family: var(--apple-font-family);
+  --caption1-font-family: var(--apple-font-family);
+  --caption2-font-family: var(--apple-font-family);
+}
+
+/* ============================================================================
+   Apple Vision Pro Spatial Typography
+   Enhanced readability for spatial computing and distance viewing
+   ============================================================================ */
+
+:root {
+  /* Vision Pro spatial typography scale */
+  --vision-display-font-size: 56px;
+  --vision-display-line-height: 64px;
+  --vision-display-font-weight: 700;
+  --vision-display-letter-spacing: -0.02em;
+
+  --vision-title1-font-size: 40px;
+  --vision-title1-line-height: 48px;
+  --vision-title1-font-weight: 600;
+  --vision-title1-letter-spacing: 0.01em;
+
+  --vision-title2-font-size: 34px;
+  --vision-title2-line-height: 42px;
+  --vision-title2-font-weight: 600;
+  --vision-title2-letter-spacing: 0.01em;
+
+  --vision-headline-font-size: 28px;
+  --vision-headline-line-height: 36px;
+  --vision-headline-font-weight: 600;
+  --vision-headline-letter-spacing: 0.01em;
+
+  --vision-body-font-size: 20px;
+  --vision-body-line-height: 28px;
+  --vision-body-font-weight: 400;
+  --vision-body-letter-spacing: 0.01em;
+
+  --vision-callout-font-size: 18px;
+  --vision-callout-line-height: 26px;
+  --vision-callout-font-weight: 400;
+  --vision-callout-letter-spacing: 0.01em;
+
+  --vision-subhead-font-size: 16px;
+  --vision-subhead-line-height: 24px;
+  --vision-subhead-font-weight: 500;
+  --vision-subhead-letter-spacing: 0.01em;
+
+  --vision-footnote-font-size: 14px;
+  --vision-footnote-line-height: 20px;
+  --vision-footnote-font-weight: 400;
+  --vision-footnote-letter-spacing: 0.01em;
+
+  --vision-caption1-font-size: 13px;
+  --vision-caption1-line-height: 18px;
+  --vision-caption1-font-weight: 400;
+  --vision-caption1-letter-spacing: 0.01em;
+
+  --vision-caption2-font-size: 12px;
+  --vision-caption2-line-height: 16px;
+  --vision-caption2-font-weight: 400;
+  --vision-caption2-letter-spacing: 0.01em;
+
+  /* Vision Pro text contrast ratios */
+  --vision-text-primary: rgba(255, 255, 255, 0.95);
+  --vision-text-secondary: rgba(255, 255, 255, 0.75);
+  --vision-text-tertiary: rgba(255, 255, 255, 0.5);
+}
+
+.dark {
+  --vision-text-primary: rgba(255, 255, 255, 0.95);
+  --vision-text-secondary: rgba(255, 255, 255, 0.7);
+  --vision-text-tertiary: rgba(255, 255, 255, 0.45);
+}
+
+/* Vision Pro typography utility classes */
+@layer utilities {
+  .vision-display {
+    font-family: var(--apple-font-family);
+    font-size: var(--vision-display-font-size);
+    line-height: var(--vision-display-line-height);
+    font-weight: var(--vision-display-font-weight);
+    letter-spacing: var(--vision-display-letter-spacing);
+    color: var(--vision-text-primary);
+  }
+
+  .vision-title-1 {
+    font-family: var(--apple-font-family);
+    font-size: var(--vision-title1-font-size);
+    line-height: var(--vision-title1-line-height);
+    font-weight: var(--vision-title1-font-weight);
+    letter-spacing: var(--vision-title1-letter-spacing);
+    color: var(--vision-text-primary);
+  }
+
+  .vision-title-2 {
+    font-family: var(--apple-font-family);
+    font-size: var(--vision-title2-font-size);
+    line-height: var(--vision-title2-line-height);
+    font-weight: var(--vision-title2-font-weight);
+    letter-spacing: var(--vision-title2-letter-spacing);
+    color: var(--vision-text-primary);
+  }
+
+  .vision-headline {
+    font-family: var(--apple-font-family);
+    font-size: var(--vision-headline-font-size);
+    line-height: var(--vision-headline-line-height);
+    font-weight: var(--vision-headline-font-weight);
+    letter-spacing: var(--vision-headline-letter-spacing);
+    color: var(--vision-text-primary);
+  }
+
+  .vision-body {
+    font-family: var(--apple-font-family);
+    font-size: var(--vision-body-font-size);
+    line-height: var(--vision-body-line-height);
+    font-weight: var(--vision-body-font-weight);
+    letter-spacing: var(--vision-body-letter-spacing);
+    color: var(--vision-text-primary);
+  }
+
+  .vision-callout {
+    font-family: var(--apple-font-family);
+    font-size: var(--vision-callout-font-size);
+    line-height: var(--vision-callout-line-height);
+    font-weight: var(--vision-callout-font-weight);
+    letter-spacing: var(--vision-callout-letter-spacing);
+    color: var(--vision-text-secondary);
+  }
+
+  .vision-subhead {
+    font-family: var(--apple-font-family);
+    font-size: var(--vision-subhead-font-size);
+    line-height: var(--vision-subhead-line-height);
+    font-weight: var(--vision-subhead-font-weight);
+    letter-spacing: var(--vision-subhead-letter-spacing);
+    color: var(--vision-text-secondary);
+  }
+
+  .vision-footnote {
+    font-family: var(--apple-font-family);
+    font-size: var(--vision-footnote-font-size);
+    line-height: var(--vision-footnote-line-height);
+    font-weight: var(--vision-footnote-font-weight);
+    letter-spacing: var(--vision-footnote-letter-spacing);
+    color: var(--vision-text-tertiary);
+  }
+
+  .vision-caption-1 {
+    font-family: var(--apple-font-family);
+    font-size: var(--vision-caption1-font-size);
+    line-height: var(--vision-caption1-line-height);
+    font-weight: var(--vision-caption1-font-weight);
+    letter-spacing: var(--vision-caption1-letter-spacing);
+    color: var(--vision-text-tertiary);
+  }
+
+  .vision-caption-2 {
+    font-family: var(--apple-font-family);
+    font-size: var(--vision-caption2-font-size);
+    line-height: var(--vision-caption2-line-height);
+    font-weight: var(--vision-caption2-font-weight);
+    letter-spacing: var(--vision-caption2-letter-spacing);
+    color: var(--vision-text-tertiary);
+  }
+}
+
+/* Vision Pro text readability enhancements */
+.vision-text-readable {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings:
+    'kern' 1,
+    'liga' 1;
+}
+
+/* Vision Pro text depth effects */
+.vision-text-depth {
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.1),
+    0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* Vision Pro text glow for important content */
+.vision-text-glow {
+  text-shadow:
+    0 0 10px rgba(124, 120, 232, 0.3),
+    0 0 20px rgba(124, 120, 232, 0.2);
+}
+
+/* Vision Pro text animations */
+.vision-text-animate {
+  animation: vision-text-fade-in 0.6s ease-out;
+}
+
+@keyframes vision-text-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

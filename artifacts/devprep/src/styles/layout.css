@@ -1,0 +1,677 @@
+/* ============================================================================
+   Apple Glass Theme - Spatial Computing Layout System
+   Depth, layering, and spatial layout utilities
+   ============================================================================ */
+
+/* ============================================================================
+   Layout Tokens & Variables
+   ============================================================================ */
+:root {
+  /* Spacing Scale - Generous spacing */
+  --space-1: 8px;
+  --space-2: 16px;
+  --space-3: 24px;
+  --space-4: 32px;
+  --space-5: 40px;
+  --space-6: 48px;
+  --space-8: 64px;
+  --space-10: 80px;
+  --space-12: 96px;
+  --space-16: 128px;
+
+  /* Radius Scale - Rounded corners */
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+  --radius-2xl: 48px;
+  --radius-full: 9999px;
+
+  /* Depth Shadows - Layering effect */
+  --depth-1: 0 1px 2px rgba(0, 0, 0, 0.04), 0 2px 4px rgba(0, 0, 0, 0.04);
+  --depth-2:
+    0 2px 4px rgba(0, 0, 0, 0.04), 0 4px 8px rgba(0, 0, 0, 0.04), 0 8px 16px rgba(0, 0, 0, 0.02);
+  --depth-3:
+    0 4px 8px rgba(0, 0, 0, 0.04), 0 8px 16px rgba(0, 0, 0, 0.04), 0 16px 32px rgba(0, 0, 0, 0.02);
+  --depth-4:
+    0 8px 16px rgba(0, 0, 0, 0.04), 0 16px 32px rgba(0, 0, 0, 0.04), 0 32px 64px rgba(0, 0, 0, 0.02);
+  --depth-5:
+    0 16px 32px rgba(0, 0, 0, 0.06), 0 32px 64px rgba(0, 0, 0, 0.04),
+    0 64px 128px rgba(0, 0, 0, 0.02);
+
+  /* Glass-specific depth */
+  --depth-glass-1:
+    0 1px 2px rgba(0, 0, 0, 0.02), 0 2px 4px rgba(0, 0, 0, 0.02),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  --depth-glass-2:
+    0 2px 4px rgba(0, 0, 0, 0.02), 0 4px 8px rgba(0, 0, 0, 0.02), 0 8px 16px rgba(0, 0, 0, 0.01),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  --depth-glass-3:
+    0 4px 8px rgba(0, 0, 0, 0.02), 0 8px 16px rgba(0, 0, 0, 0.02), 0 16px 32px rgba(0, 0, 0, 0.01),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  --depth-glass-4:
+    0 8px 16px rgba(0, 0, 0, 0.03), 0 16px 32px rgba(0, 0, 0, 0.02),
+    0 32px 64px rgba(0, 0, 0, 0.01), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+
+  /* Grid gap scales */
+  --grid-gap-xs: 8px;
+  --grid-gap-sm: 16px;
+  --grid-gap-md: 24px;
+  --grid-gap-lg: 32px;
+  --grid-gap-xl: 48px;
+
+  /* Z-index layers for depth */
+  --z-base: 1;
+  --z-elevated: 10;
+  --z-modal: 100;
+  --z-overlay: 1000;
+  --z-tooltip: 10000;
+}
+
+/* Dark mode depth adjustments */
+.dark {
+  --depth-1: 0 1px 2px rgba(0, 0, 0, 0.2), 0 2px 4px rgba(0, 0, 0, 0.15);
+  --depth-2:
+    0 2px 4px rgba(0, 0, 0, 0.2), 0 4px 8px rgba(0, 0, 0, 0.15), 0 8px 16px rgba(0, 0, 0, 0.1);
+  --depth-3:
+    0 4px 8px rgba(0, 0, 0, 0.2), 0 8px 16px rgba(0, 0, 0, 0.15), 0 16px 32px rgba(0, 0, 0, 0.1);
+  --depth-4:
+    0 8px 16px rgba(0, 0, 0, 0.2), 0 16px 32px rgba(0, 0, 0, 0.15), 0 32px 64px rgba(0, 0, 0, 0.1);
+  --depth-5:
+    0 16px 32px rgba(0, 0, 0, 0.25), 0 32px 64px rgba(0, 0, 0, 0.2),
+    0 64px 128px rgba(0, 0, 0, 0.15);
+
+  --depth-glass-1:
+    0 1px 2px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --depth-glass-2:
+    0 2px 4px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.08), 0 8px 16px rgba(0, 0, 0, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --depth-glass-3:
+    0 4px 8px rgba(0, 0, 0, 0.1), 0 8px 16px rgba(0, 0, 0, 0.08), 0 16px 32px rgba(0, 0, 0, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --depth-glass-4:
+    0 8px 16px rgba(0, 0, 0, 0.15), 0 16px 32px rgba(0, 0, 0, 0.1), 0 32px 64px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* ============================================================================
+   Spatial Container System
+   ============================================================================ */
+
+/* Base container with depth */
+.spatial-container {
+  padding: var(--space-3);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--depth-2);
+  position: relative;
+}
+
+/* Container with glass effect */
+.spatial-container-glass {
+  padding: var(--space-3);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--depth-glass-2);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Container sizes */
+.spatial-container-sm {
+  padding: var(--space-2);
+  border-radius: var(--radius-md);
+}
+
+.spatial-container-md {
+  padding: var(--space-3);
+  border-radius: var(--radius-lg);
+}
+
+.spatial-container-lg {
+  padding: var(--space-4);
+  border-radius: var(--radius-xl);
+}
+
+.spatial-container-xl {
+  padding: var(--space-6);
+  border-radius: var(--radius-2xl);
+}
+
+/* Page layout containers */
+.page-container {
+  min-height: 100vh;
+  padding: var(--space-3);
+  position: relative;
+}
+
+@media (min-width: 768px) {
+  .page-container {
+    padding: var(--space-4);
+  }
+}
+
+@media (min-width: 1024px) {
+  .page-container {
+    padding: var(--space-6);
+  }
+}
+
+/* ============================================================================
+   Grid Layout System with Breathing Room
+   ============================================================================ */
+
+/* Auto-fit grid with responsive columns */
+.grid-spatial {
+  display: grid;
+  gap: var(--grid-gap-md);
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}
+
+@media (min-width: 768px) {
+  .grid-spatial {
+    gap: var(--grid-gap-lg);
+  }
+}
+
+@media (min-width: 1280px) {
+  .grid-spatial {
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    gap: var(--grid-gap-xl);
+  }
+}
+
+/* Fixed column grids */
+.grid-cols-1 {
+  grid-template-columns: repeat(1, 1fr);
+}
+
+.grid-cols-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.grid-cols-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.grid-cols-4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+/* Responsive grid utilities */
+.grid-responsive-1 {
+  grid-template-columns: repeat(1, 1fr);
+}
+
+.grid-responsive-2 {
+  grid-template-columns: repeat(1, 1fr);
+}
+
+@media (min-width: 768px) {
+  .grid-responsive-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.grid-responsive-3 {
+  grid-template-columns: repeat(1, 1fr);
+}
+
+@media (min-width: 640px) {
+  .grid-responsive-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .grid-responsive-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.grid-responsive-4 {
+  grid-template-columns: repeat(1, 1fr);
+}
+
+@media (min-width: 640px) {
+  .grid-responsive-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .grid-responsive-4 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1280px) {
+  .grid-responsive-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Grid gap utilities */
+.gap-none {
+  gap: 0;
+}
+.gap-xs {
+  gap: var(--grid-gap-xs);
+}
+.gap-sm {
+  gap: var(--grid-gap-sm);
+}
+.gap-md {
+  gap: var(--grid-gap-md);
+}
+.gap-lg {
+  gap: var(--grid-gap-lg);
+}
+.gap-xl {
+  gap: var(--grid-gap-xl);
+}
+
+/* ============================================================================
+   Card Layout System with Rounded Corners
+   ============================================================================ */
+
+/* Base card with spatial depth */
+.card-spatial {
+  border-radius: var(--radius-lg);
+  box-shadow: var(--depth-2);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-spatial:hover {
+  box-shadow: var(--depth-3);
+  transform: translateY(-2px);
+}
+
+/* Card with glass effect */
+.card-spatial-glass {
+  border-radius: var(--radius-lg);
+  box-shadow: var(--depth-glass-2);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-spatial-glass:hover {
+  box-shadow: var(--depth-glass-3);
+  transform: translateY(-2px);
+}
+
+/* Card size variants */
+.card-spatial-sm {
+  padding: var(--space-2);
+  border-radius: var(--radius-md);
+}
+
+.card-spatial-md {
+  padding: var(--space-3);
+  border-radius: var(--radius-lg);
+}
+
+.card-spatial-lg {
+  padding: var(--space-4);
+  border-radius: var(--radius-xl);
+}
+
+.card-spatial-xl {
+  padding: var(--space-6);
+  border-radius: var(--radius-2xl);
+}
+
+/* Card content layout */
+.card-spatial-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  position: relative;
+  z-index: var(--z-base);
+}
+
+/* Card header/footer */
+.card-spatial-header {
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: var(--space-2);
+}
+
+.card-spatial-footer {
+  padding-top: var(--space-2);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin-top: var(--space-2);
+}
+
+/* ============================================================================
+   Depth & Layering Utilities
+   ============================================================================ */
+
+/* Depth levels */
+.depth-1 {
+  box-shadow: var(--depth-1);
+}
+.depth-2 {
+  box-shadow: var(--depth-2);
+}
+.depth-3 {
+  box-shadow: var(--depth-3);
+}
+.depth-4 {
+  box-shadow: var(--depth-4);
+}
+.depth-5 {
+  box-shadow: var(--depth-5);
+}
+
+/* Glass depth levels */
+.depth-glass-1 {
+  box-shadow: var(--depth-glass-1);
+}
+.depth-glass-2 {
+  box-shadow: var(--depth-glass-2);
+}
+.depth-glass-3 {
+  box-shadow: var(--depth-glass-3);
+}
+.depth-glass-4 {
+  box-shadow: var(--depth-glass-4);
+}
+
+/* Z-index utilities */
+.z-base {
+  z-index: var(--z-base);
+}
+.z-elevated {
+  z-index: var(--z-elevated);
+}
+.z-modal {
+  z-index: var(--z-modal);
+}
+.z-overlay {
+  z-index: var(--z-overlay);
+}
+.z-tooltip {
+  z-index: var(--z-tooltip);
+}
+
+/* Layering effects */
+.layer-1 {
+  position: relative;
+  z-index: var(--z-base);
+}
+
+.layer-2 {
+  position: relative;
+  z-index: var(--z-elevated);
+}
+
+.layer-3 {
+  position: relative;
+  z-index: var(--z-modal);
+}
+
+/* ============================================================================
+   Spatial Layout Patterns
+   ============================================================================ */
+
+/* Flex layouts with spacing */
+.flex-spatial {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.flex-spatial-md {
+  gap: var(--space-3);
+}
+
+.flex-spatial-lg {
+  gap: var(--space-4);
+}
+
+/* Flex direction utilities */
+.flex-col {
+  flex-direction: column;
+}
+
+.flex-row {
+  flex-direction: row;
+}
+
+/* Flex wrap */
+.flex-wrap {
+  flex-wrap: wrap;
+}
+
+/* Alignment utilities */
+.items-start {
+  align-items: flex-start;
+}
+.items-center {
+  align-items: center;
+}
+.items-end {
+  align-items: flex-end;
+}
+.items-stretch {
+  align-items: stretch;
+}
+
+.justify-start {
+  justify-content: flex-start;
+}
+.justify-center {
+  justify-content: center;
+}
+.justify-end {
+  justify-content: flex-end;
+}
+.justify-between {
+  justify-content: space-between;
+}
+.justify-around {
+  justify-content: space-around;
+}
+
+/* ============================================================================
+   Responsive Layout Utilities
+   ============================================================================ */
+
+/* Hide/show at breakpoints */
+.hide-mobile {
+  display: block;
+}
+
+@media (max-width: 767px) {
+  .hide-mobile {
+    display: none;
+  }
+}
+
+.hide-desktop {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .hide-desktop {
+    display: none;
+  }
+}
+
+/* Responsive padding */
+.p-responsive {
+  padding: var(--space-2);
+}
+
+@media (min-width: 768px) {
+  .p-responsive {
+    padding: var(--space-3);
+  }
+}
+
+@media (min-width: 1024px) {
+  .p-responsive {
+    padding: var(--space-4);
+  }
+}
+
+/* Responsive margin */
+.m-responsive {
+  margin: var(--space-2);
+}
+
+@media (min-width: 768px) {
+  .m-responsive {
+    margin: var(--space-3);
+  }
+}
+
+@media (min-width: 1024px) {
+  .m-responsive {
+    margin: var(--space-4);
+  }
+}
+
+/* ============================================================================
+   Spatial Transitions
+   ============================================================================ */
+
+/* Smooth depth transitions */
+.spatial-transition {
+  transition:
+    box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Float on hover */
+.spatial-float:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--depth-4);
+}
+
+/* Scale on hover */
+.spatial-scale:hover {
+  transform: scale(1.02);
+}
+
+/* Combined effects */
+.spatial-hover:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: var(--depth-3);
+}
+
+/* ============================================================================
+   Special Layout Components
+   ============================================================================ */
+
+/* Masonry-like grid */
+.masonry-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--grid-gap-md);
+  align-items: start;
+}
+
+@media (min-width: 768px) {
+  .masonry-grid {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: var(--grid-gap-lg);
+  }
+}
+
+/* Stacked cards effect */
+.stacked-cards {
+  position: relative;
+}
+
+.stacked-cards > * + * {
+  margin-top: calc(-1 * var(--space-2));
+}
+
+/* Bento grid layout */
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(3, 120px);
+  gap: var(--grid-gap-md);
+}
+
+@media (max-width: 1024px) {
+  .bento-grid {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(auto-fill, 100px);
+  }
+}
+
+@media (max-width: 640px) {
+  .bento-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(auto-fill, 80px);
+  }
+}
+
+.bento-item-1 {
+  grid-column: span 2;
+  grid-row: span 2;
+}
+.bento-item-2 {
+  grid-column: span 2;
+  grid-row: span 1;
+}
+.bento-item-3 {
+  grid-column: span 1;
+  grid-row: span 1;
+}
+.bento-item-4 {
+  grid-column: span 1;
+  grid-row: span 2;
+}
+
+/* ============================================================================
+   Accessibility & Reduced Motion
+   ============================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .spatial-transition,
+  .spatial-hover,
+  .spatial-float,
+  .spatial-scale {
+    transition: none;
+    transform: none;
+  }
+
+  .card-spatial:hover {
+    transform: none;
+  }
+
+  .card-spatial-glass:hover {
+    transform: none;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .depth-1,
+  .depth-2,
+  .depth-3,
+  .depth-4,
+  .depth-5 {
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* Print styles */
+@media print {
+  .spatial-container,
+  .card-spatial,
+  .card-spatial-glass {
+    box-shadow: none;
+    border: 1px solid #e5e7eb;
+  }
+
+  .spatial-transition {
+    transition: none;
+  }
+}

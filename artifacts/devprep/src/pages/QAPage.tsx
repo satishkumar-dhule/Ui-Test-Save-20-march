@@ -494,7 +494,7 @@ export function QAPage({
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Toolbar */}
         <div
-          className="flex items-center gap-2 px-4 border-b border-border bg-card/50"
+          className="flex items-center gap-2 px-3 border-b border-border bg-card/50"
           style={{ height: 44 }}
         >
           <button
@@ -505,7 +505,7 @@ export function QAPage({
           >
             <Menu size={16} />
           </button>
-          <div className="relative flex-1 max-w-xs">
+          <div className="relative flex-1 min-w-0">
             <Search
               size={12}
               className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground"
@@ -540,14 +540,14 @@ export function QAPage({
         </div>
 
         {/* Content */}
-        <div ref={contentRef} className="flex-1 overflow-y-auto p-4 md:p-6">
+        <div ref={contentRef} className="flex-1 overflow-y-auto p-3">
           {active ? (
-            <div className="max-w-3xl mx-auto space-y-6">
+            <div className="w-full space-y-4">
               {/* Question header */}
-              <div className="p-4 rounded-lg border border-border bg-card">
-                <div className="flex items-start gap-2 mb-2 flex-wrap">
+              <div className="p-3 rounded-lg border border-border bg-card">
+                <div className="flex items-start gap-1.5 mb-1.5 flex-wrap">
                   <span
-                    className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full"
+                    className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-full"
                     style={{
                       background: DIFF_COLOR[active.difficulty] + '20',
                       color: DIFF_COLOR[active.difficulty],
@@ -558,7 +558,7 @@ export function QAPage({
                   {(active.sections || []).map((s, i) => (
                     <span
                       key={i}
-                      className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded-full"
+                      className="text-[9px] font-semibold uppercase px-1 py-0.5 rounded-full"
                       style={{
                         background: SECTION_COLORS[s.type] + '15',
                         color: SECTION_COLORS[s.type],
@@ -568,18 +568,18 @@ export function QAPage({
                     </span>
                   ))}
                 </div>
-                <h1 className="text-lg font-bold text-foreground mb-3">{active.title}</h1>
-                <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                <h1 className="text-base font-bold text-foreground mb-2">{active.title}</h1>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <span>▲ {active.votes}</span>
                   <span>👁 {active.views}</span>
                   <span>by {active.askedBy}</span>
                   <span>{active.askedAt}</span>
                 </div>
-                <div className="flex flex-wrap gap-1.5 mt-3">
+                <div className="flex flex-wrap gap-1 mt-2">
                   {(active.tags || []).map(t => (
                     <span
                       key={t}
-                      className="text-[10px] px-1.5 py-0.5 rounded-sm bg-muted text-muted-foreground font-mono"
+                      className="text-[9px] px-1 py-0.5 rounded-sm bg-muted text-muted-foreground font-mono"
                     >
                       {t}
                     </span>
@@ -589,27 +589,27 @@ export function QAPage({
 
               {/* Sections */}
               {(active.sections || []).map((s, i) => (
-                <div key={i}>
+                <div key={i} className="mb-4">
                   <SectionBlock section={s} />
                 </div>
               ))}
 
               {/* Bottom nav */}
-              <div className="flex items-center justify-between pt-2">
+              <div className="flex items-center justify-between pt-1">
                 <button
                   onClick={() => go(-1)}
                   disabled={activeIdx === 0}
                   data-testid="qa-prev-btn"
                   aria-label="Previous question"
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium border border-border hover:bg-muted disabled:opacity-30 transition-colors"
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-md text-sm font-medium border border-border hover:bg-muted disabled:opacity-30 transition-colors"
                 >
-                  <ChevronLeft size={14} /> Previous
+                  <ChevronLeft size={12} /> Previous
                 </button>
-                <div className="flex gap-1">
+                <div className="flex gap-0.5">
                   {filtered.slice(Math.max(0, activeIdx - 2), activeIdx + 3).map((_, i) => (
                     <div
                       key={i}
-                      className="w-1.5 h-1.5 rounded-full transition-colors"
+                      className="w-1 h-1 rounded-full transition-colors"
                       style={{
                         background:
                           i + Math.max(0, activeIdx - 2) === activeIdx
@@ -624,9 +624,9 @@ export function QAPage({
                   disabled={activeIdx === filtered.length - 1}
                   data-testid="qa-next-btn"
                   aria-label="Next question"
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium border border-border hover:bg-muted disabled:opacity-30 transition-colors"
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-md text-sm font-medium border border-border hover:bg-muted disabled:opacity-30 transition-colors"
                 >
-                  Next <ChevronRight size={14} />
+                  Next <ChevronRight size={12} />
                 </button>
               </div>
             </div>

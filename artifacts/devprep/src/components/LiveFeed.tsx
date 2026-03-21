@@ -29,8 +29,8 @@ interface LiveFeedProps {
 }
 
 const contentTypeIcons: Record<ContentType, React.ReactNode> = {
-  question: <FileQuestion className="w-4 h-4" />,
-  flashcard: <Sparkles className="w-4 h-4" />,
+  question: <FileQuestion className="w-4 h-4 text-secondary opacity-70 drop-shadow-sm" />,
+  flashcard: <Sparkles className="w-4 h-4 text-secondary opacity-70 drop-shadow-sm" />,
   exam: <FileQuestion className="w-4 h-4" />,
   voice: <Mic className="w-4 h-4" />,
   coding: <Code className="w-4 h-4" />,

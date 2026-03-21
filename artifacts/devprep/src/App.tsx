@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react'
 import { channels as staticChannels } from '@/data/channels'
 import { useChannels } from '@/hooks/useChannels'
+import { useMobileNavigation } from '@/hooks/useMobileNavigation'
 import { questions as staticQuestions } from '@/data/questions'
 import { flashcards as staticFlashcards } from '@/data/flashcards'
 import { examQuestions as staticExam } from '@/data/exam'
@@ -12,8 +13,17 @@ import { useMergeContent } from '@/hooks/useMergeContent'
 import { useAnalytics } from '@/hooks/useAnalytics'
 import { useSearchShortcut } from '@/hooks/useSearchShortcut'
 import { useLocalStorage } from '@/hooks/useLocalStorage'
-import { AppHeader, ChannelSelector, SectionTabs, AppContent, AppProviders } from '@/components/app'
-import { OnboardingModal } from '@/components/OnboardingModal'
+import {
+  AppHeader,
+  ChannelSelector,
+  SectionTabs,
+  AppContent,
+  AppProviders,
+  NavigationDrawer,
+  BottomNav,
+  ResponsiveContainer,
+} from '@/components/app'
+
 import { OnboardingPage } from '@/pages/OnboardingPage'
 import { SearchModal } from '@/components/SearchModal'
 import { Spinner } from '@/components/ui/spinner'
@@ -26,6 +36,7 @@ export type Section = 'qa' | 'flashcards' | 'exam' | 'voice' | 'coding'
 
 export default function App() {
   const [currentView, setCurrentView] = useState<'main' | 'realtime'>('main')
+  const { isDrawerOpen, openDrawer, closeDrawer } = useMobileNavigation()
 
   // DB-driven channels (falls back to static until DB loads)
   const channels = useChannels()
@@ -446,7 +457,11 @@ export default function App() {
   return (
     <AppProviders theme={theme}>
       <div
-        className="h-screen flex flex-col overflow-hidden bg-background text-foreground relative"
+        className="min-h-screen flex flex-col bg-background text-foreground relative"
+        style={{
+          paddingTop: 'env(safe-area-inset-top, 0px)',
+          paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+        }}
         data-testid="app-root"
       >
         {currentView === 'realtime' ? (
@@ -463,45 +478,91 @@ export default function App() {
           </>
         ) : (
           <>
-            <AppHeader
-              currentChannel={currentChannel}
-              theme={theme}
-              onThemeToggle={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              onSearchOpen={openSearch}
-              onRealtimeDashboard={() => setCurrentView('realtime')}
-            />
+            {/* Mobile Header with Hamburger Menu */}
+            <div className="md:hidden">
+              <AppHeader
+                currentChannel={currentChannel}
+                theme={theme}
+                onThemeToggle={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                onSearchOpen={openSearch}
+                onMenuToggle={openDrawer}
+              />
+            </div>
 
-            <ChannelSelector
-              channelId={channelId}
-              channelTypeFilter={channelTypeFilter}
-              selectedTechChannels={selectedTechChannels}
-              selectedCertChannels={selectedCertChannels}
-              theme={theme}
-              onChannelSwitch={handleChannelSwitch}
-              onChannelTypeFilterChange={setChannelTypeFilter}
-              onEditChannels={() => setShowOnboarding(true)}
-            />
+            {/* Desktop Header - hidden on mobile */}
+            <div className="hidden md:block">
+              <AppHeader
+                currentChannel={currentChannel}
+                theme={theme}
+                onThemeToggle={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                onSearchOpen={openSearch}
+                onRealtimeDashboard={() => setCurrentView('realtime')}
+              />
 
-            <SectionTabs
+              <ChannelSelector
+                channelId={channelId}
+                channelTypeFilter={channelTypeFilter}
+                selectedTechChannels={selectedTechChannels}
+                selectedCertChannels={selectedCertChannels}
+                theme={theme}
+                onChannelSwitch={handleChannelSwitch}
+                onChannelTypeFilterChange={setChannelTypeFilter}
+                onEditChannels={() => setShowOnboarding(true)}
+              />
+
+              <SectionTabs
+                section={section}
+                sectionCounts={sectionCounts}
+                onSectionChange={setSection}
+              />
+            </div>
+
+            {/* Mobile Bottom Navigation */}
+            <BottomNav
               section={section}
               sectionCounts={sectionCounts}
               onSectionChange={setSection}
             />
 
-            <AppContent
-              section={section}
+            {/* Mobile Navigation Drawer */}
+            <NavigationDrawer
+              isOpen={isDrawerOpen}
+              onClose={closeDrawer}
+              currentChannel={currentChannel}
               channelId={channelId}
-              filteredQuestions={filteredQuestions}
-              filteredFlashcards={filteredFlashcards}
-              filteredExamQs={filteredExamQs}
-              filteredVoicePs={filteredVoicePs}
-              filteredCoding={filteredCoding}
-              onQuestionAnswered={stableTrackQAAnswered}
-              onFlashcardUpdate={stableUpdateFlashcard}
-              onCodingUpdate={stableUpdateCoding}
-              onExamComplete={stableExamComplete}
-              onVoicePractice={stableVoicePractice}
+              channelTypeFilter={channelTypeFilter}
+              selectedTechChannels={selectedTechChannels}
+              selectedCertChannels={selectedCertChannels}
+              section={section}
+              sectionCounts={sectionCounts}
+              onChannelSwitch={handleChannelSwitch}
+              onChannelTypeFilterChange={setChannelTypeFilter}
+              onEditChannels={() => setShowOnboarding(true)}
+              onSectionChange={setSection}
+              onSearchOpen={openSearch}
+              onThemeToggle={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              theme={theme}
             />
+
+            {/* Main Content Area */}
+            <main className="flex-1 flex flex-col min-h-0 pb-16 md:pb-0">
+              <ResponsiveContainer variant="full" padding="none" className="flex-1 flex flex-col">
+                <AppContent
+                  section={section}
+                  channelId={channelId}
+                  filteredQuestions={filteredQuestions}
+                  filteredFlashcards={filteredFlashcards}
+                  filteredExamQs={filteredExamQs}
+                  filteredVoicePs={filteredVoicePs}
+                  filteredCoding={filteredCoding}
+                  onQuestionAnswered={stableTrackQAAnswered}
+                  onFlashcardUpdate={stableUpdateFlashcard}
+                  onCodingUpdate={stableUpdateCoding}
+                  onExamComplete={stableExamComplete}
+                  onVoicePractice={stableVoicePractice}
+                />
+              </ResponsiveContainer>
+            </main>
           </>
         )}
 

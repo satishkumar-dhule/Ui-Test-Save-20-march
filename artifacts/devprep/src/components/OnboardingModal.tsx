@@ -51,7 +51,7 @@ export function ChannelCard({
       ref={cardRef}
       onClick={onToggle}
       data-testid={`onboarding-channel-${channel.id}`}
-      className="flex items-start gap-3 p-3 rounded-lg border text-left w-full transition-all duration-150 cursor-pointer btn-micro touch-target"
+      className="glass-subtle flex items-start gap-3 p-3 rounded-xl text-left w-full glass-transition cursor-pointer btn-micro touch-target"
       style={{
         borderColor: selected ? channel.color + '66' : undefined,
         background: selected ? channel.color + '0f' : undefined,
@@ -79,7 +79,7 @@ export function ChannelCard({
           </span>
           {channel.certCode && (
             <span
-              className="text-[10px] font-bold px-1.5 rounded-full"
+              className="glass-badge"
               style={{
                 color: channel.color,
                 background: channel.color + '20',
@@ -185,8 +185,7 @@ export function OnboardingModal({ onDone, initialSelected }: OnboardingModalProp
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: 'rgba(10,10,10,0.92)', backdropFilter: 'blur(12px)' }}
+      className="glass-backdrop fixed inset-0 z-50 flex items-center justify-center p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="onboarding-title"
@@ -194,9 +193,7 @@ export function OnboardingModal({ onDone, initialSelected }: OnboardingModalProp
     >
       <div
         ref={modalRef}
-        className="w-full max-w-2xl max-h-[88vh] flex flex-col rounded-xl border border-border overflow-hidden"
-        style={{
-          background: 'hsl(var(--card))',
+        className="glass-card-lg w-full max-w-2xl max-h-[88vh] flex flex-col rounded-2xl overflow-hidden"
           boxShadow: '0 24px 60px rgba(0,0,0,0.6)',
         }}
         data-testid="onboarding-modal"

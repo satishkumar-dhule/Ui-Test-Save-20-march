@@ -1,4 +1,4 @@
-import { Sun, Moon, Search } from 'lucide-react'
+import { Sun, Moon, Search, Menu } from 'lucide-react'
 import type { Channel } from '@/data/channels'
 
 interface AppHeaderProps {
@@ -7,6 +7,7 @@ interface AppHeaderProps {
   onThemeToggle: () => void
   onSearchOpen: () => void
   onRealtimeDashboard?: () => void
+  onMenuToggle?: () => void
 }
 
 export function AppHeader({
@@ -14,32 +15,49 @@ export function AppHeader({
   theme,
   onThemeToggle,
   onSearchOpen,
+  onMenuToggle,
 }: AppHeaderProps) {
   return (
     <div
-      className="flex-shrink-0 flex items-center justify-between px-6 border-b border-border/50 bg-background/80 backdrop-blur-md"
-      style={{ height: 56 }}
+      className="glass-vision-nav flex-shrink-0 flex items-center justify-between px-4 sm:px-6 min-h-[64px] sticky top-0 z-40 glass-vision-transition"
       data-testid="header"
     >
-      {/* Logo */}
-      <div className="flex items-center gap-3">
-        <span className="font-headline text-base font-bold tracking-tight text-foreground">
+      {/* Left section */}
+      <div className="flex items-center gap-4">
+        {/* Mobile menu button */}
+        {onMenuToggle && (
+          <button
+            onClick={onMenuToggle}
+            className="glass-vision-btn md:hidden min-h-[60px] min-w-[60px] flex items-center justify-center text-muted-foreground hover:text-foreground rounded-xl"
+            aria-label="Open navigation menu"
+          >
+            <Menu
+              size={24}
+              className="text-secondary opacity-80 hover:opacity-100 transition-opacity drop-shadow-sm"
+            />
+          </button>
+        )}
+
+        {/* Logo */}
+        <span className="font-headline text-lg sm:text-xl font-bold tracking-tight text-foreground">
           Dev<span className="text-primary/80">Prep</span>
         </span>
+
+        {/* Desktop channel info */}
         {ch && (
           <>
-            <span className="text-border text-lg font-light">/</span>
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs text-muted-foreground tracking-wide">
+            <span className="text-border text-xl font-light hidden sm:block">/</span>
+            <div className="hidden sm:flex items-center gap-2">
+              <span className="text-sm sm:text-base text-muted-foreground tracking-wide truncate max-w-[120px] sm:max-w-none">
                 {ch.emoji} {ch.name}
               </span>
               {ch.certCode && (
                 <span
-                  className="text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded-full border"
+                  className="text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-full border hidden sm:inline"
                   style={{
                     color: ch.color,
-                    background: ch.color + '15',
-                    borderColor: ch.color + '30',
+                    background: ch.color + '20',
+                    borderColor: ch.color + '40',
                   }}
                 >
                   {ch.certCode}
@@ -50,24 +68,50 @@ export function AppHeader({
         )}
       </div>
 
-      {/* Controls */}
-      <div className="flex items-center gap-1">
+      {/* Right section */}
+      <div className="flex items-center gap-2 sm:gap-3">
+        {/* Mobile channel indicator */}
+        {ch && (
+          <div className="glass-vision-card-sm sm:hidden flex items-center gap-2 px-3 py-2 rounded-xl">
+            <span className="text-base">{ch.emoji}</span>
+            <span className="text-sm text-muted-foreground truncate max-w-[80px]">
+              {ch.shortName || ch.name}
+            </span>
+          </div>
+        )}
+
+        {/* Search button */}
         <button
           data-testid="search-button"
           onClick={onSearchOpen}
-          className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/5 transition-colors"
+          className="glass-vision-btn min-h-[60px] min-w-[60px] w-12 h-12 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
           title="Search (Cmd+K)"
           aria-label="Search"
         >
-          <Search size={15} />
+          <Search
+            size={22}
+            className="text-secondary opacity-80 hover:opacity-100 transition-opacity drop-shadow-sm sm:w-[20px] sm:h-[20px]"
+          />
         </button>
+
+        {/* Theme toggle */}
         <button
           data-testid="theme-toggle"
           onClick={onThemeToggle}
           aria-label="Toggle theme"
-          className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/5 transition-colors"
+          className="glass-vision-btn min-h-[60px] min-w-[60px] w-12 h-12 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
         >
-          {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
+          {theme === 'dark' ? (
+            <Sun
+              size={22}
+              className="text-secondary opacity-80 hover:opacity-100 transition-opacity drop-shadow-sm sm:w-[20px] sm:h-[20px]"
+            />
+          ) : (
+            <Moon
+              size={22}
+              className="text-secondary opacity-80 hover:opacity-100 transition-opacity drop-shadow-sm sm:w-[20px] sm:h-[20px]"
+            />
+          )}
         </button>
       </div>
     </div>

@@ -50,9 +50,8 @@ export function ContentCard({
       whileTap={{ scale: 0.98 }}
       onClick={onClick}
       className={cn(
-        'group relative p-4 rounded-xl border cursor-pointer transition-all',
-        'bg-card/50 hover:bg-card border-border/50 hover:border-primary/30',
-        'hover:shadow-lg hover:shadow-primary/5',
+        'glass-card-md group relative p-4 rounded-2xl cursor-pointer touch-feedback touch-target',
+        'glass-hover glass-transition',
         isNew && 'ring-2 ring-primary/20 ring-offset-2 ring-offset-background',
         className
       )}
@@ -100,7 +99,7 @@ export function ContentCard({
           <div className="flex items-center gap-3">
             {showQualityScore && (
               <div className="flex items-center gap-1.5">
-                <TrendingUp className="w-3 h-3 text-muted-foreground" />
+                <TrendingUp className="w-3 h-3 text-secondary opacity-70 drop-shadow-sm" />
                 <span className={cn('text-xs font-medium', getQualityColor(item.qualityScore))}>
                   {(item.qualityScore * 100).toFixed(0)}%
                 </span>
@@ -125,7 +124,7 @@ export function ContentCard({
             )}
 
             <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-              <Clock className="w-3 h-3" />
+              <Clock className="w-3 h-3 text-secondary opacity-70 drop-shadow-sm" />
               {formatTimeAgo(item.createdAt)}
             </div>
 
@@ -199,7 +198,9 @@ export function QualityIndicator({
 
   return (
     <div className={cn('flex items-center', sizeClasses[size], className)}>
-      <TrendingUp className={cn(iconSizes[size], getQualityColor(score))} />
+      <TrendingUp
+        className={cn(iconSizes[size], getQualityColor(score), 'opacity-70 drop-shadow-sm')}
+      />
       {showLabel && (
         <span className={cn('font-medium', getQualityColor(score))}>
           {(score * 100).toFixed(0)}%

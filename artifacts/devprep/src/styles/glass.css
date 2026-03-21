@@ -1,0 +1,1155 @@
+/* ============================================================================
+   Apple Glass Morphism Utilities - PERFORMANCE OPTIMIZED
+   Frosted glass effects with GPU-accelerated rendering
+   ============================================================================ */
+
+/* Glass effect custom properties */
+:root {
+  /* Glass background opacities */
+  --glass-opacity-light: rgba(255, 255, 255, 0.7);
+  --glass-opacity-medium: rgba(255, 255, 255, 0.5);
+  --glass-opacity-dark: rgba(255, 255, 255, 0.3);
+  --glass-opacity-subtle: rgba(255, 255, 255, 0.1);
+
+  /* Dark mode glass opacities */
+  .dark & {
+    --glass-opacity-light: rgba(0, 0, 0, 0.7);
+    --glass-opacity-medium: rgba(0, 0, 0, 0.5);
+    --glass-opacity-dark: rgba(0, 0, 0, 0.3);
+    --glass-opacity-subtle: rgba(0, 0, 0, 0.1);
+  }
+
+  /* Glass border colors */
+  --glass-border-light: rgba(255, 255, 255, 0.2);
+  --glass-border-medium: rgba(255, 255, 255, 0.15);
+  --glass-border-subtle: rgba(255, 255, 255, 0.08);
+
+  /* Dark mode glass borders */
+  .dark & {
+    --glass-border-light: rgba(255, 255, 255, 0.15);
+    --glass-border-medium: rgba(255, 255, 255, 0.1);
+    --glass-border-subtle: rgba(255, 255, 255, 0.05);
+  }
+
+  /* Inner glow colors */
+  --glass-glow-light: rgba(255, 255, 255, 0.08);
+  --glass-glow-dark: rgba(0, 0, 0, 0.05);
+  --glass-glow-primary: rgba(124, 120, 232, 0.1);
+
+  /* Blur intensities - Optimized for 60fps */
+  --glass-blur-light: 6px;
+  --glass-blur-medium: 12px;
+  --glass-blur-heavy: 18px;
+  --glass-blur-ultra: 24px;
+
+  /* Mobile blur intensities - Reduced for performance */
+  --glass-blur-mobile-light: 4px;
+  --glass-blur-mobile-medium: 8px;
+  --glass-blur-mobile-heavy: 12px;
+
+  /* Gradient overlays - Simplified for GPU */
+  --glass-gradient-light: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 100%);
+  --glass-gradient-dark: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 100%);
+
+  /* Shadow effects - Optimized */
+  --glass-shadow-light: 0 4px 24px rgba(0, 0, 0, 0.06);
+  --glass-shadow-medium: 0 8px 32px rgba(0, 0, 0, 0.1);
+  --glass-shadow-heavy: 0 12px 40px rgba(0, 0, 0, 0.15);
+
+  /* Mobile shadows - Reduced complexity */
+  --glass-shadow-mobile: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.dark {
+  --glass-shadow-light: 0 4px 24px rgba(0, 0, 0, 0.4);
+  --glass-shadow-medium: 0 8px 32px rgba(0, 0, 0, 0.5);
+  --glass-shadow-heavy: 0 12px 40px rgba(0, 0, 0, 0.6);
+  --glass-shadow-mobile: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* ============================================================================
+   Base Glass Utility Classes - PERFORMANCE OPTIMIZED
+   GPU-accelerated with transform: translateZ(0)
+   ============================================================================ */
+
+/* Promote to GPU layer for all glass elements */
+.glass-promote {
+  transform: translateZ(0);
+  will-change: transform;
+  contain: layout style paint;
+}
+
+/* Backdrop blur utilities - Optimized */
+.glass-backdrop-blur {
+  backdrop-filter: blur(var(--glass-blur-light));
+  -webkit-backdrop-filter: blur(var(--glass-blur-light));
+  transform: translateZ(0);
+  will-change: backdrop-filter;
+}
+
+.glass-backdrop-blur-md {
+  backdrop-filter: blur(var(--glass-blur-medium));
+  -webkit-backdrop-filter: blur(var(--glass-blur-medium));
+  transform: translateZ(0);
+  will-change: backdrop-filter;
+}
+
+.glass-backdrop-blur-lg {
+  backdrop-filter: blur(var(--glass-blur-heavy));
+  -webkit-backdrop-filter: blur(var(--glass-blur-heavy));
+  transform: translateZ(0);
+  will-change: backdrop-filter;
+}
+
+.glass-backdrop-blur-xl {
+  backdrop-filter: blur(var(--glass-blur-ultra));
+  -webkit-backdrop-filter: blur(var(--glass-blur-ultra));
+  transform: translateZ(0);
+  will-change: backdrop-filter;
+}
+
+/* No blur variant */
+.glass-backdrop-none {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* ============================================================================
+   Glass Card Styles - PERFORMANCE OPTIMIZED
+   GPU-accelerated with transform: translateZ(0)
+   ============================================================================ */
+
+/* Base glass card - Optimized */
+.glass {
+  background: var(--glass-opacity-light);
+  backdrop-filter: blur(var(--glass-blur-medium));
+  -webkit-backdrop-filter: blur(var(--glass-blur-medium));
+  border: 1px solid var(--glass-border-light);
+  box-shadow: var(--glass-shadow-light);
+  position: relative;
+  overflow: hidden;
+  transform: translateZ(0);
+  will-change: transform, box-shadow;
+  contain: layout style paint;
+}
+
+.glass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--glass-gradient-light);
+  pointer-events: none;
+  z-index: 0;
+  will-change: opacity;
+}
+
+.glass > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Lighter glass variant */
+.glass-light {
+  background: var(--glass-opacity-medium);
+  backdrop-filter: blur(var(--glass-blur-light));
+  -webkit-backdrop-filter: blur(var(--glass-blur-light));
+  border: 1px solid var(--glass-border-medium);
+  box-shadow: var(--glass-shadow-light);
+  position: relative;
+  overflow: hidden;
+  transform: translateZ(0);
+  will-change: transform, box-shadow;
+  contain: layout style paint;
+}
+
+.glass-light::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--glass-gradient-light);
+  pointer-events: none;
+  z-index: 0;
+  will-change: opacity;
+}
+
+.glass-light > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Darker glass variant */
+.glass-dark {
+  background: var(--glass-opacity-dark);
+  backdrop-filter: blur(var(--glass-blur-heavy));
+  -webkit-backdrop-filter: blur(var(--glass-blur-heavy));
+  border: 1px solid var(--glass-border-subtle);
+  box-shadow: var(--glass-shadow-medium);
+  position: relative;
+  overflow: hidden;
+  transform: translateZ(0);
+  will-change: transform, box-shadow;
+  contain: layout style paint;
+}
+
+.glass-dark::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--glass-gradient-dark);
+  pointer-events: none;
+  z-index: 0;
+  will-change: opacity;
+}
+
+.glass-dark > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Subtle glass variant */
+.glass-subtle {
+  background: var(--glass-opacity-subtle);
+  backdrop-filter: blur(var(--glass-blur-light));
+  -webkit-backdrop-filter: blur(var(--glass-blur-light));
+  border: 1px solid var(--glass-border-subtle);
+  box-shadow: none;
+  position: relative;
+  overflow: hidden;
+  transform: translateZ(0);
+  will-change: transform;
+  contain: layout style paint;
+}
+
+.glass-subtle::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--glass-gradient-dark);
+  pointer-events: none;
+  z-index: 0;
+  will-change: opacity;
+}
+
+.glass-subtle > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ============================================================================
+   Glass Card with Variants - PERFORMANCE OPTIMIZED
+   ============================================================================ */
+
+/* Primary glass card - GPU optimized */
+.glass-primary {
+  background: rgba(124, 120, 232, 0.15);
+  backdrop-filter: blur(var(--glass-blur-medium));
+  -webkit-backdrop-filter: blur(var(--glass-blur-medium));
+  border: 1px solid rgba(124, 120, 232, 0.2);
+  box-shadow: 0 8px 32px rgba(124, 120, 232, 0.1);
+  position: relative;
+  overflow: hidden;
+  transform: translateZ(0);
+  will-change: transform, box-shadow;
+  contain: layout style paint;
+}
+
+.glass-primary::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(124, 120, 232, 0.1) 0%, transparent 100%);
+  pointer-events: none;
+  z-index: 0;
+  will-change: opacity;
+}
+
+.glass-primary > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Secondary glass card - GPU optimized */
+.glass-secondary {
+  background: rgba(76, 215, 246, 0.15);
+  backdrop-filter: blur(var(--glass-blur-medium));
+  -webkit-backdrop-filter: blur(var(--glass-blur-medium));
+  border: 1px solid rgba(76, 215, 246, 0.2);
+  box-shadow: 0 8px 32px rgba(76, 215, 246, 0.1);
+  position: relative;
+  overflow: hidden;
+  transform: translateZ(0);
+  will-change: transform, box-shadow;
+  contain: layout style paint;
+}
+
+.glass-secondary::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(76, 215, 246, 0.1) 0%, transparent 100%);
+  pointer-events: none;
+  z-index: 0;
+  will-change: opacity;
+}
+
+.glass-secondary > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ============================================================================
+   Glass Interactive States - GPU OPTIMIZED
+   All transforms use translate3d for GPU acceleration
+   ============================================================================ */
+
+/* Hover states - GPU accelerated */
+.glass-hover {
+  transition:
+    transform 0.2s ease-out,
+    box-shadow 0.2s ease-out,
+    border-color 0.2s ease-out;
+  transform: translateZ(0);
+  will-change: transform, box-shadow;
+}
+
+.glass-hover:hover {
+  background: var(--glass-opacity-light);
+  backdrop-filter: blur(var(--glass-blur-medium));
+  -webkit-backdrop-filter: blur(var(--glass-blur-medium));
+  border-color: var(--glass-border-light);
+  box-shadow: var(--glass-shadow-medium);
+  transform: translate3d(0, -2px, 0);
+}
+
+.glass-hover-subtle:hover {
+  background: var(--glass-opacity-medium);
+  border-color: var(--glass-border-medium);
+  box-shadow: var(--glass-shadow-light);
+}
+
+/* Active states - GPU accelerated */
+.glass-active:active {
+  background: var(--glass-opacity-dark);
+  transform: translate3d(0, 0, 0) scale(0.98);
+  box-shadow: var(--glass-shadow-light);
+}
+
+/* Focus states */
+.glass-focus:focus-visible {
+  outline: 2px solid rgba(124, 120, 232, 0.5);
+  outline-offset: 2px;
+  box-shadow:
+    var(--glass-shadow-medium),
+    0 0 0 4px rgba(124, 120, 232, 0.1);
+}
+
+/* ============================================================================
+   Glass Border Utilities
+   ============================================================================ */
+
+/* Border variants */
+.glass-border {
+  border: 1px solid var(--glass-border-light);
+}
+
+.glass-border-subtle {
+  border: 1px solid var(--glass-border-subtle);
+}
+
+.glass-border-gradient {
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--glass-opacity-light), var(--glass-opacity-light)) padding-box,
+    linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.05)) border-box;
+  backdrop-filter: blur(var(--glass-blur-medium));
+  -webkit-backdrop-filter: blur(var(--glass-blur-medium));
+}
+
+.glass-border-gradient-primary {
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--glass-opacity-light), var(--glass-opacity-light)) padding-box,
+    linear-gradient(135deg, rgba(124, 120, 232, 0.3), rgba(124, 120, 232, 0.05)) border-box;
+  backdrop-filter: blur(var(--glass-blur-medium));
+  -webkit-backdrop-filter: blur(var(--glass-blur-medium));
+}
+
+/* ============================================================================
+   Glass Inner Effects
+   ============================================================================ */
+
+/* Inner glow */
+.glass-inner-glow {
+  position: relative;
+}
+
+.glass-inner-glow::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Inner shadow */
+.glass-inner-shadow {
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Highlight edge */
+.glass-highlight-edge {
+  position: relative;
+}
+
+.glass-highlight-edge::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  pointer-events: none;
+}
+
+/* ============================================================================
+   Glass Size Variants
+   ============================================================================ */
+
+/* Card sizes with glass effect */
+.glass-card-sm {
+  background: var(--glass-opacity-light);
+  backdrop-filter: blur(var(--glass-blur-medium));
+  -webkit-backdrop-filter: blur(var(--glass-blur-medium));
+  border: 1px solid var(--glass-border-light);
+  box-shadow: var(--glass-shadow-light);
+  position: relative;
+  overflow: hidden;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+}
+
+.glass-card-md {
+  background: var(--glass-opacity-light);
+  backdrop-filter: blur(var(--glass-blur-medium));
+  -webkit-backdrop-filter: blur(var(--glass-blur-medium));
+  border: 1px solid var(--glass-border-light);
+  box-shadow: var(--glass-shadow-light);
+  position: relative;
+  overflow: hidden;
+  border-radius: 0.75rem;
+  padding: 1rem;
+}
+
+.glass-card-lg {
+  background: var(--glass-opacity-light);
+  backdrop-filter: blur(var(--glass-blur-medium));
+  -webkit-backdrop-filter: blur(var(--glass-blur-medium));
+  border: 1px solid var(--glass-border-light);
+  box-shadow: var(--glass-shadow-light);
+  position: relative;
+  overflow: hidden;
+  border-radius: 1rem;
+  padding: 1.5rem;
+}
+
+.glass-card-xl {
+  background: var(--glass-opacity-light);
+  backdrop-filter: blur(var(--glass-blur-medium));
+  -webkit-backdrop-filter: blur(var(--glass-blur-medium));
+  border: 1px solid var(--glass-border-light);
+  box-shadow: var(--glass-shadow-light);
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.5rem;
+  padding: 2rem;
+}
+
+/* ============================================================================
+   Glass Animation Utilities - GPU OPTIMIZED
+   All animations use transform/opacity for 60fps
+   ============================================================================ */
+
+/* Smooth transitions for glass effects - GPU optimized */
+.glass-transition {
+  transition:
+    opacity 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease-out;
+  will-change: transform, opacity;
+}
+
+/* Glass shimmer effect - GPU optimized with transform */
+.glass-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.08) 50%,
+    transparent 100%
+  );
+  transform: translateX(-100%);
+  animation: glass-shimmer 2s ease-in-out infinite;
+  pointer-events: none;
+  will-change: transform;
+}
+
+@keyframes glass-shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Glass pulse effect - GPU optimized */
+.glass-pulse {
+  animation: glass-pulse 2s ease-in-out infinite;
+  will-change: opacity;
+}
+
+@keyframes glass-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* ============================================================================
+   Glass Component Presets - PERFORMANCE OPTIMIZED
+   All components include GPU acceleration
+   ============================================================================ */
+
+/* Glass button - GPU optimized */
+.glass-btn {
+  background: var(--glass-opacity-light);
+  backdrop-filter: blur(var(--glass-blur-medium));
+  -webkit-backdrop-filter: blur(var(--glass-blur-medium));
+  border: 1px solid var(--glass-border-light);
+  box-shadow: var(--glass-shadow-light);
+  position: relative;
+  overflow: hidden;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+  transform: translateZ(0);
+  will-change: transform;
+  transition: all 0.3s ease-out;
+}
+
+.glass-btn:hover {
+  transform: scale(1.02);
+  box-shadow: 0 8px 32px rgba(10, 132, 255, 0.15);
+}
+
+.glass-btn:active {
+  background: var(--glass-opacity-dark);
+  transform: translateY(0);
+  box-shadow: var(--glass-shadow-light);
+}
+
+.glass-btn:focus-visible {
+  outline: 2px solid rgba(124, 120, 232, 0.5);
+  outline-offset: 2px;
+  box-shadow:
+    var(--glass-shadow-medium),
+    0 0 0 4px rgba(124, 120, 232, 0.1);
+}
+
+/* Glass input field - GPU optimized */
+.glass-input {
+  background: var(--glass-opacity-light);
+  backdrop-filter: blur(var(--glass-blur-medium));
+  -webkit-backdrop-filter: blur(var(--glass-blur-medium));
+  border: 1px solid var(--glass-border-light);
+  box-shadow: var(--glass-shadow-light);
+  position: relative;
+  overflow: hidden;
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transform: translateZ(0);
+}
+
+.glass-input:focus {
+  outline: none;
+  ring: 2px;
+  ring-color: hsl(var(--primary) / 0.5);
+}
+
+.glass-input::placeholder {
+  color: hsl(var(--foreground) / 0.5);
+}
+
+/* Glass modal backdrop - GPU optimized */
+.glass-backdrop {
+  @apply fixed inset-0 z-50;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transform: translateZ(0);
+  will-change: opacity;
+}
+
+/* Glass sidebar - GPU optimized */
+.glass-sidebar {
+  @apply glass h-full;
+  @apply border-r border-white/10;
+  transform: translateZ(0);
+}
+
+/* Glass navbar - GPU optimized with sticky */
+.glass-navbar {
+  @apply glass sticky top-0 z-40;
+  @apply border-b border-white/10;
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+/* Glass tooltip - GPU optimized */
+.glass-tooltip {
+  @apply glass-dark rounded-lg px-3 py-1.5 text-xs;
+  @apply border border-white/5;
+  transform: translateZ(0);
+  will-change: transform, opacity;
+}
+
+/* Glass badge - GPU optimized */
+.glass-badge {
+  @apply glass-subtle rounded-full px-2 py-0.5 text-xs;
+  @apply border border-white/5;
+  transform: translateZ(0);
+}
+
+/* ============================================================================
+   Responsive Glass Adjustments - MOBILE PERFORMANCE OPTIMIZED
+   ============================================================================ */
+
+/* Mobile optimizations - Reduced blur and complexity */
+@media (max-width: 768px) {
+  /* Reduce blur intensity on mobile */
+  .glass,
+  .glass-light,
+  .glass-dark,
+  .glass-subtle,
+  .glass-primary,
+  .glass-secondary {
+    backdrop-filter: blur(var(--glass-blur-mobile-medium));
+    -webkit-backdrop-filter: blur(var(--glass-blur-mobile-medium));
+    box-shadow: var(--glass-shadow-mobile);
+  }
+
+  /* Disable complex animations on mobile */
+  .glass-shimmer::after {
+    animation-duration: 3s;
+  }
+
+  /* Reduce motion for better battery life */
+  .glass-hover:hover {
+    transform: translate3d(0, 0, 0);
+  }
+
+  /* Simplify card sizes */
+  .glass-card-sm,
+  .glass-card-md,
+  .glass-card-lg,
+  .glass-card-xl {
+    @apply p-4;
+  }
+
+  /* Disable backdrop-filter on very weak devices */
+  @supports not (backdrop-filter: blur(1px)) {
+    .glass,
+    .glass-light,
+    .glass-dark,
+    .glass-subtle,
+    .glass-primary,
+    .glass-secondary {
+      background: rgba(255, 255, 255, 0.95);
+    }
+
+    .dark .glass,
+    .dark .glass-light,
+    .dark .glass-dark,
+    .dark .glass-subtle,
+    .dark .glass-primary,
+    .dark .glass-secondary {
+      background: rgba(0, 0, 0, 0.95);
+    }
+  }
+}
+
+/* Ultra-mobile optimizations for small screens */
+@media (max-width: 375px) {
+  .glass,
+  .glass-light,
+  .glass-dark,
+  .glass-subtle,
+  .glass-primary,
+  .glass-secondary {
+    backdrop-filter: blur(var(--glass-blur-mobile-light));
+    -webkit-backdrop-filter: blur(var(--glass-blur-mobile-light));
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .glass-transition {
+    transition: none;
+  }
+
+  .glass-shimmer::after {
+    animation: none;
+  }
+
+  .glass-pulse {
+    animation: none;
+  }
+
+  .glass-hover:hover {
+    transform: none;
+  }
+}
+
+/* Print styles - remove glass effects */
+@media print {
+  .glass,
+  .glass-light,
+  .glass-dark,
+  .glass-subtle,
+  .glass-primary,
+  .glass-secondary {
+    background: white !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    box-shadow: none !important;
+    border: 1px solid #e5e7eb !important;
+  }
+
+  .glass::before {
+    display: none !important;
+  }
+}
+
+/* ============================================================================
+   Accessibility Improvements
+   ============================================================================ */
+
+/* Focus visible for keyboard navigation */
+.glass:focus-visible {
+  outline: 2px solid rgba(124, 120, 232, 0.6);
+  outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .glass,
+  .glass-light,
+  .glass-dark,
+  .glass-subtle {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border: 1px solid rgba(0, 0, 0, 0.3) !important;
+  }
+
+  .dark .glass,
+  .dark .glass-light,
+  .dark .glass-dark,
+  .dark .glass-subtle {
+    background: rgba(0, 0, 0, 0.9) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  }
+}
+
+/* ============================================================================
+   Apple Vision Pro Spatial Glass Effects
+   ============================================================================ */
+
+/* Vision Pro specific properties */
+:root {
+  /* Spatial depth variables */
+  --glass-depth-light: 1px;
+  --glass-depth-medium: 2px;
+  --glass-depth-heavy: 3px;
+
+  /* Vision Pro blur intensities */
+  --glass-blur-vision-light: 12px;
+  --glass-blur-vision-medium: 20px;
+  --glass-blur-vision-heavy: 28px;
+
+  /* Spatial shadow layers */
+  --glass-shadow-vision-light:
+    0 4px 16px rgba(0, 0, 0, 0.05), 0 8px 32px rgba(0, 0, 0, 0.03),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  --glass-shadow-vision-medium:
+    0 8px 24px rgba(0, 0, 0, 0.08), 0 16px 48px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  --glass-shadow-vision-heavy:
+    0 12px 32px rgba(0, 0, 0, 0.12), 0 24px 64px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+
+  /* Spatial gradient for depth */
+  --glass-gradient-vision: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.15) 0%,
+    rgba(255, 255, 255, 0.05) 30%,
+    rgba(255, 255, 255, 0) 50%,
+    rgba(255, 255, 255, 0.02) 70%,
+    rgba(255, 255, 255, 0.08) 100%
+  );
+}
+
+.dark {
+  --glass-shadow-vision-light:
+    0 4px 16px rgba(0, 0, 0, 0.3), 0 8px 32px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --glass-shadow-vision-medium:
+    0 8px 24px rgba(0, 0, 0, 0.4), 0 16px 48px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --glass-shadow-vision-heavy:
+    0 12px 32px rgba(0, 0, 0, 0.5), 0 24px 64px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+
+  --glass-gradient-vision: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.08) 0%,
+    rgba(255, 255, 255, 0.02) 30%,
+    rgba(255, 255, 255, 0) 50%,
+    rgba(255, 255, 255, 0.01) 70%,
+    rgba(255, 255, 255, 0.04) 100%
+  );
+}
+
+/* Vision Pro spatial card */
+.glass-vision {
+  background: var(--glass-opacity-light);
+  backdrop-filter: blur(var(--glass-blur-vision-medium));
+  -webkit-backdrop-filter: blur(var(--glass-blur-vision-medium));
+  border: 1px solid var(--glass-border-light);
+  box-shadow: var(--glass-shadow-vision-medium);
+  position: relative;
+  overflow: hidden;
+  transform-style: preserve-3d;
+  transition:
+    transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.4s ease;
+}
+
+.glass-vision::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--glass-gradient-vision);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.glass-vision::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.glass-vision > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Vision Pro hover state with depth */
+.glass-vision-hover:hover {
+  transform: translateY(-4px) translateZ(8px);
+  box-shadow: var(--glass-shadow-vision-heavy);
+}
+
+/* Vision Pro active state */
+.glass-vision-active:active {
+  transform: translateY(-2px) translateZ(4px);
+  box-shadow: var(--glass-shadow-vision-light);
+}
+
+/* Vision Pro focus state */
+.glass-vision-focus:focus-visible {
+  outline: 2px solid rgba(124, 120, 232, 0.7);
+  outline-offset: 3px;
+  box-shadow:
+    var(--glass-shadow-vision-medium),
+    0 0 0 6px rgba(124, 120, 232, 0.1);
+}
+
+/* Vision Pro button component */
+.glass-vision-btn {
+  @apply glass-vision px-5 py-3 rounded-xl text-base font-medium;
+  @apply glass-vision-hover glass-vision-active glass-vision-focus;
+  cursor: pointer;
+  user-select: none;
+  min-height: 60px;
+  min-width: 60px;
+}
+
+/* Vision Pro card sizes */
+.glass-vision-card-sm {
+  @apply glass-vision rounded-xl p-4;
+}
+
+.glass-vision-card-md {
+  @apply glass-vision rounded-2xl p-6;
+}
+
+.glass-vision-card-lg {
+  @apply glass-vision rounded-3xl p-8;
+}
+
+.glass-vision-card-xl {
+  @apply glass-vision rounded-3xl p-10;
+}
+
+/* Vision Pro navigation elements */
+.glass-vision-nav {
+  @apply glass-vision rounded-2xl;
+  @apply border border-white/10;
+  backdrop-filter: blur(var(--glass-blur-vision-light));
+  -webkit-backdrop-filter: blur(var(--glass-blur-vision-light));
+}
+
+/* Vision Pro tab styling */
+.glass-vision-tab {
+  @apply glass-vision rounded-xl px-5 py-3;
+  @apply min-h-[60px] min-w-[60px];
+  @apply text-base font-medium;
+  @apply glass-vision-hover glass-vision-active;
+}
+
+.glass-vision-tab.active {
+  background: rgba(124, 120, 232, 0.2);
+  border-color: rgba(124, 120, 232, 0.3);
+}
+
+/* Vision Pro input fields */
+.glass-vision-input {
+  @apply glass-vision rounded-xl px-4 py-3 text-base;
+  @apply border border-white/15;
+  @apply min-h-[60px];
+  @apply focus:outline-none focus:ring-2 focus:ring-primary/50;
+  @apply placeholder:text-foreground/50;
+}
+
+/* Vision Pro spacing utilities for spatial viewing */
+.glass-vision-space-sm {
+  gap: 8px;
+}
+
+.glass-vision-space-md {
+  gap: 16px;
+}
+
+.glass-vision-space-lg {
+  gap: 24px;
+}
+
+.glass-vision-space-xl {
+  gap: 32px;
+}
+
+/* Vision Pro depth layers */
+.glass-vision-layer-1 {
+  transform: translateZ(0px);
+}
+
+.glass-vision-layer-2 {
+  transform: translateZ(4px);
+}
+
+.glass-vision-layer-3 {
+  transform: translateZ(8px);
+}
+
+.glass-vision-layer-4 {
+  transform: translateZ(12px);
+}
+
+/* Vision Pro responsive adjustments */
+@media (max-width: 768px) {
+  .glass-vision {
+    backdrop-filter: blur(var(--glass-blur-vision-light));
+    -webkit-backdrop-filter: blur(var(--glass-blur-vision-light));
+  }
+
+  .glass-vision-btn {
+    min-height: 56px;
+    min-width: 56px;
+  }
+
+  .glass-vision-tab {
+    min-height: 56px;
+    min-width: 56px;
+  }
+}
+
+/* Vision Pro animation transitions */
+.glass-vision-transition {
+  transition:
+    transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    background-color 0.4s ease,
+    backdrop-filter 0.4s ease,
+    border-color 0.4s ease,
+    box-shadow 0.4s ease;
+}
+
+/* Vision Pro shimmer effect */
+.glass-vision-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-vision-shimmer::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.08) 50%,
+    transparent 70%
+  );
+  animation: glass-vision-shimmer 4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes glass-vision-shimmer {
+  0% {
+    transform: translateX(-100%) rotate(45deg);
+  }
+  100% {
+    transform: translateX(100%) rotate(45deg);
+  }
+}
+
+/* Vision Pro pulse effect */
+.glass-vision-pulse {
+  animation: glass-vision-pulse 3s ease-in-out infinite;
+}
+
+@keyframes glass-vision-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: var(--glass-shadow-vision-medium);
+  }
+  50% {
+    opacity: 0.9;
+    box-shadow: var(--glass-shadow-vision-heavy);
+  }
+}
+
+/* Vision Pro reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .glass-vision,
+  .glass-vision-hover:hover,
+  .glass-vision-active:active,
+  .glass-vision-transition {
+    transition: none;
+    transform: none !important;
+  }
+
+  .glass-vision-shimmer::after {
+    animation: none;
+  }
+
+  .glass-vision-pulse {
+    animation: none;
+  }
+}
+
+/* ============================================================================
+   PERFORMANCE UTILITIES
+   Additional optimizations for 60fps rendering
+   ============================================================================ */
+
+/* GPU layer promotion for animated elements */
+.glass-gpu-layer {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* Content visibility for off-screen glass elements */
+.glass-content-visibility {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 200px;
+}
+
+/* Will-change hints for frequently animated elements */
+.glass-will-animate {
+  will-change: transform, opacity, filter;
+}
+
+/* Disable glass effects for users who prefer reduced motion */
+@media (prefers-reduced-motion: no-preference) {
+  .glass-animated {
+    transform: translateZ(0);
+    will-change: transform;
+  }
+}
+
+/* Low-end device optimizations */
+@media (update: slow) {
+  .glass,
+  .glass-light,
+  .glass-dark,
+  .glass-subtle,
+  .glass-primary,
+  .glass-secondary {
+    backdrop-filter: blur(var(--glass-blur-mobile-light));
+    -webkit-backdrop-filter: blur(var(--glass-blur-mobile-light));
+  }
+
+  .glass-shimmer::after {
+    animation: none;
+  }
+
+  .glass-pulse {
+    animation: none;
+  }
+}
+
+/* Print optimization - remove expensive effects */
+@media print {
+  .glass-gpu-layer,
+  .glass-will-animate,
+  .glass-animated {
+    transform: none !important;
+    will-change: auto !important;
+  }
+}
