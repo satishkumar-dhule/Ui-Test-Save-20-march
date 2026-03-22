@@ -461,32 +461,45 @@ export function QAPage({
           </span>
         </div>
         <div className="overflow-y-auto flex-1">
-          {filtered.map((q, i) => (
-            <button
-              key={q.id}
-              data-testid={`qa-sidebar-item-${q.id}`}
-              onClick={() => {
-                setActiveIdx(i)
-                setSidebarOpen(false)
-              }}
-              className="w-full text-left px-3 py-2.5 transition-colors hover:bg-muted/50 border-l-2"
-              style={{
-                borderLeftColor: i === activeIdx ? 'hsl(var(--primary))' : 'transparent',
-                background: i === activeIdx ? 'hsl(var(--primary) / 0.06)' : undefined,
-              }}
-            >
-              <div className="flex items-center gap-2 mb-0.5">
-                <span className="text-[10px] font-mono text-muted-foreground">#{q.number}</span>
-                <span
-                  className="text-[10px] font-semibold uppercase"
-                  style={{ color: DIFF_COLOR[q.difficulty ?? ''] }}
-                >
-                  {(q.difficulty ?? 'n/a').slice(0, 3)}
-                </span>
-              </div>
-              <div className="text-xs text-foreground line-clamp-2 leading-snug">{q.title}</div>
-            </button>
-          ))}
+          {filtered.map((q, i) => {
+            const displayNum = q.number ?? i + 1
+            const diff = q.difficulty ?? 'unknown'
+            const hasDiagramOnly =
+              q.sections?.length > 0 && q.sections.every(s => s.type === 'diagram')
+            return (
+              <button
+                key={q.id ?? String(i)}
+                data-testid={`qa-sidebar-item-${q.id ?? i}`}
+                onClick={() => {
+                  setActiveIdx(i)
+                  setSidebarOpen(false)
+                }}
+                className="w-full text-left px-3 py-2.5 transition-colors hover:bg-muted/50 border-l-2"
+                style={{
+                  borderLeftColor: i === activeIdx ? 'hsl(var(--primary))' : 'transparent',
+                  background: i === activeIdx ? 'hsl(var(--primary) / 0.06)' : undefined,
+                }}
+              >
+                <div className="flex items-center gap-2 mb-0.5">
+                  <span className="text-[10px] font-mono text-muted-foreground">
+                    #{displayNum}
+                  </span>
+                  <span
+                    className="text-[10px] font-semibold uppercase"
+                    style={{ color: DIFF_COLOR[diff] ?? 'hsl(var(--muted-foreground))' }}
+                  >
+                    {diff.slice(0, 3)}
+                  </span>
+                  {hasDiagramOnly && (
+                    <span className="text-[9px] px-1 rounded bg-chart-4/20 text-chart-4">
+                      diagram
+                    </span>
+                  )}
+                </div>
+                <div className="text-xs text-foreground line-clamp-2 leading-snug">{q.title}</div>
+              </button>
+            )
+          })}
         </div>
       </div>
 
@@ -546,22 +559,24 @@ export function QAPage({
               {/* Question header */}
               <div className="p-3 rounded-lg border border-border bg-card">
                 <div className="flex items-start gap-1.5 mb-1.5 flex-wrap">
-                  <span
-                    className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-full"
-                    style={{
-                      background: DIFF_COLOR[active.difficulty] + '20',
-                      color: DIFF_COLOR[active.difficulty],
-                    }}
-                  >
-                    {active.difficulty}
-                  </span>
+                  {active.difficulty && (
+                    <span
+                      className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-full"
+                      style={{
+                        background: (DIFF_COLOR[active.difficulty] ?? '#888') + '20',
+                        color: DIFF_COLOR[active.difficulty] ?? '#888',
+                      }}
+                    >
+                      {active.difficulty}
+                    </span>
+                  )}
                   {(active.sections || []).map((s, i) => (
                     <span
                       key={i}
                       className="text-[9px] font-semibold uppercase px-1 py-0.5 rounded-full"
                       style={{
-                        background: SECTION_COLORS[s.type] + '15',
-                        color: SECTION_COLORS[s.type],
+                        background: (SECTION_COLORS[s.type] ?? '#888') + '15',
+                        color: SECTION_COLORS[s.type] ?? '#888',
                       }}
                     >
                       {s.type}
@@ -570,10 +585,10 @@ export function QAPage({
                 </div>
                 <h1 className="text-base font-bold text-foreground mb-2">{active.title}</h1>
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <span>▲ {active.votes}</span>
-                  <span>👁 {active.views}</span>
-                  <span>by {active.askedBy}</span>
-                  <span>{active.askedAt}</span>
+                  {active.votes != null && <span>▲ {active.votes}</span>}
+                  {active.views && <span>👁 {active.views}</span>}
+                  {active.askedBy && <span>by {active.askedBy}</span>}
+                  {active.askedAt && <span>{active.askedAt}</span>}
                 </div>
                 <div className="flex flex-wrap gap-1 mt-2">
                   {(active.tags || []).map(t => (
@@ -588,6 +603,18 @@ export function QAPage({
               </div>
 
               {/* Sections */}
+              {(active.sections || []).length === 0 && (
+                <div className="p-4 rounded-lg border border-border bg-muted/20 text-sm text-muted-foreground text-center">
+                  No content available for this question.
+                </div>
+              )}
+              {(active.sections || []).every(s => s.type === 'diagram') &&
+                (active.sections || []).length > 0 && (
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-chart-4/10 border border-chart-4/30 text-xs text-chart-4">
+                    <span>📊</span>
+                    <span>This question is diagram-only — no written answer is available yet.</span>
+                  </div>
+                )}
               {(active.sections || []).map((s, i) => (
                 <div key={i} className="mb-4">
                   <SectionBlock section={s} />

@@ -20,7 +20,7 @@ export function AppHeader({
 }: AppHeaderProps) {
   return (
     <div
-      className="glass-vision-nav flex-shrink-0 flex items-center justify-between px-4 sm:px-6 min-h-[64px] sticky top-0 z-40 glass-vision-transition"
+      className="glass-vision-nav flex-shrink-0 flex items-center justify-between px-4 sm:px-6 min-h-[52px] z-40"
       data-testid="header"
     >
       {/* Left section */}
@@ -29,13 +29,10 @@ export function AppHeader({
         {onMenuToggle && (
           <button
             onClick={onMenuToggle}
-            className="glass-vision-btn md:hidden min-h-[60px] min-w-[60px] flex items-center justify-center text-muted-foreground hover:text-foreground rounded-xl"
+            className="glass-vision-btn md:hidden w-10 h-10 flex items-center justify-center text-muted-foreground hover:text-foreground rounded-xl"
             aria-label="Open navigation menu"
           >
-            <Menu
-              size={24}
-              className="text-secondary opacity-80 hover:opacity-100 transition-opacity drop-shadow-sm"
-            />
+            <Menu size={20} className="opacity-80 hover:opacity-100 transition-opacity" />
           </button>
         )}
 
@@ -85,14 +82,11 @@ export function AppHeader({
         <button
           data-testid="search-button"
           onClick={onSearchOpen}
-          className="glass-vision-btn min-h-[60px] min-w-[60px] w-12 h-12 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+          className="glass-vision-btn w-10 h-10 rounded-xl flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
           title="Search (Cmd+K)"
           aria-label="Search"
         >
-          <Search
-            size={22}
-            className="text-secondary opacity-80 hover:opacity-100 transition-opacity drop-shadow-sm sm:w-[20px] sm:h-[20px]"
-          />
+          <Search size={18} className="opacity-80 hover:opacity-100 transition-opacity" />
         </button>
 
         {/* Theme toggle */}
@@ -100,18 +94,12 @@ export function AppHeader({
           data-testid="theme-toggle"
           onClick={onThemeToggle}
           aria-label="Toggle theme"
-          className="glass-vision-btn min-h-[60px] min-w-[60px] w-12 h-12 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+          className="glass-vision-btn w-10 h-10 rounded-xl flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
         >
           {theme === 'dark' ? (
-            <Sun
-              size={22}
-              className="text-secondary opacity-80 hover:opacity-100 transition-opacity drop-shadow-sm sm:w-[20px] sm:h-[20px]"
-            />
+            <Sun size={18} className="opacity-80 hover:opacity-100 transition-opacity" />
           ) : (
-            <Moon
-              size={22}
-              className="text-secondary opacity-80 hover:opacity-100 transition-opacity drop-shadow-sm sm:w-[20px] sm:h-[20px]"
-            />
+            <Moon size={18} className="opacity-80 hover:opacity-100 transition-opacity" />
           )}
         </button>
       </div>

@@ -1,0 +1,427 @@
+{
+  "tasks": [
+    {
+      "id": "TASK-000001",
+      "title": "Implement user authentication",
+      "description": "Complete auth system with JWT",
+      "type": "fullstack",
+      "priority": "high",
+      "status": "in_progress",
+      "createdAt": "2026-03-21T16:08:05.252Z",
+      "updatedAt": "2026-03-21T16:08:11.097Z",
+      "createdBy": "CLI",
+      "assignedTo": "ENG-005",
+      "estimatedHours": 6,
+      "actualHours": 0,
+      "specs": [],
+      "subtasks": [
+        {
+          "id": "TASK-000001-ST-1",
+          "title": "Implement Implement user authentication - Core Components",
+          "status": "done"
+        },
+        {
+          "id": "TASK-000001-ST-2",
+          "title": "Build Implement user authentication - User Interface",
+          "status": "in_progress"
+        },
+        {
+          "id": "TASK-000001-ST-3",
+          "title": "Implement Implement user authentication - Data Validation",
+          "status": "done"
+        }
+      ],
+      "dependencies": [],
+      "blockedBy": [],
+      "progress": 67,
+      "delegatedTo": [
+        {
+          "engineerId": "ENG-003",
+          "subtaskId": "TASK-000001-ST-1",
+          "role": "frontend-dev-1",
+          "status": "completed",
+          "assignedAt": "2026-03-21T16:08:05.253Z",
+          "completedAt": "2026-03-21T16:08:11.032Z"
+        },
+        {
+          "engineerId": "ENG-004",
+          "subtaskId": "TASK-000001-ST-2",
+          "role": "frontend-dev-2",
+          "status": "in_progress",
+          "assignedAt": "2026-03-21T16:08:05.253Z"
+        },
+        {
+          "engineerId": "ENG-006",
+          "subtaskId": "TASK-000001-ST-3",
+          "role": "backend-dev",
+          "status": "completed",
+          "assignedAt": "2026-03-21T16:08:05.253Z",
+          "completedAt": "2026-03-21T16:08:11.097Z"
+        }
+      ]
+    },
+    {
+      "id": "TASK-000002",
+      "title": "UI/UX Improvements and Bug Fixes",
+      "description": "Comprehensive UI/UX pass: fix navigation, improve accessibility, polish animations, update color scheme",
+      "type": "uiux",
+      "priority": "high",
+      "status": "in_review",
+      "createdAt": "2026-03-21T16:09:28.319Z",
+      "updatedAt": "2026-03-21T16:09:43.458Z",
+      "createdBy": "CLI",
+      "assignedTo": "ENG-001",
+      "estimatedHours": 4,
+      "actualHours": 0,
+      "specs": [],
+      "subtasks": [
+        {
+          "id": "TASK-000002-ST-1",
+          "title": "Implement UI/UX Improvements and Bug Fixes - Micro-interactions",
+          "status": "done"
+        },
+        {
+          "id": "TASK-000002-ST-2",
+          "title": "Build UI/UX Improvements and Bug Fixes - State Management",
+          "status": "done"
+        },
+        {
+          "id": "TASK-000002-ST-3",
+          "title": "Implement UI/UX Improvements and Bug Fixes - Styling & Animations",
+          "status": "done"
+        }
+      ],
+      "dependencies": [],
+      "blockedBy": [],
+      "progress": 100,
+      "delegatedTo": [
+        {
+          "engineerId": "ENG-002",
+          "subtaskId": "TASK-000002-ST-1",
+          "role": "ui-ux-expert",
+          "status": "completed",
+          "assignedAt": "2026-03-21T16:09:28.320Z",
+          "completedAt": "2026-03-21T16:09:43.430Z"
+        },
+        {
+          "engineerId": "ENG-003",
+          "subtaskId": "TASK-000002-ST-2",
+          "role": "frontend-dev-1",
+          "status": "completed",
+          "assignedAt": "2026-03-21T16:09:28.320Z",
+          "completedAt": "2026-03-21T16:09:43.458Z"
+        },
+        {
+          "engineerId": "ENG-004",
+          "subtaskId": "TASK-000002-ST-3",
+          "role": "frontend-dev-2",
+          "status": "completed",
+          "assignedAt": "2026-03-21T16:09:28.321Z",
+          "completedAt": "2026-03-21T16:09:38.362Z"
+        }
+      ]
+    },
+    {
+      "id": "TASK-000003",
+      "title": "Improve Task-Dispatch Framework",
+      "description": "Enhance the task-dispatch system: add real-time WebSocket updates, improve delegation logic, add more subagent roles, implement skill matching, add task dependencies, improve progress tracking, add automatic testing integration",
+      "type": "architecture",
+      "priority": "critical",
+      "status": "in_progress",
+      "createdAt": "2026-03-21T16:12:03.012Z",
+      "updatedAt": "2026-03-21T16:13:36.781Z",
+      "createdBy": "CLI",
+      "assignedTo": "ENG-001",
+      "estimatedHours": 16,
+      "actualHours": 0,
+      "specs": [],
+      "subtasks": [
+        {
+          "id": "TASK-000003-ST-1",
+          "title": "Implement Improve Task-Dispatch Framework - Core Components",
+          "status": "done"
+        },
+        {
+          "id": "TASK-000003-ST-2",
+          "title": "Implement Improve Task-Dispatch Framework - Business Logic",
+          "status": "in_progress"
+        },
+        {
+          "id": "TASK-000003-ST-3",
+          "title": "Document Improve Task-Dispatch Framework - API Spec",
+          "status": "in_progress"
+        },
+        {
+          "id": "TASK-000003-ST-4",
+          "title": "Implement WebSocket real-time updates",
+          "status": "pending"
+        },
+        {
+          "id": "TASK-000003-ST-5",
+          "title": "Add skill-based agent matching",
+          "status": "pending"
+        },
+        {
+          "id": "TASK-000003-ST-6",
+          "title": "Implement task dependencies and blocking",
+          "status": "pending"
+        },
+        {
+          "id": "TASK-000003-ST-7",
+          "title": "Add automatic E2E testing integration",
+          "status": "pending"
+        },
+        {
+          "id": "TASK-000003-ST-8",
+          "title": "Improve progress tracking and analytics",
+          "status": "pending"
+        },
+        {
+          "id": "TASK-000003-ST-9",
+          "title": "Add automatic E2E testing integration with QA team",
+          "status": "pending"
+        },
+        {
+          "id": "TASK-000003-ST-10",
+          "title": "Improve CLI output and progress visualization",
+          "status": "pending"
+        },
+        {
+          "id": "TASK-000003-ST-11",
+          "title": "Setup CI/CD pipeline for task-dispatch",
+          "status": "pending"
+        },
+        {
+          "id": "TASK-000003-ST-12",
+          "title": "Add automatic E2E testing integration with QA team",
+          "status": "pending"
+        },
+        {
+          "id": "TASK-000003-ST-13",
+          "title": "Improve CLI output and progress visualization",
+          "status": "in_progress"
+        },
+        {
+          "id": "TASK-000003-ST-14",
+          "title": "Setup CI/CD pipeline for task-dispatch",
+          "status": "in_progress"
+        }
+      ],
+      "dependencies": [],
+      "blockedBy": [],
+      "progress": 7,
+      "delegatedTo": [
+        {
+          "engineerId": "ENG-003",
+          "subtaskId": "TASK-000003-ST-1",
+          "role": "frontend-dev-1",
+          "status": "completed",
+          "assignedAt": "2026-03-21T16:12:03.013Z",
+          "completedAt": "2026-03-21T16:13:36.709Z"
+        },
+        {
+          "engineerId": "ENG-006",
+          "subtaskId": "TASK-000003-ST-2",
+          "role": "backend-dev",
+          "status": "in_progress",
+          "assignedAt": "2026-03-21T16:12:03.013Z"
+        },
+        {
+          "engineerId": "ENG-010",
+          "subtaskId": "TASK-000003-ST-3",
+          "role": "api-expert",
+          "status": "in_progress",
+          "assignedAt": "2026-03-21T16:12:03.013Z"
+        },
+        {
+          "engineerId": "ENG-009",
+          "subtaskId": "TASK-000003-ST-12",
+          "role": "testing-lead",
+          "status": "assigned",
+          "assignedAt": "2026-03-21T16:13:31.058Z"
+        },
+        {
+          "engineerId": "ENG-002",
+          "subtaskId": "TASK-000003-ST-13",
+          "role": "ui-ux-expert",
+          "status": "in_progress",
+          "assignedAt": "2026-03-21T16:13:31.087Z"
+        },
+        {
+          "engineerId": "ENG-007",
+          "subtaskId": "TASK-000003-ST-14",
+          "role": "devops-lead",
+          "status": "in_progress",
+          "assignedAt": "2026-03-21T16:13:31.116Z"
+        }
+      ]
+    }
+  ],
+  "workLogs": {
+    "TASK-000001": [
+      {
+        "timestamp": "2026-03-21T16:08:05.253Z",
+        "engineer": "ENG-005",
+        "action": "delegated",
+        "details": "Task delegated to leader Robert Martinez"
+      },
+      {
+        "timestamp": "2026-03-21T16:08:05.253Z",
+        "engineer": "ENG-003",
+        "action": "assigned",
+        "details": "Assigned subtask: Implement Implement user authentication - Core Components"
+      },
+      {
+        "timestamp": "2026-03-21T16:08:05.253Z",
+        "engineer": "ENG-004",
+        "action": "assigned",
+        "details": "Assigned subtask: Build Implement user authentication - User Interface"
+      },
+      {
+        "timestamp": "2026-03-21T16:08:05.253Z",
+        "engineer": "ENG-006",
+        "action": "assigned",
+        "details": "Assigned subtask: Implement Implement user authentication - Data Validation"
+      },
+      {
+        "timestamp": "2026-03-21T16:08:11.032Z",
+        "engineer": "ENG-003",
+        "action": "completed",
+        "details": "Subtask completed: Implement Implement user authentication - Core Components"
+      },
+      {
+        "timestamp": "2026-03-21T16:08:11.065Z",
+        "engineer": "ENG-004",
+        "action": "progress",
+        "details": "75% - UI nearly complete"
+      },
+      {
+        "timestamp": "2026-03-21T16:08:11.097Z",
+        "engineer": "ENG-006",
+        "action": "completed",
+        "details": "Subtask completed: Implement Implement user authentication - Data Validation"
+      }
+    ],
+    "TASK-000002": [
+      {
+        "timestamp": "2026-03-21T16:09:28.320Z",
+        "engineer": "ENG-001",
+        "action": "delegated",
+        "details": "Task delegated to leader Alex Thompson"
+      },
+      {
+        "timestamp": "2026-03-21T16:09:28.320Z",
+        "engineer": "ENG-002",
+        "action": "assigned",
+        "details": "Assigned subtask: Implement UI/UX Improvements and Bug Fixes - Micro-interactions"
+      },
+      {
+        "timestamp": "2026-03-21T16:09:28.321Z",
+        "engineer": "ENG-003",
+        "action": "assigned",
+        "details": "Assigned subtask: Build UI/UX Improvements and Bug Fixes - State Management"
+      },
+      {
+        "timestamp": "2026-03-21T16:09:28.321Z",
+        "engineer": "ENG-004",
+        "action": "assigned",
+        "details": "Assigned subtask: Implement UI/UX Improvements and Bug Fixes - Styling & Animations"
+      },
+      {
+        "timestamp": "2026-03-21T16:09:38.304Z",
+        "engineer": "ENG-002",
+        "action": "progress",
+        "details": "50% - Fixed button hover states"
+      },
+      {
+        "timestamp": "2026-03-21T16:09:38.333Z",
+        "engineer": "ENG-003",
+        "action": "progress",
+        "details": "75% - Implemented theme state"
+      },
+      {
+        "timestamp": "2026-03-21T16:09:38.362Z",
+        "engineer": "ENG-004",
+        "action": "completed",
+        "details": "Subtask completed: Implement UI/UX Improvements and Bug Fixes - Styling & Animations"
+      },
+      {
+        "timestamp": "2026-03-21T16:09:43.430Z",
+        "engineer": "ENG-002",
+        "action": "completed",
+        "details": "Subtask completed: Implement UI/UX Improvements and Bug Fixes - Micro-interactions"
+      },
+      {
+        "timestamp": "2026-03-21T16:09:43.458Z",
+        "engineer": "ENG-003",
+        "action": "completed",
+        "details": "Subtask completed: Build UI/UX Improvements and Bug Fixes - State Management"
+      }
+    ],
+    "TASK-000003": [
+      {
+        "timestamp": "2026-03-21T16:12:03.013Z",
+        "engineer": "ENG-001",
+        "action": "delegated",
+        "details": "Task delegated to leader Alex Thompson"
+      },
+      {
+        "timestamp": "2026-03-21T16:12:03.013Z",
+        "engineer": "ENG-003",
+        "action": "assigned",
+        "details": "Assigned subtask: Implement Improve Task-Dispatch Framework - Core Components"
+      },
+      {
+        "timestamp": "2026-03-21T16:12:03.013Z",
+        "engineer": "ENG-006",
+        "action": "assigned",
+        "details": "Assigned subtask: Implement Improve Task-Dispatch Framework - Business Logic"
+      },
+      {
+        "timestamp": "2026-03-21T16:12:03.013Z",
+        "engineer": "ENG-010",
+        "action": "assigned",
+        "details": "Assigned subtask: Document Improve Task-Dispatch Framework - API Spec"
+      },
+      {
+        "timestamp": "2026-03-21T16:12:35.150Z",
+        "engineer": "ENG-003",
+        "action": "progress",
+        "details": "40% - Refactored TaskDispatchSystem class structure"
+      },
+      {
+        "timestamp": "2026-03-21T16:12:35.179Z",
+        "engineer": "ENG-006",
+        "action": "progress",
+        "details": "30% - Improved delegation algorithm with skill matching"
+      },
+      {
+        "timestamp": "2026-03-21T16:12:35.207Z",
+        "engineer": "ENG-010",
+        "action": "progress",
+        "details": "60% - Documented all API endpoints and WebSocket events"
+      },
+      {
+        "timestamp": "2026-03-21T16:13:36.709Z",
+        "engineer": "ENG-003",
+        "action": "completed",
+        "details": "Subtask completed: Implement Improve Task-Dispatch Framework - Core Components"
+      },
+      {
+        "timestamp": "2026-03-21T16:13:36.752Z",
+        "engineer": "ENG-002",
+        "action": "progress",
+        "details": "80% - Added colored output and progress bars"
+      },
+      {
+        "timestamp": "2026-03-21T16:13:36.781Z",
+        "engineer": "ENG-007",
+        "action": "progress",
+        "details": "60% - Created GitHub Actions workflow"
+      }
+    ]
+  },
+  "testResults": {},
+  "reviewComments": {},
+  "designDocs": {}
+}

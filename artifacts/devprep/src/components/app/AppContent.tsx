@@ -6,22 +6,18 @@ import type { VoicePrompt } from '@/data/voicePractice'
 import type { CodingChallenge } from '@/data/coding'
 import { LazyRoutes } from '@/utils/lazy'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
-import { SpatialPageLayout } from './SpatialLayout'
 
-// Type alias for status values
 type CodingStatus = 'not_started' | 'in_progress' | 'completed'
 type FlashcardStatus = 'unseen' | 'reviewing' | 'known' | 'hard'
 
 interface AppContentProps {
   section: Section
   channelId: string
-  // Filtered content
   filteredQuestions: Question[]
   filteredFlashcards: Flashcard[]
   filteredExamQs: ExamQuestion[]
   filteredVoicePs: VoicePrompt[]
   filteredCoding: CodingChallenge[]
-  // Analytics callbacks - matching the exact signatures expected by pages
   onQuestionAnswered: (questionId: string) => void
   onFlashcardUpdate: (cardId: string, status: FlashcardStatus) => void
   onCodingUpdate: (challengeId: string, status: CodingStatus) => void
@@ -30,7 +26,8 @@ interface AppContentProps {
 }
 
 /**
- * Main content area that renders the appropriate section based on current tab
+ * Main content area that renders the appropriate section.
+ * Each page manages its own internal layout and scrolling.
  */
 export function AppContent({
   section,
@@ -91,6 +88,7 @@ export function AppContent({
             </div>
           </SpatialPageLayout>
         </div>
+
       </div>
     </ErrorBoundary>
   )

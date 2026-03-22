@@ -82,7 +82,18 @@ async function queryAllContent(): Promise<GeneratedContentMap> {
       try {
         const parsed = JSON.parse(dataStr)
         if (parsed && typeof parsed === 'object') {
-          ;(parsed as Record<string, unknown>).channelId = channel_id
+          const item = parsed as Record<string, unknown>
+          item.channelId = channel_id
+          // Ensure required fields for questions
+          if (type === 'question') {
+            if (!item.id) {
+              item.id = `gen-${channel_id}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
+            }
+            if (!item.difficulty) item.difficulty = 'intermediate'
+            if (!Array.isArray(item.sections)) item.sections = []
+            if (!item.tags) item.tags = []
+            if (!item.title) continue
+          }
         }
         grouped[type].push(parsed)
       } catch {
