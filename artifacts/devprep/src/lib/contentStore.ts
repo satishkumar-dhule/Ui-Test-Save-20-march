@@ -1,43 +1,17 @@
 import { create } from 'zustand'
 import { devtools, subscribeWithSelector } from 'zustand/middleware'
-import type { ContentType, ContentStats, RealtimeMetadata } from '@/types/realtime'
+import type {
+  ContentType,
+  ContentStats,
+  ContentData,
+  ContentStoreState,
+  ContentStoreActions,
+} from '@/stores/types'
 
-export type { ContentStats }
+export type { ContentStats, ContentData as ContentItem }
 
-export interface ContentItem {
-  id: string
-  channelId: string
-  contentType: ContentType
-  data: unknown
-  qualityScore: number
-  status: 'pending' | 'approved' | 'rejected'
-  createdAt: number
-  updatedAt: number
-  metadata?: RealtimeMetadata
-}
-
-interface ContentState {
-  items: Record<string, ContentItem>
-  pendingOptimisticUpdates: Map<string, ContentItem>
-  stats: ContentStats
-  lastSyncedAt: number | null
-}
-
-interface ContentActions {
-  addItem: (item: ContentItem) => void
-  addItems: (items: ContentItem[]) => void
-  updateItem: (id: string, updates: Partial<ContentItem>) => void
-  removeItem: (id: string) => void
-  setPendingOptimistic: (id: string, item: ContentItem) => void
-  confirmOptimisticUpdate: (id: string) => void
-  rollbackOptimisticUpdate: (id: string) => void
-  updateStats: (stats: ContentStats) => void
-  setLastSyncedAt: (timestamp: number) => void
-  clear: () => void
-  getItem: (id: string) => ContentItem | undefined
-  getItemsByChannel: (channelId: string) => ContentItem[]
-  getItemsByType: (type: ContentType) => ContentItem[]
-}
+interface ContentState extends ContentStoreState {}
+interface ContentActions extends ContentStoreActions {}
 
 const initialStats: ContentStats = {
   totalItems: 0,

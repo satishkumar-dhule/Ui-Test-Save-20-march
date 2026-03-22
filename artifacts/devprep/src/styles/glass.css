@@ -178,7 +178,7 @@
 }
 
 /* Darker glass variant */
-.glass-dark {
+@utility glass-dark {
   background: var(--glass-opacity-dark);
   backdrop-filter: blur(var(--glass-blur-heavy));
   -webkit-backdrop-filter: blur(var(--glass-blur-heavy));
@@ -207,7 +207,7 @@
 }
 
 /* Subtle glass variant */
-.glass-subtle {
+@utility glass-subtle {
   background: var(--glass-opacity-subtle);
   backdrop-filter: blur(var(--glass-blur-light));
   -webkit-backdrop-filter: blur(var(--glass-blur-light));
@@ -843,7 +843,7 @@
 }
 
 /* Vision Pro spatial card */
-.glass-vision {
+@utility glass-vision {
   background: var(--glass-opacity-light);
   backdrop-filter: blur(var(--glass-blur-vision-medium));
   -webkit-backdrop-filter: blur(var(--glass-blur-vision-medium));
@@ -884,24 +884,30 @@
 }
 
 /* Vision Pro hover state with depth */
-.glass-vision-hover:hover {
-  transform: translateY(-4px) translateZ(8px);
-  box-shadow: var(--glass-shadow-vision-heavy);
+@utility glass-vision-hover {
+  &:hover {
+    transform: translateY(-4px) translateZ(8px);
+    box-shadow: var(--glass-shadow-vision-heavy);
+  }
 }
 
 /* Vision Pro active state */
-.glass-vision-active:active {
-  transform: translateY(-2px) translateZ(4px);
-  box-shadow: var(--glass-shadow-vision-light);
+@utility glass-vision-active {
+  &:active {
+    transform: translateY(-2px) translateZ(4px);
+    box-shadow: var(--glass-shadow-vision-light);
+  }
 }
 
 /* Vision Pro focus state */
-.glass-vision-focus:focus-visible {
-  outline: 2px solid rgba(124, 120, 232, 0.7);
-  outline-offset: 3px;
-  box-shadow:
-    var(--glass-shadow-vision-medium),
-    0 0 0 6px rgba(124, 120, 232, 0.1);
+@utility glass-vision-focus {
+  &:focus-visible {
+    outline: 2px solid rgba(124, 120, 232, 0.7);
+    outline-offset: 3px;
+    box-shadow:
+      var(--glass-shadow-vision-medium),
+      0 0 0 6px rgba(124, 120, 232, 0.1);
+  }
 }
 
 /* Vision Pro button component */

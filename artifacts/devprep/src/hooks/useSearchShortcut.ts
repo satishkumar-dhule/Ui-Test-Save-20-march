@@ -1,28 +1,28 @@
-import { useEffect, useRef, useCallback } from "react";
-import { KEYBOARD_SHORTCUTS } from "@/lib/constants";
+import { useEffect, useRef, useCallback } from 'react'
+import { KEYBOARD_SHORTCUTS } from '@/lib/constants'
 
-export function useSearchShortcut(
-  onOpen: () => void,
-): React.RefObject<() => void> {
-  const callbackRef = useRef(onOpen);
-  callbackRef.current = onOpen;
+export function useSearchShortcut(onOpen: () => void): React.RefObject<() => void> {
+  const callbackRef = useRef(onOpen)
+  useEffect(() => {
+    callbackRef.current = onOpen
+  }, [onOpen])
 
   const shortcutHandler = useCallback((event: KeyboardEvent) => {
-    const shortcut = KEYBOARD_SHORTCUTS.SEARCH_MODAL;
-    const metaOrCtrl = event.metaKey || event.ctrlKey;
+    const shortcut = KEYBOARD_SHORTCUTS.SEARCH_MODAL
+    const metaOrCtrl = event.metaKey || event.ctrlKey
 
     if (event.key === shortcut.key && metaOrCtrl) {
-      event.preventDefault();
-      callbackRef.current();
+      event.preventDefault()
+      callbackRef.current()
     }
-  }, []);
+  }, [])
 
   useEffect(() => {
-    document.addEventListener("keydown", shortcutHandler);
+    document.addEventListener('keydown', shortcutHandler)
     return () => {
-      document.removeEventListener("keydown", shortcutHandler);
-    };
-  }, [shortcutHandler]);
+      document.removeEventListener('keydown', shortcutHandler)
+    }
+  }, [shortcutHandler])
 
-  return callbackRef as React.RefObject<() => void>;
+  return callbackRef as React.RefObject<() => void>
 }

@@ -4,11 +4,7 @@ import type { Flashcard } from '@/data/flashcards'
 import type { ExamQuestion } from '@/data/exam'
 import type { VoicePrompt } from '@/data/voicePractice'
 import type { CodingChallenge } from '@/data/coding'
-import { QAPage } from '@/pages/QAPage'
-import { FlashcardsPage } from '@/pages/FlashcardsPage'
-import { MockExamPage } from '@/pages/MockExamPage'
-import { VoicePracticePage } from '@/pages/VoicePracticePage'
-import { CodingPage } from '@/pages/CodingPage'
+import { LazyRoutes } from '@/utils/lazy'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { SpatialPageLayout } from './SpatialLayout'
 
@@ -57,14 +53,14 @@ export function AppContent({
           <SpatialPageLayout variant="default" padding="md">
             <div className="space-mobile-y">
               {section === 'qa' && (
-                <QAPage
+                <LazyRoutes.QAPage
                   questions={filteredQuestions}
                   channelId={channelId}
                   onQuestionAnswered={onQuestionAnswered}
                 />
               )}
               {section === 'flashcards' && (
-                <FlashcardsPage
+                <LazyRoutes.FlashcardsPage
                   flashcards={filteredFlashcards}
                   categories={[...new Set(filteredFlashcards.map(f => f.category))]}
                   channelId={channelId}
@@ -72,21 +68,21 @@ export function AppContent({
                 />
               )}
               {section === 'coding' && (
-                <CodingPage
+                <LazyRoutes.CodingPage
                   challenges={filteredCoding}
                   channelId={channelId}
                   onCodingUpdate={onCodingUpdate}
                 />
               )}
               {section === 'exam' && (
-                <MockExamPage
+                <LazyRoutes.MockExamPage
                   questions={filteredExamQs}
                   channelId={channelId}
                   onExamComplete={onExamComplete}
                 />
               )}
               {section === 'voice' && (
-                <VoicePracticePage
+                <LazyRoutes.VoicePracticePage
                   prompts={filteredVoicePs}
                   channelId={channelId}
                   onVoicePractice={onVoicePractice}

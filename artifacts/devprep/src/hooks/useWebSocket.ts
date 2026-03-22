@@ -1,7 +1,7 @@
 import { useEffect, useCallback } from 'react'
 import { useRealtimeStore } from '@/lib/realtimeStore'
 import { initializeWebSocket, getWebSocketClient } from '@/services/websocket'
-import type { ConnectionStatus, WebSocketMessage, WebSocketMessageType } from '@/types/realtime'
+import type { ConnectionStatus, WebSocketMessage, WebSocketMessageType } from '@/stores/types'
 
 interface UseWebSocketOptions {
   url?: string

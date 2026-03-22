@@ -173,9 +173,85 @@ export default defineConfig({
     emptyOutDir: true,
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom'],
-          query: ['@tanstack/react-query'],
+        manualChunks: id => {
+          // Vendor chunk for React and React DOM
+          if (id.includes('node_modules')) {
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-dom/')) {
+              return 'vendor-react'
+            }
+            if (id.includes('@tanstack/react-query')) {
+              return 'vendor-query'
+            }
+            if (id.includes('@radix-ui')) {
+              return 'vendor-radix'
+            }
+            if (id.includes('framer-motion')) {
+              return 'vendor-motion'
+            }
+            if (id.includes('recharts') || id.includes('victory')) {
+              return 'vendor-charts'
+            }
+            if (id.includes('sql.js') || id.includes('better-sqlite3')) {
+              return 'vendor-sql'
+            }
+            if (id.includes('@sentry')) {
+              return 'vendor-sentry'
+            }
+            if (id.includes('wouter')) {
+              return 'vendor-router'
+            }
+            if (id.includes('zustand')) {
+              return 'vendor-state'
+            }
+            if (id.includes('web-vitals') || id.includes('workbox')) {
+              return 'vendor-pwa'
+            }
+            // Other vendor dependencies
+            return 'vendor'
+          }
+
+          // Split pages into separate chunks for lazy loading
+          if (id.includes('/pages/')) {
+            if (id.includes('QAPage')) return 'page-qa'
+            if (id.includes('FlashcardsPage')) return 'page-flashcards'
+            if (id.includes('MockExamPage')) return 'page-exam'
+            if (id.includes('VoicePracticePage')) return 'page-voice'
+            if (id.includes('CodingPage')) return 'page-coding'
+            if (id.includes('RealtimeDashboard')) return 'page-realtime'
+            if (id.includes('OnboardingPage')) return 'page-onboarding'
+            return 'page-common'
+          }
+
+          // Split large UI components
+          if (id.includes('/components/')) {
+            if (id.includes('/ui/')) {
+              return 'components-ui'
+            }
+            if (id.includes('/animation/')) {
+              return 'components-animation'
+            }
+            if (id.includes('/layout/')) {
+              return 'components-layout'
+            }
+            if (id.includes('/app/')) {
+              return 'components-app'
+            }
+            return 'components-common'
+          }
+
+          // Split hooks and utilities
+          if (id.includes('/hooks/')) {
+            return 'hooks'
+          }
+          if (id.includes('/utils/')) {
+            return 'utils'
+          }
+          if (id.includes('/services/')) {
+            return 'services'
+          }
+          if (id.includes('/lib/')) {
+            return 'lib'
+          }
         },
       },
     },

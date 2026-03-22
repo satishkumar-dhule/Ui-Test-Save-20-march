@@ -237,7 +237,7 @@ export const badgePop: Variants = {
 }
 
 // Ripple effect helper
-export const createRippleVariants = (color: string = 'rgba(255, 255, 255, 0.3)'): Variants => ({
+export const createRippleVariants = (_color: string = 'rgba(255, 255, 255, 0.3)'): Variants => ({
   initial: {
     scale: 0,
     opacity: 0.5,

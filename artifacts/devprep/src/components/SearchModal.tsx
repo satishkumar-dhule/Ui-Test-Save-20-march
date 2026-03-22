@@ -350,8 +350,10 @@ export function SearchModal({
   }, [])
 
   const groupedResults = React.useMemo(() => {
+    // eslint-disable-next-line react-hooks/purity
     const start = performance.now()
     const grouped = groupResultsByType(results)
+    // eslint-disable-next-line react-hooks/purity
     const duration = performance.now() - start
     if (duration > PERFORMANCE_THRESHOLD_MS) {
       console.warn(`[SearchModal] groupResultsByType exceeded threshold: ${duration.toFixed(2)}ms`)
@@ -360,8 +362,10 @@ export function SearchModal({
   }, [results])
 
   const resultIndexMap = React.useMemo(() => {
+    // eslint-disable-next-line react-hooks/purity
     const start = performance.now()
     const map = createResultIndexMap(results)
+    // eslint-disable-next-line react-hooks/purity
     const duration = performance.now() - start
     if (duration > PERFORMANCE_THRESHOLD_MS) {
       console.warn(

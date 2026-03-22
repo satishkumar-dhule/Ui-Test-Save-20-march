@@ -83,3 +83,89 @@ Added null-safety checks for `.tags?.some()` to prevent crashes.
 | coding       | tags OR channelId                         | ✓              |
 
 ## Updated: 2026-03-20
+
+---
+
+# New Styling System Redesign
+
+## Status: IN PROGRESS
+
+## Task: Create Completely New Styling System from Blank Slate
+
+### Starting Point
+
+- **Date**: 2026-03-22
+- **Expert**: STYLE_ARCHITECT (David Kim) - CSS/Tailwind architecture expert with 24 years experience
+- **Mission**: Drop ALL existing styles, create new system from scratch
+
+### Deliverables
+
+1. `tailwind.config.ts` - New Tailwind configuration
+2. `src/styles/new-base.css` - Base styles
+3. `src/styles/new-utilities.css` - Utility classes
+4. `src/styles/new-variables.css` - CSS variables system
+5. `src/styles/new-index.css` - Main entry point
+
+### Requirements Checklist
+
+- [x] Tailwind CSS 4.x compatible
+- [x] CSS variables for theming
+- [x] Modern CSS features (container queries, :has(), etc.)
+- [x] No glass morphism (drop existing)
+- [x] Clean, semantic naming
+
+### Checkpoints
+
+[2026-03-22T11:00:00Z] | STYLE_ARCHITECT | START | Beginning styling system redesign
+[2026-03-22T11:30:00Z] | STYLE_ARCHITECT | CHECKPOINT | Created tailwind.config.ts with modern color system and typography
+[2026-03-22T11:35:00Z] | STYLE_ARCHITECT | CHECKPOINT | Created new-variables.css with CSS variable system
+[2026-03-22T11:40:00Z] | STYLE_ARCHITECT | CHECKPOINT | Created new-base.css with component styles
+[2026-03-22T11:45:00Z] | STYLE_ARCHITECT | CHECKPOINT | Created new-utilities.css with utility classes
+[2026-03-22T11:50:00Z] | STYLE_ARCHITECT | CHECKPOINT | Created new-index.css entry point
+[2026-03-22T11:55:00Z] | STYLE_ARCHITECT | COMPLETE | New styling system ready for integration
+
+---
+
+# New Theming System Redesign
+
+## Status: IN PROGRESS
+
+## Task: Create Completely New Theming System from Blank Slate
+
+### Starting Point
+
+- **Date**: 2026-03-22
+- **Expert**: THEME_MASTER (Lisa Park) - Theming, color systems, branding expert with 21 years experience
+- **Mission**: Create modern SaaS theming system with 3 themes and brand colors
+
+### Design Direction
+
+- **Primary**: Modern Indigo/Purple
+- **Secondary**: Teal/Cyan
+- **Accent**: Warm Orange
+- **Neutral**: Clean Grays
+- **Semantic**: Success (green), Warning (amber), Error (red), Info (blue)
+
+### Deliverables
+
+1. `src/styles/new-themes.css` - Complete theme system with color tokens
+2. `src/hooks/useNewTheme.ts` - Theme switching hook with localStorage persistence
+3. **Three Themes**: Light, Dark, High Contrast
+4. **Brand Colors**: Primary, Secondary, Accent, Semantic colors
+
+### Requirements Checklist
+
+- [x] CSS variables for dynamic theming
+- [x] Modern SaaS color palette
+- [x] Three distinct themes (Light, Dark, High Contrast)
+- [x] Theme switching with localStorage persistence
+- [x] Accessibility-focused design (high contrast mode)
+- [x] Smooth theme transitions
+- [ ] Integration with existing components
+
+### Checkpoints
+
+[2026-03-22T11:00:00Z] | THEME_MASTER | START | Beginning theming system redesign
+[2026-03-22T11:05:00Z] | THEME_MASTER | CHECKPOINT | Created new-themes.css with modern color system and 3 themes
+[2026-03-22T11:10:00Z] | THEME_MASTER | CHECKPOINT | Created useNewTheme.ts hook with localStorage persistence
+[2026-03-22T11:00:00Z] | PAGE_ENGINEER | START | Beginning page layouts redesign

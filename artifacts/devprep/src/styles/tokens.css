@@ -1,0 +1,1063 @@
+/* ============================================================================
+   Design Tokens - Comprehensive Token Architecture for DevPrep
+   Version: 2.0.0
+   Author: DESIGN_SYSTEM_LEAD (Alex Chen)
+   
+   Token Naming Convention:
+   --{category}-{property}-{variant}-{scale}
+   
+   Categories:
+   - color: Color values
+   - space: Spacing/sizing
+   - font: Typography
+   - radius: Border radius
+   - shadow: Box shadows
+   - motion: Animations/transitions
+   - glass: Glass morphism effects
+   - depth: 3D depth effects
+   
+   Properties:
+   - bg: Background
+   - fg: Foreground/text
+   - border: Border
+   - ring: Focus ring
+   - hover: Hover state
+   - active: Active state
+   - focus: Focus state
+   
+   Variants:
+   - primary: Main brand color
+   - secondary: Secondary brand color
+   - accent: Accent color
+   - muted: Muted/subtle
+   - destructive: Error/danger
+   - success: Success
+   - warning: Warning
+   
+   Scale (for spacing/typography):
+   - 0-100: Numeric scale
+   - xs, sm, md, lg, xl, 2xl: Size scale
+   ============================================================================ */
+
+/* ============================================================================
+   PRIMITIVE TOKENS - Raw values, theme-agnostic
+   ============================================================================ */
+
+:root {
+  /* ------------------------------
+     Colors - Primitive Values
+     ------------------------------ */
+
+  /* Hue values for primary palette */
+  --primitive-hue-primary: 241;
+  --primitive-hue-secondary: 210;
+  --primitive-hue-accent: 280;
+
+  /* Saturation values */
+  --primitive-sat-0: 0%;
+  --primitive-sat-10: 10%;
+  --primitive-sat-20: 20%;
+  --primitive-sat-50: 50%;
+  --primitive-sat-100: 100%;
+
+  /* Lightness values */
+  --primitive-light-0: 0%;
+  --primitive-light-10: 10%;
+  --primitive-light-20: 20%;
+  --primitive-light-50: 50%;
+  --primitive-light-90: 90%;
+  --primitive-light-95: 95%;
+  --primitive-light-100: 100%;
+
+  /* Opacity values */
+  --primitive-opacity-0: 0;
+  --primitive-opacity-5: 0.05;
+  --primitive-opacity-10: 0.1;
+  --primitive-opacity-15: 0.15;
+  --primitive-opacity-20: 0.2;
+  --primitive-opacity-30: 0.3;
+  --primitive-opacity-40: 0.4;
+  --primitive-opacity-50: 0.5;
+  --primitive-opacity-60: 0.6;
+  --primitive-opacity-70: 0.7;
+  --primitive-opacity-80: 0.8;
+  --primitive-opacity-90: 0.9;
+  --primitive-opacity-100: 1;
+
+  /* ------------------------------
+     Spacing - Primitive Scale (4px base)
+     ------------------------------ */
+
+  --primitive-space-0: 0px;
+  --primitive-space-1: 4px;
+  --primitive-space-2: 8px;
+  --primitive-space-3: 12px;
+  --primitive-space-4: 16px;
+  --primitive-space-5: 20px;
+  --primitive-space-6: 24px;
+  --primitive-space-7: 28px;
+  --primitive-space-8: 32px;
+  --primitive-space-9: 36px;
+  --primitive-space-10: 40px;
+  --primitive-space-12: 48px;
+  --primitive-space-14: 56px;
+  --primitive-space-16: 64px;
+  --primitive-space-20: 80px;
+  --primitive-space-24: 96px;
+  --primitive-space-28: 112px;
+  --primitive-space-32: 128px;
+
+  /* ------------------------------
+     Typography - Primitive Scale (16px base)
+     ------------------------------ */
+
+  /* Font sizes */
+  --primitive-font-0: 0px;
+  --primitive-font-xs: 12px;
+  --primitive-font-sm: 14px;
+  --primitive-font-base: 16px;
+  --primitive-font-lg: 18px;
+  --primitive-font-xl: 20px;
+  --primitive-font-2xl: 24px;
+  --primitive-font-3xl: 30px;
+  --primitive-font-4xl: 36px;
+  --primitive-font-5xl: 48px;
+  --primitive-font-6xl: 60px;
+  --primitive-font-7xl: 72px;
+  --primitive-font-8xl: 96px;
+  --primitive-font-9xl: 128px;
+
+  /* Line heights */
+  --primitive-leading-none: 1;
+  --primitive-leading-tight: 1.25;
+  --primitive-leading-snug: 1.375;
+  --primitive-leading-normal: 1.5;
+  --primitive-leading-relaxed: 1.625;
+  --primitive-leading-loose: 2;
+
+  /* Font weights */
+  --primitive-weight-thin: 100;
+  --primitive-weight-extralight: 200;
+  --primitive-weight-light: 300;
+  --primitive-weight-normal: 400;
+  --primitive-weight-medium: 500;
+  --primitive-weight-semibold: 600;
+  --primitive-weight-bold: 700;
+  --primitive-weight-extrabold: 800;
+  --primitive-weight-black: 900;
+
+  /* Letter spacing */
+  --primitive-tracking-tighter: -0.05em;
+  --primitive-tracking-tight: -0.025em;
+  --primitive-tracking-normal: 0em;
+  --primitive-tracking-wide: 0.025em;
+  --primitive-tracking-wider: 0.05em;
+  --primitive-tracking-widest: 0.1em;
+
+  /* ------------------------------
+     Border Radius - Primitive Scale
+     ------------------------------ */
+
+  --primitive-radius-none: 0px;
+  --primitive-radius-sm: 2px;
+  --primitive-radius-base: 4px;
+  --primitive-radius-md: 6px;
+  --primitive-radius-lg: 8px;
+  --primitive-radius-xl: 12px;
+  --primitive-radius-2xl: 16px;
+  --primitive-radius-3xl: 24px;
+  --primitive-radius-full: 9999px;
+
+  /* ------------------------------
+     Shadow - Primitive Values
+     ------------------------------ */
+
+  --primitive-shadow-color: 0deg 0% 0%;
+  --primitive-shadow-strength: 0.03;
+
+  /* ------------------------------
+     Motion - Primitive Values
+     ------------------------------ */
+
+  /* Durations */
+  --primitive-duration-0: 0ms;
+  --primitive-duration-50: 50ms;
+  --primitive-duration-100: 100ms;
+  --primitive-duration-150: 150ms;
+  --primitive-duration-200: 200ms;
+  --primitive-duration-300: 300ms;
+  --primitive-duration-500: 500ms;
+  --primitive-duration-700: 700ms;
+  --primitive-duration-1000: 1000ms;
+
+  /* Easings */
+  --primitive-ease-linear: cubic-bezier(0, 0, 1, 1);
+  --primitive-ease-in: cubic-bezier(0.42, 0, 1, 1);
+  --primitive-ease-out: cubic-bezier(0, 0, 0.58, 1);
+  --primitive-ease-in-out: cubic-bezier(0.42, 0, 0.58, 1);
+
+  /* Custom easings */
+  --primitive-ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --primitive-ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --primitive-ease-in-out-quart: cubic-bezier(0.76, 0, 0.24, 1);
+  --primitive-ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+  /* ------------------------------
+     Blur - Primitive Values
+     ------------------------------ */
+
+  --primitive-blur-none: 0px;
+  --primitive-blur-sm: 4px;
+  --primitive-blur-base: 8px;
+  --primitive-blur-md: 12px;
+  --primitive-blur-lg: 16px;
+  --primitive-blur-xl: 24px;
+  --primitive-blur-2xl: 40px;
+  --primitive-blur-3xl: 64px;
+
+  /* ------------------------------
+     Z-Index - Primitive Scale
+     ------------------------------ */
+
+  --primitive-z-0: 0;
+  --primitive-z-10: 10;
+  --primitive-z-20: 20;
+  --primitive-z-30: 30;
+  --primitive-z-40: 40;
+  --primitive-z-50: 50;
+  --primitive-z-auto: auto;
+}
+
+/* ============================================================================
+   SEMANTIC TOKENS - Theme-aware, purpose-based
+   ============================================================================ */
+
+/* NOTE: Color-based semantic tokens are now defined in themes.css
+   This file contains only primitive tokens, component tokens, and utilities
+   that don't depend on theme switching. */
+
+:root {
+  /* ------------------------------
+     Border Radius - Semantic
+     ------------------------------ */
+
+  --radius-base: var(--primitive-radius-md);
+  --radius-sm: var(--primitive-radius-sm);
+  --radius-md: var(--primitive-radius-md);
+  --radius-lg: var(--primitive-radius-lg);
+  --radius-xl: var(--primitive-radius-xl);
+  --radius-2xl: var(--primitive-radius-2xl);
+  --radius-full: var(--primitive-radius-full);
+
+  /* ------------------------------
+     Shadow - Semantic
+     ------------------------------ */
+
+  --shadow-xs: 0 1px 2px 0
+    hsl(var(--primitive-shadow-color) / calc(var(--primitive-shadow-strength) + 0.01));
+  --shadow-sm:
+    0 1px 3px 0 hsl(var(--primitive-shadow-color) / calc(var(--primitive-shadow-strength) + 0.02)),
+    0 1px 2px -1px
+      hsl(var(--primitive-shadow-color) / calc(var(--primitive-shadow-strength) + 0.02));
+  --shadow-base:
+    0 4px 6px -1px
+      hsl(var(--primitive-shadow-color) / calc(var(--primitive-shadow-strength) + 0.03)),
+    0 2px 4px -2px
+      hsl(var(--primitive-shadow-color) / calc(var(--primitive-shadow-strength) + 0.03));
+  --shadow-md:
+    0 10px 15px -3px
+      hsl(var(--primitive-shadow-color) / calc(var(--primitive-shadow-strength) + 0.04)),
+    0 4px 6px -4px
+      hsl(var(--primitive-shadow-color) / calc(var(--primitive-shadow-strength) + 0.04));
+  --shadow-lg:
+    0 20px 25px -5px
+      hsl(var(--primitive-shadow-color) / calc(var(--primitive-shadow-strength) + 0.05)),
+    0 8px 10px -6px
+      hsl(var(--primitive-shadow-color) / calc(var(--primitive-shadow-strength) + 0.05));
+  --shadow-xl: 0 25px 50px -12px
+    hsl(var(--primitive-shadow-color) / calc(var(--primitive-shadow-strength) + 0.1));
+  --shadow-2xl: 0 35px 60px -15px
+    hsl(var(--primitive-shadow-color) / calc(var(--primitive-shadow-strength) + 0.15));
+
+  /* ------------------------------
+     Motion - Semantic
+     ------------------------------ */
+
+  --motion-duration-instant: var(--primitive-duration-0);
+  --motion-duration-fast: var(--primitive-duration-100);
+  --motion-duration-normal: var(--primitive-duration-200);
+  --motion-duration-slow: var(--primitive-duration-300);
+  --motion-duration-slower: var(--primitive-duration-500);
+
+  --motion-ease-default: var(--primitive-ease-in-out);
+  --motion-ease-in: var(--primitive-ease-in);
+  --motion-ease-out: var(--primitive-ease-out);
+  --motion-ease-in-out: var(--primitive-ease-in-out);
+  --motion-ease-spring: var(--primitive-ease-spring);
+
+  /* ------------------------------
+     Typography - Semantic
+     ------------------------------ */
+
+  --font-family-sans:
+    -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif;
+  --font-family-serif: Georgia, serif;
+  --font-family-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --font-size-xs: var(--primitive-font-xs);
+  --font-size-sm: var(--primitive-font-sm);
+  --font-size-base: var(--primitive-font-base);
+  --font-size-lg: var(--primitive-font-lg);
+  --font-size-xl: var(--primitive-font-xl);
+  --font-size-2xl: var(--primitive-font-2xl);
+  --font-size-3xl: var(--primitive-font-3xl);
+  --font-size-4xl: var(--primitive-font-4xl);
+  --font-size-5xl: var(--primitive-font-5xl);
+
+  --line-height-tight: var(--primitive-leading-tight);
+  --line-height-normal: var(--primitive-leading-normal);
+  --line-height-relaxed: var(--primitive-leading-relaxed);
+
+  --font-weight-normal: var(--primitive-weight-normal);
+  --font-weight-medium: var(--primitive-weight-medium);
+  --font-weight-semibold: var(--primitive-weight-semibold);
+  --font-weight-bold: var(--primitive-weight-bold);
+
+  /* ------------------------------
+     Spacing - Semantic
+     ------------------------------ */
+
+  --space-0: var(--primitive-space-0);
+  --space-1: var(--primitive-space-1);
+  --space-2: var(--primitive-space-2);
+  --space-3: var(--primitive-space-3);
+  --space-4: var(--primitive-space-4);
+  --space-5: var(--primitive-space-5);
+  --space-6: var(--primitive-space-6);
+  --space-8: var(--primitive-space-8);
+  --space-10: var(--primitive-space-10);
+  --space-12: var(--primitive-space-12);
+  --space-16: var(--primitive-space-16);
+  --space-20: var(--primitive-space-20);
+  --space-24: var(--primitive-space-24);
+
+  /* ------------------------------
+     Breakpoints - Semantic
+     ------------------------------ */
+
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+
+  /* ------------------------------
+     Container - Semantic
+     ------------------------------ */
+
+  --container-sm: 640px;
+  --container-md: 768px;
+  --container-lg: 1024px;
+  --container-xl: 1280px;
+  --container-2xl: 1400px;
+}
+
+/* Dark Mode tokens are now defined in themes.css */
+
+/* ============================================================================
+   GLASS MORPHISM TOKENS - Apple Vision Pro inspired
+   ============================================================================ */
+
+:root {
+  /* ------------------------------
+     Glass Background Opacities
+     ------------------------------ */
+
+  --glass-bg-light: rgba(255, 255, 255, 0.72);
+  --glass-bg-medium: rgba(255, 255, 255, 0.5);
+  --glass-bg-dark: rgba(255, 255, 255, 0.3);
+  --glass-bg-subtle: rgba(255, 255, 255, 0.1);
+  --glass-bg-ultra: rgba(255, 255, 255, 0.05);
+
+  /* ------------------------------
+     Glass Border Colors
+     ------------------------------ */
+
+  --glass-border-light: rgba(255, 255, 255, 0.2);
+  --glass-border-medium: rgba(255, 255, 255, 0.15);
+  --glass-border-subtle: rgba(255, 255, 255, 0.08);
+  --glass-border-ultra: rgba(255, 255, 255, 0.04);
+
+  /* ------------------------------
+     Glass Shadows
+     ------------------------------ */
+
+  --glass-shadow-light: 0 4px 24px rgba(0, 0, 0, 0.06);
+  --glass-shadow-medium: 0 8px 32px rgba(0, 0, 0, 0.1);
+  --glass-shadow-heavy: 0 12px 40px rgba(0, 0, 0, 0.15);
+
+  /* ------------------------------
+     Glass Blur Intensities
+     ------------------------------ */
+
+  --glass-blur-sm: 6px;
+  --glass-blur-md: 12px;
+  --glass-blur-lg: 18px;
+  --glass-blur-xl: 24px;
+
+  /* ------------------------------
+     Glass Gradients
+     ------------------------------ */
+
+  --glass-gradient-subtle: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 100%);
+  --glass-gradient-medium: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, transparent 100%);
+  --glass-gradient-strong: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, transparent 100%);
+
+  /* ------------------------------
+     Glass Accent Colors
+     ------------------------------ */
+
+  --glass-accent-primary: rgba(124, 120, 232, 0.3);
+  --glass-accent-primary-subtle: rgba(124, 120, 232, 0.15);
+  --glass-accent-secondary: rgba(76, 215, 246, 0.3);
+  --glass-accent-secondary-subtle: rgba(76, 215, 246, 0.15);
+  --glass-accent-success: rgba(48, 209, 88, 0.3);
+  --glass-accent-warning: rgba(255, 159, 10, 0.3);
+  --glass-accent-destructive: rgba(255, 69, 58, 0.3);
+
+  /* ------------------------------
+     Glass Luminous Edge
+     ------------------------------ */
+
+  --glass-luminous-primary: rgba(124, 120, 232, 0.4);
+  --glass-luminous-secondary: rgba(76, 215, 246, 0.4);
+  --glass-luminous-success: rgba(48, 209, 88, 0.4);
+  --glass-luminous-warning: rgba(255, 159, 10, 0.4);
+  --glass-luminous-destructive: rgba(255, 69, 58, 0.4);
+}
+
+/* Dark mode glass adjustments */
+.dark {
+  --glass-bg-light: rgba(28, 28, 30, 0.72);
+  --glass-bg-medium: rgba(28, 28, 30, 0.5);
+  --glass-bg-dark: rgba(28, 28, 30, 0.3);
+  --glass-bg-subtle: rgba(28, 28, 30, 0.1);
+  --glass-bg-ultra: rgba(28, 28, 30, 0.05);
+
+  --glass-border-light: rgba(255, 255, 255, 0.15);
+  --glass-border-medium: rgba(255, 255, 255, 0.1);
+  --glass-border-subtle: rgba(255, 255, 255, 0.05);
+  --glass-border-ultra: rgba(255, 255, 255, 0.02);
+
+  --glass-shadow-light: 0 4px 24px rgba(0, 0, 0, 0.4);
+  --glass-shadow-medium: 0 8px 32px rgba(0, 0, 0, 0.5);
+  --glass-shadow-heavy: 0 12px 40px rgba(0, 0, 0, 0.6);
+
+  --glass-accent-primary: rgba(10, 132, 255, 0.3);
+  --glass-accent-primary-subtle: rgba(10, 132, 255, 0.15);
+  --glass-accent-secondary: rgba(191, 90, 242, 0.3);
+  --glass-accent-secondary-subtle: rgba(191, 90, 242, 0.15);
+
+  --glass-luminous-primary: rgba(10, 132, 255, 0.5);
+  --glass-luminous-secondary: rgba(191, 90, 242, 0.5);
+}
+
+/* ============================================================================
+   DEPTH TOKENS - 3D Spatial Effects
+   ============================================================================ */
+
+:root {
+  /* ------------------------------
+     Depth Layers (Z-axis translation)
+     ------------------------------ */
+
+  --depth-layer-1: translateZ(0px);
+  --depth-layer-2: translateZ(4px);
+  --depth-layer-3: translateZ(8px);
+  --depth-layer-4: translateZ(12px);
+  --depth-layer-5: translateZ(16px);
+
+  /* ------------------------------
+     Spatial Shadows (layered for depth)
+     ------------------------------ */
+
+  --spatial-shadow-1:
+    0 1px 2px rgba(0, 0, 0, 0.02), 0 2px 4px rgba(0, 0, 0, 0.02),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+
+  --spatial-shadow-2:
+    0 2px 4px rgba(0, 0, 0, 0.02), 0 4px 8px rgba(0, 0, 0, 0.02), 0 8px 16px rgba(0, 0, 0, 0.01),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+
+  --spatial-shadow-3:
+    0 4px 8px rgba(0, 0, 0, 0.02), 0 8px 16px rgba(0, 0, 0, 0.02), 0 16px 32px rgba(0, 0, 0, 0.01),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+
+  --spatial-shadow-4:
+    0 8px 16px rgba(0, 0, 0, 0.03), 0 16px 32px rgba(0, 0, 0, 0.02),
+    0 32px 64px rgba(0, 0, 0, 0.01), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+
+  --spatial-shadow-5:
+    0 16px 32px rgba(0, 0, 0, 0.04), 0 32px 64px rgba(0, 0, 0, 0.03),
+    0 64px 128px rgba(0, 0, 0, 0.02), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+
+  /* ------------------------------
+     Perspective Values
+     ------------------------------ */
+
+  --perspective-sm: 800px;
+  --perspective-md: 1000px;
+  --perspective-lg: 1200px;
+  --perspective-xl: 1500px;
+}
+
+/* Dark mode depth adjustments */
+.dark {
+  --spatial-shadow-1:
+    0 1px 2px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+
+  --spatial-shadow-2:
+    0 2px 4px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.08), 0 8px 16px rgba(0, 0, 0, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+
+  --spatial-shadow-3:
+    0 4px 8px rgba(0, 0, 0, 0.1), 0 8px 16px rgba(0, 0, 0, 0.08), 0 16px 32px rgba(0, 0, 0, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+
+  --spatial-shadow-4:
+    0 8px 16px rgba(0, 0, 0, 0.15), 0 16px 32px rgba(0, 0, 0, 0.1), 0 32px 64px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+
+  --spatial-shadow-5:
+    0 16px 32px rgba(0, 0, 0, 0.2), 0 32px 64px rgba(0, 0, 0, 0.15),
+    0 64px 128px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* ============================================================================
+   COMPONENT TOKENS - Specific to components
+   ============================================================================ */
+
+:root {
+  /* ------------------------------
+     Button Tokens
+     ------------------------------ */
+
+  --button-height-sm: 32px;
+  --button-height-md: 40px;
+  --button-height-lg: 48px;
+  --button-height-xl: 56px;
+
+  --button-padding-x-sm: var(--space-3);
+  --button-padding-x-md: var(--space-4);
+  --button-padding-x-lg: var(--space-5);
+  --button-padding-x-xl: var(--space-6);
+
+  --button-font-size-sm: var(--font-size-sm);
+  --button-font-size-md: var(--font-size-base);
+  --button-font-size-lg: var(--font-size-lg);
+  --button-font-size-xl: var(--font-size-xl);
+
+  /* ------------------------------
+     Card Tokens
+     ------------------------------ */
+
+  --card-padding-sm: var(--space-4);
+  --card-padding-md: var(--space-5);
+  --card-padding-lg: var(--space-6);
+  --card-padding-xl: var(--space-8);
+
+  --card-radius-sm: var(--radius-lg);
+  --card-radius-md: var(--radius-xl);
+  --card-radius-lg: var(--radius-2xl);
+  --card-radius-xl: var(--radius-3xl);
+
+  --card-shadow-sm: var(--shadow-sm);
+  --card-shadow-md: var(--shadow-base);
+  --card-shadow-lg: var(--shadow-md);
+  --card-shadow-xl: var(--shadow-lg);
+
+  /* ------------------------------
+     Input Tokens
+     ------------------------------ */
+
+  --input-height-sm: 32px;
+  --input-height-md: 40px;
+  --input-height-lg: 48px;
+
+  --input-padding-x-sm: var(--space-3);
+  --input-padding-x-md: var(--space-4);
+  --input-padding-x-lg: var(--space-5);
+
+  --input-border-width: 1px;
+  --input-border-radius: var(--radius-md);
+
+  /* ------------------------------
+     Modal/Dialog Tokens
+     ------------------------------ */
+
+  --modal-backdrop-blur: var(--glass-blur-md);
+  --modal-backdrop-opacity: 0.5;
+
+  --modal-padding-sm: var(--space-4);
+  --modal-padding-md: var(--space-6);
+  --modal-padding-lg: var(--space-8);
+
+  --modal-radius-sm: var(--radius-xl);
+  --modal-radius-md: var(--radius-2xl);
+  --modal-radius-lg: var(--radius-3xl);
+
+  /* ------------------------------
+     Navigation Tokens
+     ------------------------------ */
+
+  --nav-height-sm: 48px;
+  --nav-height-md: 56px;
+  --nav-height-lg: 64px;
+
+  --nav-item-padding-x: var(--space-3);
+  --nav-item-padding-y: var(--space-2);
+
+  --nav-item-radius: var(--radius-md);
+
+  /* ------------------------------
+     Badge/Tag Tokens
+     ------------------------------ */
+
+  --badge-padding-x: var(--space-2);
+  --badge-padding-y: var(--space-1);
+
+  --badge-radius: var(--radius-full);
+  --badge-font-size: var(--font-size-xs);
+
+  /* ------------------------------
+     Tooltip Tokens
+     ------------------------------ */
+
+  --tooltip-padding-x: var(--space-3);
+  --tooltip-padding-y: var(--space-2);
+
+  --tooltip-radius: var(--radius-md);
+  --tooltip-font-size: var(--font-size-sm);
+
+  --tooltip-backdrop-blur: var(--glass-blur-sm);
+
+  /* ------------------------------
+     Table Tokens
+     ------------------------------ */
+
+  --table-header-height: 48px;
+  --table-row-height: 56px;
+  --table-cell-padding: var(--space-3);
+
+  --table-border-width: 1px;
+  --table-border-color: var(--color-border-subtle);
+
+  /* ------------------------------
+     Skeleton/Loading Tokens
+     ------------------------------ */
+
+  --skeleton-base-color: var(--color-surface-muted);
+  --skeleton-shimmer-color: var(--color-surface-subtle);
+  --skeleton-border-radius: var(--radius-md);
+}
+
+/* ============================================================================
+   UTILITY CLASSES - Using design tokens
+   ============================================================================ */
+
+@layer utilities {
+  /* ------------------------------
+     Spacing Utilities
+     ------------------------------ */
+
+  .space-flow > * + * {
+    margin-top: var(--space-4);
+  }
+
+  .space-flow-sm > * + * {
+    margin-top: var(--space-2);
+  }
+
+  .space-flow-lg > * + * {
+    margin-top: var(--space-6);
+  }
+
+  /* ------------------------------
+     Color Utilities
+     ------------------------------ */
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .text-pretty {
+    text-wrap: pretty;
+  }
+
+  .text-fade-bottom {
+    mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
+  }
+
+  .text-fade-top {
+    mask-image: linear-gradient(to top, black 50%, transparent 100%);
+  }
+
+  /* ------------------------------
+     Glass Utilities (using tokens)
+     ------------------------------ */
+
+  .glass-card {
+    background: var(--glass-bg-light);
+    backdrop-filter: blur(var(--glass-blur-md));
+    -webkit-backdrop-filter: blur(var(--glass-blur-md));
+    border: 1px solid var(--glass-border-light);
+    box-shadow: var(--glass-shadow-light);
+    border-radius: var(--radius-xl);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .glass-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--glass-gradient-subtle);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .glass-card > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ------------------------------
+     Focus Ring Utilities
+     ------------------------------ */
+
+  .focus-ring {
+    outline: 2px solid var(--color-ring-base);
+    outline-offset: 2px;
+  }
+
+  .focus-ring-subtle {
+    outline: 2px solid var(--color-ring-subtle);
+    outline-offset: 2px;
+  }
+
+  /* ------------------------------
+     Depth Utilities
+     ------------------------------ */
+
+  .depth-1 {
+    transform: var(--depth-layer-1);
+    box-shadow: var(--spatial-shadow-1);
+  }
+
+  .depth-2 {
+    transform: var(--depth-layer-2);
+    box-shadow: var(--spatial-shadow-2);
+  }
+
+  .depth-3 {
+    transform: var(--depth-layer-3);
+    box-shadow: var(--spatial-shadow-3);
+  }
+
+  .depth-4 {
+    transform: var(--depth-layer-4);
+    box-shadow: var(--spatial-shadow-4);
+  }
+
+  .depth-5 {
+    transform: var(--depth-layer-5);
+    box-shadow: var(--spatial-shadow-5);
+  }
+
+  /* ------------------------------
+     Transition Utilities
+     ------------------------------ */
+
+  .transition-theme {
+    transition:
+      color var(--motion-duration-normal) var(--motion-ease-default),
+      background-color var(--motion-duration-normal) var(--motion-ease-default),
+      border-color var(--motion-duration-normal) var(--motion-ease-default),
+      box-shadow var(--motion-duration-normal) var(--motion-ease-default);
+  }
+
+  .transition-transform {
+    transition: transform var(--motion-duration-normal) var(--motion-ease-spring);
+  }
+
+  .transition-opacity {
+    transition: opacity var(--motion-duration-normal) var(--motion-ease-default);
+  }
+
+  /* ------------------------------
+     Surface Utilities
+     ------------------------------ */
+
+  .surface-base {
+    background-color: var(--color-surface-base);
+    color: var(--color-fg-base);
+    border: 1px solid var(--color-border-base);
+  }
+
+  .surface-subtle {
+    background-color: var(--color-surface-subtle);
+    color: var(--color-fg-base);
+    border: 1px solid var(--color-border-subtle);
+  }
+
+  .surface-muted {
+    background-color: var(--color-surface-muted);
+    color: var(--color-fg-subtle);
+    border: 1px solid var(--color-border-muted);
+  }
+
+  .surface-inset {
+    background-color: var(--color-surface-inset);
+    color: var(--color-fg-subtle);
+    border: 1px solid var(--color-border-subtle);
+  }
+}
+
+/* ============================================================================
+   RESPONSIVE TOKENS - Breakpoint-specific adjustments
+   ============================================================================ */
+
+@media (max-width: 639px) {
+  :root {
+    /* Mobile-specific token overrides */
+    --space-flow: var(--space-3);
+    --button-height-lg: 44px;
+    --input-height-lg: 44px;
+  }
+}
+
+@media (min-width: 640px) and (max-width: 767px) {
+  :root {
+    /* Small tablet adjustments */
+    --space-flow: var(--space-4);
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  :root {
+    /* Tablet adjustments */
+    --space-flow: var(--space-5);
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    /* Desktop adjustments */
+    --space-flow: var(--space-6);
+  }
+}
+
+/* ============================================================================
+   ACCESSIBILITY TOKENS
+   ============================================================================ */
+
+:root {
+  /* ------------------------------
+     Reduced Motion
+     ------------------------------ */
+
+  --motion-duration-reduced: 0.01ms;
+  --motion-ease-reduced: linear;
+
+  /* ------------------------------
+     High Contrast Mode
+     ------------------------------ */
+
+  --contrast-border-width: 2px;
+  --contrast-ring-width: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-duration-fast: var(--motion-duration-reduced);
+    --motion-duration-normal: var(--motion-duration-reduced);
+    --motion-duration-slow: var(--motion-duration-reduced);
+    --motion-ease-default: var(--motion-ease-reduced);
+    --motion-ease-spring: var(--motion-ease-reduced);
+  }
+}
+
+@media (prefers-contrast: high) {
+  :root {
+    --color-border-base: currentColor;
+    --color-border-subtle: currentColor;
+  }
+}
+
+/* ============================================================================
+   TOKEN DOCUMENTATION
+   ============================================================================
+
+Design Token Architecture for DevPrep UI
+=========================================
+
+Token Hierarchy
+---------------
+
+1. PRIMITIVE TOKENS (--primitive-*)
+   - Raw, theme-agnostic values
+   - Never used directly in components
+   - Example: --primitive-space-4: 16px
+
+2. SEMANTIC TOKENS (--color-*, --space-*, etc.)
+   - Purpose-based, theme-aware
+   - Used by components and utilities
+   - Example: --color-bg-primary: hsl(241 100% 72%)
+
+3. COMPONENT TOKENS (--button-*, --card-*, etc.)
+   - Specific to component styling
+   - Composed from semantic tokens
+   - Example: --button-height-md: 40px
+
+4. GLASS TOKENS (--glass-*)
+   - Apple Vision Pro-inspired effects
+   - Used for glass morphism styling
+   - Example: --glass-blur-md: 12px
+
+5. DEPTH TOKENS (--depth-*, --spatial-shadow-*)
+   - 3D spatial effects
+   - Used for layered UI depth
+   - Example: --depth-layer-2: translateZ(4px)
+
+Naming Convention
+-----------------
+
+Format: --{category}-{property}-{variant}-{scale}
+
+Categories:
+- color: Color values
+- space: Spacing/sizing
+- font: Typography
+- radius: Border radius
+- shadow: Box shadows
+- motion: Animations
+- glass: Glass effects
+- depth: 3D depth
+
+Properties:
+- bg: Background
+- fg: Foreground/text
+- border: Border
+- ring: Focus ring
+- hover: Hover state
+- active: Active state
+- focus: Focus state
+
+Variants:
+- primary: Brand primary
+- secondary: Brand secondary
+- accent: Accent color
+- muted: Subtle variant
+- destructive: Error state
+- success: Success state
+- warning: Warning state
+
+Scale:
+- 0-100: Numeric scale
+- xs, sm, md, lg, xl: Size scale
+
+Usage Guidelines
+----------------
+
+1. Use semantic tokens in components:
+   ✅ background-color: var(--color-bg-primary);
+   ❌ background-color: hsl(241 100% 72%);
+
+2. Use component tokens for component-specific values:
+   ✅ height: var(--button-height-md);
+   ❌ height: 40px;
+
+3. Use utilities for common patterns:
+   ✅ <div class="glass-card surface-base">
+   ❌ <div style="background: ...; border: ...;">
+
+4. Override tokens at breakpoints or themes:
+   :root {
+     --space-flow: var(--space-4);
+   }
+   
+   @media (min-width: 768px) {
+     :root {
+       --space-flow: var(--space-6);
+     }
+   }
+
+Token Values Reference
+----------------------
+
+SPACING (4px base):
+--space-0: 0px
+--space-1: 4px
+--space-2: 8px
+--space-3: 12px
+--space-4: 16px
+--space-5: 20px
+--space-6: 24px
+--space-8: 32px
+--space-10: 40px
+--space-12: 48px
+--space-16: 64px
+
+TYPOGRAPHY (16px base):
+--font-size-xs: 12px
+--font-size-sm: 14px
+--font-size-base: 16px
+--font-size-lg: 18px
+--font-size-xl: 20px
+--font-size-2xl: 24px
+--font-size-3xl: 30px
+
+BORDER RADIUS:
+--radius-sm: 2px
+--radius-md: 6px
+--radius-lg: 8px
+--radius-xl: 12px
+--radius-2xl: 16px
+--radius-3xl: 24px
+--radius-full: 9999px
+
+SHADOW:
+--shadow-xs: 0 1px 2px
+--shadow-sm: 0 1px 3px
+--shadow-base: 0 4px 6px
+--shadow-md: 0 10px 15px
+--shadow-lg: 0 20px 25px
+--shadow-xl: 0 25px 50px
+
+GLASS:
+--glass-blur-sm: 6px
+--glass-blur-md: 12px
+--glass-blur-lg: 18px
+--glass-blur-xl: 24px
+
+--glass-bg-light: rgba(255, 255, 255, 0.72)
+--glass-bg-medium: rgba(255, 255, 255, 0.5)
+--glass-bg-dark: rgba(255, 255, 255, 0.3)
+
+DEPTH:
+--depth-layer-1: translateZ(0px)
+--depth-layer-2: translateZ(4px)
+--depth-layer-3: translateZ(8px)
+--depth-layer-4: translateZ(12px)
+--depth-layer-5: translateZ(16px)
+
+MOTION:
+--motion-duration-fast: 100ms
+--motion-duration-normal: 200ms
+--motion-duration-slow: 300ms
+
+--motion-ease-default: ease-in-out
+--motion-ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275)
+
+*/
