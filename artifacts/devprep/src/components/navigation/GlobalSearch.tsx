@@ -1,5 +1,16 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
-import { Search, Clock, Plus, FileText, HelpCircle, Mic, Code, BookOpen, Filter, X } from 'lucide-react'
+import {
+  Search,
+  Clock,
+  Plus,
+  FileText,
+  HelpCircle,
+  Mic,
+  Code,
+  BookOpen,
+  Filter,
+  X,
+} from 'lucide-react'
 import {
   CommandDialog,
   CommandInput,
@@ -49,16 +60,16 @@ export function GlobalSearch() {
     difficulties: [],
     tags: [],
   })
-  
+
   const inputRef = useRef<HTMLInputElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
-  
+
   // Fetch all content for search
   const { items, isLoading } = useContent({ limit: 1000 })
-  
+
   // Keyboard shortcut
   useSearchShortcut(() => setOpen(true))
-  
+
   // Load recent searches from localStorage
   useEffect(() => {
     try {
@@ -70,57 +81,62 @@ export function GlobalSearch() {
       // Ignore parse errors
     }
   }, [])
-  
+
   // Save recent searches to localStorage
-  const saveRecentSearch = useCallback((search: string) => {
-    if (!search.trim()) return
-    
-    const updated = [search, ...recentSearches.filter(s => s !== search)].slice(0, MAX_RECENT)
-    setRecentSearches(updated)
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
-  }, [recentSearches])
-  
+  const saveRecentSearch = useCallback(
+    (search: string) => {
+      if (!search.trim()) return
+
+      const updated = [search, ...recentSearches.filter(s => s !== search)].slice(0, MAX_RECENT)
+      setRecentSearches(updated)
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
+    },
+    [recentSearches]
+  )
+
   // Debounce search query
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedQuery(query)
     }, 300)
-    
+
     return () => clearTimeout(timer)
   }, [query])
-  
+
   // Reset selected index when query changes
   useEffect(() => {
     setSelectedIndex(0)
   }, [debouncedQuery])
-  
+
   // Search function
   const searchResults = useCallback((): SearchResult[] => {
     if (!debouncedQuery.trim()) return []
-    
+
     const lowerQuery = debouncedQuery.toLowerCase()
     const results: SearchResult[] = []
-    
+
     items.forEach(item => {
       const data = item.data as any
       const title = data?.title || data?.question || data?.prompt || 'Untitled'
       const description = data?.description || data?.content || data?.answer || ''
-      
+
       // Check if matches filters
       if (filters.channels.length && !filters.channels.includes(item.channelId)) return
       if (filters.types.length && !filters.types.includes(item.contentType)) return
-      if (filters.difficulties.length && !filters.difficulties.includes((data as any)?.difficulty)) return
-      
+      if (filters.difficulties.length && !filters.difficulties.includes((data as any)?.difficulty))
+        return
+
       // Simple text search
-      const searchableText = `${title} ${description} ${item.channelId} ${(data as any)?.difficulty || ''}`.toLowerCase()
-      
+      const searchableText =
+        `${title} ${description} ${item.channelId} ${(data as any)?.difficulty || ''}`.toLowerCase()
+
       if (searchableText.includes(lowerQuery)) {
         // Calculate relevance score
         let score = 0
         if (title.toLowerCase().includes(lowerQuery)) score += 10
         if (description.toLowerCase().includes(lowerQuery)) score += 5
         if (item.channelId.toLowerCase().includes(lowerQuery)) score += 3
-        
+
         results.push({
           id: item.id,
           title,
@@ -133,12 +149,12 @@ export function GlobalSearch() {
         })
       }
     })
-    
+
     return results.sort((a, b) => b.score - a.score)
   }, [items, debouncedQuery, filters])
-  
+
   const results = searchResults()
-  
+
   // Quick actions
   const quickActions = [
     {
@@ -146,95 +162,101 @@ export function GlobalSearch() {
       title: 'Create Question',
       description: 'Generate a new question',
       icon: <Plus className="h-4 w-4" />,
-      action: () => window.location.href = '/create/question',
+      action: () => (window.location.href = '/create/question'),
     },
     {
       id: 'create-flashcard',
       title: 'Create Flashcard',
       description: 'Generate a new flashcard',
       icon: <Plus className="h-4 w-4" />,
-      action: () => window.location.href = '/create/flashcard',
+      action: () => (window.location.href = '/create/flashcard'),
     },
     {
       id: 'view-exams',
       title: 'View Exams',
       description: 'Browse all exam questions',
       icon: <BookOpen className="h-4 w-4" />,
-      action: () => window.location.href = '/exam',
+      action: () => (window.location.href = '/exam'),
     },
     {
       id: 'voice-practice',
       title: 'Voice Practice',
       description: 'Practice with voice prompts',
       icon: <Mic className="h-4 w-4" />,
-      action: () => window.location.href = '/voice',
+      action: () => (window.location.href = '/voice'),
     },
     {
       id: 'coding-challenges',
       title: 'Coding Challenges',
       description: 'Practice coding problems',
       icon: <Code className="h-4 w-4" />,
-      action: () => window.location.href = '/coding',
+      action: () => (window.location.href = '/coding'),
     },
   ]
-  
+
   // Handle select
-  const handleSelect = useCallback((result: SearchResult | string) => {
-    if (typeof result === 'string') {
-      // Recent search
-      setQuery(result)
-      saveRecentSearch(result)
-    } else {
-      // Navigate to result
-      saveRecentSearch(debouncedQuery)
-      setOpen(false)
-      window.location.href = result.url
-    }
-  }, [debouncedQuery, saveRecentSearch])
-  
+  const handleSelect = useCallback(
+    (result: SearchResult | string) => {
+      if (typeof result === 'string') {
+        // Recent search
+        setQuery(result)
+        saveRecentSearch(result)
+      } else {
+        // Navigate to result
+        saveRecentSearch(debouncedQuery)
+        setOpen(false)
+        window.location.href = result.url
+      }
+    },
+    [debouncedQuery, saveRecentSearch]
+  )
+
   // Handle quick action
-  const handleQuickAction = useCallback((action: typeof quickActions[0]) => {
+  const handleQuickAction = useCallback((action: (typeof quickActions)[0]) => {
     setOpen(false)
     action.action()
   }, [])
-  
+
   // Clear recent search
   const clearRecentSearches = useCallback(() => {
     setRecentSearches([])
     localStorage.removeItem(STORAGE_KEY)
   }, [])
-  
+
   // Keyboard navigation
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (!listRef.current) return
-    
-    const items = listRef.current.querySelectorAll('[data-cmdk-item]')
-    if (!items.length) return
-    
-    const currentIndex = selectedIndex
-    
-    switch (e.key) {
-      case 'ArrowDown':
-        e.preventDefault()
-        setSelectedIndex(prev => Math.min(prev + 1, items.length - 1))
-        break
-      case 'ArrowUp':
-        e.preventDefault()
-        setSelectedIndex(prev => Math.max(prev - 1, 0))
-        break
-      case 'Enter':
-        e.preventDefault()
-        const selectedItem = items[currentIndex] as HTMLElement
-        if (selectedItem) {
-          selectedItem.click()
-        }
-        break
-      case 'Escape':
-        setOpen(false)
-        break
-    }
-  }, [selectedIndex])
-  
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (!listRef.current) return
+
+      const items = listRef.current.querySelectorAll('[data-cmdk-item]')
+      if (!items.length) return
+
+      const currentIndex = selectedIndex
+
+      switch (e.key) {
+        case 'ArrowDown':
+          e.preventDefault()
+          setSelectedIndex(prev => Math.min(prev + 1, items.length - 1))
+          break
+        case 'ArrowUp':
+          e.preventDefault()
+          setSelectedIndex(prev => Math.max(prev - 1, 0))
+          break
+        case 'Enter':
+          e.preventDefault()
+          const selectedItem = items[currentIndex] as HTMLElement
+          if (selectedItem) {
+            selectedItem.click()
+          }
+          break
+        case 'Escape':
+          setOpen(false)
+          break
+      }
+    },
+    [selectedIndex]
+  )
+
   // Open/close handlers
   const handleOpenChange = useCallback((newOpen: boolean) => {
     setOpen(newOpen)
@@ -244,14 +266,10 @@ export function GlobalSearch() {
       setShowFilters(false)
     }
   }, [])
-  
+
   return (
     <>
-      <CommandDialog 
-        open={open} 
-        onOpenChange={handleOpenChange}
-        onKeyDown={handleKeyDown}
-      >
+      <CommandDialog open={open} onOpenChange={handleOpenChange}>
         <div className="flex flex-col h-[600px]">
           {/* Header with filters toggle */}
           <div className="flex items-center justify-between border-b px-3 py-2">
@@ -268,7 +286,7 @@ export function GlobalSearch() {
               Filters
             </button>
           </div>
-          
+
           {/* Search input */}
           <CommandInput
             placeholder="Search content, features, or actions..."
@@ -277,15 +295,10 @@ export function GlobalSearch() {
             ref={inputRef}
             aria-label="Search query"
           />
-          
+
           {/* Filters */}
-          {showFilters && (
-            <SearchFilters 
-              filters={filters}
-              onFiltersChange={setFilters}
-            />
-          )}
-          
+          {showFilters && <SearchFilters filters={filters} onFiltersChange={setFilters} />}
+
           {/* Results list */}
           <CommandList ref={listRef}>
             {/* Loading state */}
@@ -295,18 +308,22 @@ export function GlobalSearch() {
                 Searching...
               </div>
             )}
-            
+
             {/* Empty state */}
             {!isLoading && debouncedQuery && results.length === 0 && (
               <CommandEmpty>
                 <div className="flex flex-col items-center py-6">
                   <Search className="h-8 w-8 text-muted-foreground mb-2" />
-                  <p className="text-sm text-muted-foreground">No results found for "{debouncedQuery}"</p>
-                  <p className="text-xs text-muted-foreground mt-1">Try different keywords or filters</p>
+                  <p className="text-sm text-muted-foreground">
+                    No results found for "{debouncedQuery}"
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Try different keywords or filters
+                  </p>
                 </div>
               </CommandEmpty>
             )}
-            
+
             {/* Recent searches */}
             {!debouncedQuery && recentSearches.length > 0 && (
               <CommandGroup heading="Recent Searches">
@@ -321,7 +338,7 @@ export function GlobalSearch() {
                     <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
                     <span className="flex-1">{search}</span>
                     <button
-                      onClick={(e) => {
+                      onClick={e => {
                         e.stopPropagation()
                         setRecentSearches(prev => prev.filter(s => s !== search))
                       }}
@@ -340,7 +357,7 @@ export function GlobalSearch() {
                 </CommandItem>
               </CommandGroup>
             )}
-            
+
             {/* Quick actions */}
             {!debouncedQuery && (
               <CommandGroup heading="Quick Actions">
@@ -363,10 +380,10 @@ export function GlobalSearch() {
                 ))}
               </CommandGroup>
             )}
-            
+
             {/* Search results */}
             {debouncedQuery && results.length > 0 && (
-              <SearchResults 
+              <SearchResults
                 results={results}
                 selectedIndex={selectedIndex}
                 onSelect={handleSelect}
@@ -374,7 +391,7 @@ export function GlobalSearch() {
               />
             )}
           </CommandList>
-          
+
           {/* Footer with keyboard hints */}
           <div className="border-t px-3 py-2 text-xs text-muted-foreground flex justify-between">
             <div className="flex gap-4">
@@ -382,9 +399,7 @@ export function GlobalSearch() {
               <span>↵ Select</span>
               <span>Esc Close</span>
             </div>
-            {results.length > 0 && (
-              <span>{results.length} results</span>
-            )}
+            {results.length > 0 && <span>{results.length} results</span>}
           </div>
         </div>
       </CommandDialog>

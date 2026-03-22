@@ -26,11 +26,19 @@ export function ExamPage() {
     queryFn: () => contentApi.getByType('exam'),
   })
 
-  const questions: Question[] = data?.data || []
+  const questions: Question[] = (data?.data || []).map(item => ({
+    id: item.id,
+    question: (item.data.question as string) || 'Untitled Question',
+    options: (item.data.options as string[]) || [],
+    correctAnswer: (item.data.correctAnswer as number) || 0,
+    explanation: (item.data.explanation as string) || '',
+    difficulty: (item.data.difficulty as 'easy' | 'medium' | 'hard') || 'medium',
+    tags: (item.data.tags as string[]) || [],
+  }))
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setTimeLeft((prev) => {
+      setTimeLeft(prev => {
         if (prev <= 0) {
           clearInterval(timer)
           setShowResults(true)
@@ -50,7 +58,7 @@ export function ExamPage() {
   }
 
   const handleAnswerSelect = (questionId: string, answerIndex: number) => {
-    setSelectedAnswers((prev) => ({
+    setSelectedAnswers(prev => ({
       ...prev,
       [questionId]: answerIndex,
     }))
@@ -58,13 +66,13 @@ export function ExamPage() {
 
   const handleNext = () => {
     if (currentQuestion < questions.length - 1) {
-      setCurrentQuestion((prev) => prev + 1)
+      setCurrentQuestion(prev => prev + 1)
     }
   }
 
   const handlePrevious = () => {
     if (currentQuestion > 0) {
-      setCurrentQuestion((prev) => prev - 1)
+      setCurrentQuestion(prev => prev - 1)
     }
   }
 
@@ -74,7 +82,7 @@ export function ExamPage() {
 
   const calculateScore = () => {
     let correct = 0
-    questions.forEach((q) => {
+    questions.forEach(q => {
       if (selectedAnswers[q.id] === q.correctAnswer) {
         correct++
       }
@@ -137,9 +145,7 @@ export function ExamPage() {
                       <span className="font-medium">Question {index + 1}</span>
                       <Badge
                         variant={
-                          selectedAnswers[q.id] === q.correctAnswer
-                            ? 'default'
-                            : 'destructive'
+                          selectedAnswers[q.id] === q.correctAnswer ? 'default' : 'destructive'
                         }
                       >
                         {selectedAnswers[q.id] === q.correctAnswer ? 'Correct' : 'Incorrect'}
@@ -156,7 +162,7 @@ export function ExamPage() {
               <div className="flex justify-center gap-4">
                 <button
                   className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
-                  onClick={() => window.location.href = '/'}
+                  onClick={() => (window.location.href = '/')}
                 >
                   Back to Dashboard
                 </button>
@@ -204,9 +210,7 @@ export function ExamPage() {
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <Badge variant="outline">
-                  {questions[currentQuestion].difficulty}
-                </Badge>
+                <Badge variant="outline">{questions[currentQuestion].difficulty}</Badge>
                 <div className="flex gap-2">
                   {questions[currentQuestion].tags.map((tag, index) => (
                     <Badge key={index} variant="secondary">
@@ -215,9 +219,7 @@ export function ExamPage() {
                   ))}
                 </div>
               </div>
-              <CardTitle className="text-xl mt-4">
-                {questions[currentQuestion].question}
-              </CardTitle>
+              <CardTitle className="text-xl mt-4">{questions[currentQuestion].question}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {questions[currentQuestion].options.map((option, index) => (
@@ -290,8 +292,8 @@ export function ExamPage() {
                   currentQuestion === index
                     ? 'border-primary bg-primary text-primary-foreground'
                     : selectedAnswers[q.id] !== undefined
-                    ? 'border-primary/50 bg-primary/5'
-                    : 'hover:border-primary/50'
+                      ? 'border-primary/50 bg-primary/5'
+                      : 'hover:border-primary/50'
                 }`}
                 onClick={() => setCurrentQuestion(index)}
               >

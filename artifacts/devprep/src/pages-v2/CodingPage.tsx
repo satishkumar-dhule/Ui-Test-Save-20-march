@@ -32,7 +32,16 @@ export function CodingPage() {
     queryFn: () => contentApi.getByType('coding'),
   })
 
-  const challenges: CodingChallenge[] = data?.data || []
+  const challenges: CodingChallenge[] = (data?.data || []).map(item => ({
+    id: item.id,
+    title: (item.data.title as string) || 'Untitled Challenge',
+    description: (item.data.description as string) || '',
+    difficulty: (item.data.difficulty as 'easy' | 'medium' | 'hard') || 'medium',
+    tags: (item.data.tags as string[]) || [],
+    examples: (item.data.examples as CodingChallenge['examples']) || [],
+    starterCode: (item.data.starterCode as string) || '',
+    solution: (item.data.solution as string) || '',
+  }))
 
   useEffect(() => {
     if (challenges.length > 0 && !selectedChallenge) {
@@ -50,7 +59,7 @@ export function CodingPage() {
   const handleRunCode = async () => {
     setIsRunning(true)
     setOutput('Running code...\n')
-    
+
     // Simulate code execution
     setTimeout(() => {
       try {
@@ -66,9 +75,11 @@ export function CodingPage() {
 
   const handleSubmitCode = () => {
     if (!selectedChallenge) return
-    
+
     // In a real app, this would validate against test cases
-    setOutput(`🎉 Congratulations! Solution accepted.\n\nAll test cases passed!\nTime complexity: O(n)\nSpace complexity: O(1)`)
+    setOutput(
+      `🎉 Congratulations! Solution accepted.\n\nAll test cases passed!\nTime complexity: O(n)\nSpace complexity: O(1)`
+    )
   }
 
   if (isLoading) {
@@ -91,7 +102,7 @@ export function CodingPage() {
         <div className="space-y-4">
           <h2 className="text-lg font-semibold">Available Challenges</h2>
           <div className="space-y-3">
-            {challenges.map((challenge) => (
+            {challenges.map(challenge => (
               <Card
                 key={challenge.id}
                 className={`cursor-pointer transition-colors hover:border-primary ${
@@ -107,8 +118,8 @@ export function CodingPage() {
                         challenge.difficulty === 'easy'
                           ? 'secondary'
                           : challenge.difficulty === 'medium'
-                          ? 'default'
-                          : 'destructive'
+                            ? 'default'
+                            : 'destructive'
                       }
                     >
                       {challenge.difficulty}
@@ -207,7 +218,7 @@ export function CodingPage() {
                         <textarea
                           className="w-full h-64 font-mono text-sm bg-background resize-none focus:outline-none"
                           value={code}
-                          onChange={(e) => setCode(e.target.value)}
+                          onChange={e => setCode(e.target.value)}
                           spellCheck={false}
                         />
                       </div>
@@ -251,9 +262,7 @@ export function CodingPage() {
                         {example.explanation && (
                           <div>
                             <div className="text-sm font-medium mb-1">Explanation:</div>
-                            <p className="text-sm text-muted-foreground">
-                              {example.explanation}
-                            </p>
+                            <p className="text-sm text-muted-foreground">{example.explanation}</p>
                           </div>
                         )}
                       </CardContent>

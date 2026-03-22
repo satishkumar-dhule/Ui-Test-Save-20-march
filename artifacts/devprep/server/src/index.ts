@@ -5,6 +5,27 @@ import path from 'path'
 import fs from 'fs'
 import { Database } from 'bun:sqlite'
 import { DatabaseWatcher } from './dbWatcher.js'
+import { initializeRedis, isRedisAvailable, closeRedis } from './services/redis/client.js'
+import {
+  getCachedContent,
+  setCachedContent,
+  getCachedChannelContent,
+  setCachedChannelContent,
+  getCachedStats,
+  setCachedStats,
+  getCachedTaggedContent,
+  setCachedTaggedContent,
+  invalidateContentCache,
+  invalidateChannelCache,
+  invalidateTaggedCache,
+} from './services/redis/cache.js'
+import {
+  apiRateLimit,
+  authRateLimit,
+  contentRateLimit,
+  searchRateLimit,
+  generateRateLimit,
+} from './services/redis/rate-limit.js'
 
 const PORT = process.env.API_PORT || 3001
 const DB_PATH =
@@ -41,6 +62,7 @@ const server = createServer(app)
 const wss = new WebSocketServer({ server })
 
 app.use(express.json())
+app.use(apiRateLimit)
 
 let db: Database
 
@@ -290,6 +312,21 @@ function initializeDatabase(): void {
   }
 }
 
+function transformRecord(record: ContentRecord): Record<string, unknown> {
+  let parsed: Record<string, unknown> = {}
+  try {
+    parsed = JSON.parse(record.data)
+  } catch {
+    /* keep empty */
+  }
+  return {
+    ...record,
+    difficulty: record.difficulty,
+    tags: typeof record.tags === 'string' ? JSON.parse(record.tags) : record.tags,
+    data: parsed,
+  }
+}
+
 function queryContent(options: ContentQueryOptions = {}): ContentRecord[] {
   const { channelId, contentType, status, minQuality, limit = 100, offset = 0, since } = options
 
@@ -370,7 +407,7 @@ wss.on('connection', (ws: WebSocket) => {
   })
 })
 
-app.get('/api/content', (req: Request, res: Response) => {
+app.get('/api/content', async (req: Request, res: Response) => {
   try {
     const { channel, type, status, quality, limit, offset, since } = req.query
 
@@ -384,37 +421,56 @@ app.get('/api/content', (req: Request, res: Response) => {
       since: since ? parseInt(since as string, 10) : undefined,
     }
 
+    const cacheParams: Record<string, string | undefined> = {
+      channel: channel as string | undefined,
+      type: type as string | undefined,
+      status: status as string | undefined,
+      quality: quality as string | undefined,
+      limit: String(limit ?? '100'),
+      offset: String(offset ?? '0'),
+      since: since as string | undefined,
+    }
+
+    if (isRedisAvailable()) {
+      const cached = await getCachedContent<{ data: Record<string, unknown>[]; count: number }>(
+        cacheParams
+      )
+      if (cached) {
+        return res.json({ ok: true, ...cached })
+      }
+    }
+
     const records = queryContent(options)
-    const data = []
+    const data: Record<string, unknown>[] = []
     for (const record of records) {
       try {
-        let parsed: any = {}
-        try {
-          parsed = JSON.parse(record.data)
-        } catch {
-          /* keep empty */
-        }
-        data.push({
-          ...record,
-          difficulty: record.difficulty,
-          tags: typeof record.tags === 'string' ? JSON.parse(record.tags) : record.tags,
-          data: parsed,
-        })
+        data.push(transformRecord(record))
       } catch (parseError) {
         console.warn(`[API] Skipping record ${record.id} due to JSON parse error:`, parseError)
       }
     }
 
-    res.json({ ok: true, data, count: records.length })
+    const response = { data, count: records.length }
+    if (isRedisAvailable()) {
+      await setCachedContent(cacheParams, response)
+    }
+
+    res.json({ ok: true, ...response })
   } catch (error) {
     console.error('[API] Error fetching content:', error)
     res.status(500).json({ ok: false, error: 'Failed to fetch content' })
   }
 })
 
-app.get('/api/content/stats', (_req: Request, res: Response) => {
+app.get('/api/content/stats', async (_req: Request, res: Response) => {
   try {
-    // Prefer the new contents table if available
+    if (isRedisAvailable()) {
+      const cached = await getCachedStats<{ stats: Record<string, number> }>()
+      if (cached) {
+        return res.json({ ok: true, stats: cached.stats })
+      }
+    }
+
     const tableName = ((): string => {
       try {
         const exists = db
@@ -449,6 +505,10 @@ app.get('/api/content/stats', (_req: Request, res: Response) => {
       stats.total += row.count
     }
 
+    if (isRedisAvailable()) {
+      await setCachedStats({ stats })
+    }
+
     res.json({ ok: true, stats })
   } catch (error) {
     console.error('[API] Error fetching stats:', error)
@@ -456,19 +516,20 @@ app.get('/api/content/stats', (_req: Request, res: Response) => {
   }
 })
 
-app.get('/api/content/:type', (req: Request, res: Response) => {
+app.get('/api/content/:type', async (req: Request, res: Response) => {
   try {
-    const { type } = req.params
+    const { type: contentTypeParam } = req.params
+    const type = contentTypeParam as string
     const { channel, status, quality, limit, offset, since } = req.query
 
-    const validTypes = ['question', 'flashcard', 'exam', 'voice', 'coding']
+    const validTypes: readonly string[] = ['question', 'flashcard', 'exam', 'voice', 'coding']
     if (!validTypes.includes(type)) {
       return res.status(400).json({ ok: false, error: 'Invalid content type' })
     }
 
     const options: ContentQueryOptions = {
       contentType: type,
-      channelId: channel as string | undefined,
+      channelId: typeof channel === 'string' ? channel : undefined,
       status: status as string | undefined,
       minQuality: quality ? parseFloat(quality as string) : undefined,
       limit: limit ? parseInt(limit as string, 10) : 100,
@@ -476,70 +537,95 @@ app.get('/api/content/:type', (req: Request, res: Response) => {
       since: since ? parseInt(since as string, 10) : undefined,
     }
 
+    const cacheParams: Record<string, string | undefined> = {
+      type: type as string,
+      channel: channel as string | undefined,
+      status: status as string | undefined,
+      quality: quality as string | undefined,
+      limit: String(limit ?? '100'),
+      offset: String(offset ?? '0'),
+      since: since as string | undefined,
+    }
+
+    if (isRedisAvailable()) {
+      const cached = await getCachedContent<{ data: Record<string, unknown>[]; count: number }>(
+        cacheParams
+      )
+      if (cached) {
+        return res.json({ ok: true, ...cached })
+      }
+    }
+
     const records = queryContent(options)
-    const data = []
+    const data: Record<string, unknown>[] = []
     for (const record of records) {
       try {
-        let parsed: any = {}
-        try {
-          parsed = JSON.parse(record.data)
-        } catch {
-          /* keep empty */
-        }
-        data.push({
-          ...record,
-          difficulty: record.difficulty,
-          tags: typeof record.tags === 'string' ? JSON.parse(record.tags) : record.tags,
-          data: parsed,
-        })
+        data.push(transformRecord(record))
       } catch (parseError) {
         console.warn(`[API] Skipping record ${record.id} due to JSON parse error:`, parseError)
       }
     }
 
-    res.json({ ok: true, data, count: records.length })
+    const response = { data, count: records.length }
+    if (isRedisAvailable()) {
+      await setCachedContent(cacheParams, response)
+    }
+
+    res.json({ ok: true, ...response })
   } catch (error) {
     console.error('[API] Error fetching content by type:', error)
     res.status(500).json({ ok: false, error: 'Failed to fetch content' })
   }
 })
 
-app.get('/api/channels/:channelId/content', (req: Request, res: Response) => {
+app.get('/api/channels/:channelId/content', async (req: Request, res: Response) => {
   try {
-    const { channelId } = req.params
+    const channelId = String(req.params.channelId)
     const { type, status, quality, limit, offset } = req.query
 
     const options: ContentQueryOptions = {
       channelId,
-      contentType: type as string | undefined,
-      status: status as string | undefined,
-      minQuality: quality ? parseFloat(quality as string) : undefined,
-      limit: limit ? parseInt(limit as string, 10) : 100,
-      offset: offset ? parseInt(offset as string, 10) : 0,
+      contentType: typeof type === 'string' ? type : undefined,
+      status: typeof status === 'string' ? status : undefined,
+      minQuality: typeof quality === 'string' ? parseFloat(quality) : undefined,
+      limit: typeof limit === 'string' ? parseInt(limit, 10) : 100,
+      offset: typeof offset === 'string' ? parseInt(offset, 10) : 0,
+    }
+
+    const cacheParams: Record<string, string | undefined> = {
+      type: typeof type === 'string' ? type : undefined,
+      status: typeof status === 'string' ? status : undefined,
+      quality: typeof quality === 'string' ? quality : undefined,
+      limit: String(limit ?? '100'),
+      offset: String(offset ?? '0'),
+    }
+
+    if (isRedisAvailable()) {
+      const cached = await getCachedChannelContent<{
+        data: Record<string, unknown>[]
+        count: number
+      }>(channelId as string, cacheParams)
+      if (cached) {
+        return res.json({ ok: true, ...cached })
+      }
     }
 
     const records = queryContent(options)
-    const data = []
+    const data: Record<string, unknown>[] = []
     for (const record of records) {
       try {
-        let parsed: any = {}
-        try {
-          parsed = JSON.parse(record.data)
-        } catch {
-          /* keep empty */
-        }
-        data.push({
-          ...record,
-          difficulty: record.difficulty,
-          tags: typeof record.tags === 'string' ? JSON.parse(record.tags) : record.tags,
-          data: parsed,
-        })
+        data.push(transformRecord(record))
       } catch (parseError) {
         console.warn(`[API] Skipping record ${record.id} due to JSON parse error:`, parseError)
       }
     }
 
-    res.json({ ok: true, data, count: records.length })
+    const response = { data, count: records.length }
+    if (isRedisAvailable()) {
+      await setCachedChannelContent(channelId, cacheParams, response)
+    }
+
+    res.json({ ok: true, ...response })
   } catch (error) {
     console.error('[API] Error fetching channel content:', error)
     res.status(500).json({ ok: false, error: 'Failed to fetch content' })
@@ -549,12 +635,27 @@ app.get('/api/channels/:channelId/content', (req: Request, res: Response) => {
 // ─────────────────────────────────────────────────────────────────────────────
 // Tag-based query endpoint (enabled by content_tags denormalized index)
 // ─────────────────────────────────────────────────────────────────────────────
-app.get('/api/content/tagged/:tag', (req: Request, res: Response) => {
+app.get('/api/content/tagged/:tag', async (req: Request, res: Response) => {
   try {
     const { tag } = req.params
     const { limit = '50', offset = '0' } = req.query
     const lim = parseInt(limit as string, 10)
     const off = parseInt(offset as string, 10)
+
+    const cacheParams: Record<string, string | undefined> = {
+      limit: String(lim),
+      offset: String(off),
+    }
+
+    if (isRedisAvailable()) {
+      const cached = await getCachedTaggedContent<{
+        data: Record<string, unknown>[]
+        count: number
+      }>(tag as string, cacheParams)
+      if (cached) {
+        return res.json({ ok: true, ...cached, tag })
+      }
+    }
 
     const tableName = ((): string => {
       try {
@@ -569,7 +670,6 @@ app.get('/api/content/tagged/:tag', (req: Request, res: Response) => {
 
     let rows: any[]
     if (tableName === 'contents') {
-      // Use the denormalized content_tags index for O(1) tag lookup
       rows = db
         .prepare(
           `
@@ -580,9 +680,8 @@ app.get('/api/content/tagged/:tag', (req: Request, res: Response) => {
         LIMIT ? OFFSET ?
       `
         )
-        .all(tag, lim, off) as any[]
+        .all(tag as string, lim, off) as any[]
     } else {
-      // Fallback: search in generated_content JSON (legacy)
       rows = db
         .prepare(
           `
@@ -593,7 +692,6 @@ app.get('/api/content/tagged/:tag', (req: Request, res: Response) => {
       `
         )
         .all(lim + off) as any[]
-      // Filter client-side by tag match in data
       rows = rows
         .filter((r: any) => {
           try {
@@ -606,31 +704,21 @@ app.get('/api/content/tagged/:tag', (req: Request, res: Response) => {
         .slice(off, off + lim)
     }
 
-    const data = []
+    const data: Record<string, unknown>[] = []
     for (const record of rows) {
       try {
-        let parsed: any = {}
-        try {
-          parsed = JSON.parse(record.data)
-        } catch {
-          /* keep empty */
-        }
-        data.push({
-          ...record,
-          difficulty: record.difficulty ?? parsed.difficulty ?? 'intermediate',
-          tags: record.tags
-            ? typeof record.tags === 'string'
-              ? JSON.parse(record.tags)
-              : record.tags
-            : (parsed.tags ?? []),
-          data: parsed,
-        })
+        data.push(transformRecord(record))
       } catch (parseError) {
         console.warn(`[API] Skipping tagged record ${record.id}:`, parseError)
       }
     }
 
-    res.json({ ok: true, data, count: data.length, tag })
+    const response = { data, count: data.length }
+    if (isRedisAvailable()) {
+      await setCachedTaggedContent(tag as string, cacheParams, response)
+    }
+
+    res.json({ ok: true, ...response, tag })
   } catch (error) {
     console.error('[API] Error fetching tagged content:', error)
     res.status(500).json({ ok: false, error: 'Failed to fetch tagged content' })
@@ -661,7 +749,82 @@ app.get('/api/content/difficulty-stats', (_req: Request, res: Response) => {
 })
 
 app.get('/api/health', (_req: Request, res: Response) => {
-  res.json({ ok: true, timestamp: Date.now(), dbPath: DB_PATH })
+  res.json({
+    ok: true,
+    timestamp: Date.now(),
+    dbPath: DB_PATH,
+    redis: isRedisAvailable() ? 'InMemoryRedis' : 'disabled',
+  })
+})
+
+app.get('/api/channels', (_req: Request, res: Response) => {
+  try {
+    const channels = db.prepare('SELECT * FROM channels ORDER BY name').all() as {
+      id: string
+      name: string
+    }[]
+    res.json({ ok: true, data: channels })
+  } catch (error) {
+    console.error('[API] Error fetching channels:', error)
+    res.status(500).json({ ok: false, error: 'Failed to fetch channels' })
+  }
+})
+
+app.post('/api/generate', generateRateLimit, async (req: Request, res: Response) => {
+  try {
+    const { channel, type, count = 1, difficulty } = req.body
+
+    if (!channel || !type) {
+      return res.status(400).json({
+        ok: false,
+        error: 'Missing required fields: channel and type',
+      })
+    }
+
+    const validTypes = ['question', 'flashcard', 'exam', 'voice', 'coding']
+    if (!validTypes.includes(type)) {
+      return res.status(400).json({
+        ok: false,
+        error: `Invalid content type. Must be one of: ${validTypes.join(', ')}`,
+      })
+    }
+
+    const numCount = Math.min(Math.max(1, parseInt(count, 10) || 1), 10)
+    const startTime = Date.now()
+
+    const insertStmt = db.prepare(`
+      INSERT INTO contents (id, channel_id, content_type, difficulty, tags, data, status, quality_score, created_at, updated_at, generated_by, generation_time_ms)
+      VALUES (?, ?, ?, ?, '[]', '{}', 'pending', 0, ?, ?, 'api', ?)
+    `)
+
+    const results: { id: string; channel_id: string; content_type: string }[] = []
+    const generationTimeMs = Date.now() - startTime
+
+    const transaction = db.transaction(() => {
+      for (let i = 0; i < numCount; i++) {
+        const id = `${type.slice(0, 3)}-api-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
+        const now = Math.floor(Date.now() / 1000)
+        insertStmt.run(id, channel, type, difficulty || 'intermediate', now, now, generationTimeMs)
+        results.push({ id, channel_id: channel, content_type: type })
+      }
+    })
+
+    transaction()
+
+    if (isRedisAvailable()) {
+      await invalidateContentCache()
+    }
+
+    res.status(201).json({
+      ok: true,
+      message: `Generated ${results.length} ${type} content(s) for channel ${channel}`,
+      data: results,
+      generation_time_ms: generationTimeMs,
+    })
+  } catch (error) {
+    console.error('[API] Error generating content:', error)
+    res.status(500).json({ ok: false, error: 'Failed to generate content' })
+  }
 })
 
 initializeDatabase()
@@ -669,24 +832,35 @@ initializeDatabase()
 dbWatcher = new DatabaseWatcher({
   dbPath: DB_PATH,
   pollInterval: 2000,
-  onChange: () => {
+  onChange: async () => {
+    if (isRedisAvailable()) {
+      await invalidateContentCache()
+    }
     broadcastUpdate({ type: 'db_updated' })
   },
 })
 dbWatcher.start()
+
+initializeRedis().then(redisConnected => {
+  if (!redisConnected) {
+    console.log('[API Server] Running without Redis cache - all requests will hit DB')
+  }
+})
 
 server.listen(PORT, () => {
   console.log(`[API Server] Running on http://localhost:${PORT}`)
   console.log(`[API Server] WebSocket available at ws://localhost:${PORT}`)
   console.log(`[API Server] Database: ${DB_PATH}`)
   console.log(`[API Server] Database watcher active`)
+  console.log(`[API Server] Cache: ${isRedisAvailable() ? 'InMemoryRedis connected' : 'disabled'}`)
 })
 
-process.on('SIGINT', () => {
+process.on('SIGINT', async () => {
   console.log('\n[API Server] Shutting down...')
   if (dbWatcher) {
     dbWatcher.stop()
   }
+  await closeRedis()
   server.close()
   process.exit(0)
 })

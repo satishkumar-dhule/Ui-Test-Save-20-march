@@ -253,7 +253,7 @@
    Secondary: #bf5af2  (accent purple)
    BG:        #000000 to #1a1a1a gradient
    ============================================================================ */
-.dark {
+[data-theme='dark'] {
   /* Apple Vision Pro Glass Theme Tokens */
   --glass-bg: rgba(28, 28, 30, 0.72);
   --glass-bg-hover: rgba(44, 44, 46, 0.8);
@@ -399,7 +399,7 @@
     height: 100%;
     overflow: hidden;
   }
-  .dark body {
+  [data-theme='dark'] body {
     background: var(--bg-gradient);
   }
 }
@@ -420,17 +420,9 @@
   background: hsl(var(--primary) / 0.4);
 }
 
-/* Sidebar hidden on mobile */
+/* Sidebar hidden on mobile - handled in devprep-ui.css */
 .sidebar {
   display: flex;
-}
-@media (max-width: 768px) {
-  .sidebar {
-    display: none;
-  }
-  .mob-menu {
-    display: flex !important;
-  }
 }
 
 /* Apple Vision Pro Glass Utilities */
@@ -1716,6 +1708,77 @@ textarea {
   animation: skeleton-shimmer 1.5s ease-in-out infinite;
 }
 
+/* GPU-Accelerated Skeleton Shimmer - Performance Optimized */
+@keyframes skeleton-shimmer-gpu {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+.skeleton-shimmer-gpu {
+  position: relative;
+  overflow: hidden;
+  contain: layout style paint;
+  transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+}
+.skeleton-shimmer-gpu::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    hsl(var(--muted-foreground) / 0.08) 50%,
+    transparent 100%
+  );
+  animation: skeleton-shimmer-gpu 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  transform: translateX(-100%);
+}
+@supports not (animation-timeline: scroll()) {
+  .skeleton-shimmer-gpu::after {
+    animation-duration: 1.5s;
+  }
+}
+
+/* Skeleton Group - CSS Containment */
+.skeleton-group {
+  contain: layout style;
+}
+.skeleton-wrapper {
+  contain: layout style;
+}
+
+/* Fade-in animation for progressive reveal */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-in {
+  animation: fade-in 300ms ease-out forwards;
+}
+
+/* Content transition */
+.content-transition {
+  transition-property: opacity, transform;
+  transition-timing-function: ease-out;
+}
+
+/* Skeleton base styles for SkeletonLoader components */
+.skeleton-base {
+  contain: layout style paint;
+  transform: translateZ(0);
+}
+
 /* 3D flip card */
 .flip-card {
   perspective: 1200px;
@@ -1755,6 +1818,15 @@ textarea {
   .skeleton-shimmer {
     animation: none;
   }
+  .skeleton-shimmer-gpu {
+    animation: none;
+  }
+  .skeleton-shimmer-gpu::after {
+    animation: none;
+  }
+  .animate-fade-in {
+    animation: none;
+  }
 }
 
 .touch-target {
@@ -1792,4 +1864,276 @@ html {
 .skeleton-card {
   border-radius: 12px;
   min-height: 200px;
+}
+
+/* ============================================================================
+   Core Web Vitals - CLS Prevention
+   ============================================================================ */
+
+/* Reserve space for images before loading - prevents layout shift */
+.aspect-ratio-square {
+  aspect-ratio: 1 / 1;
+  width: 100%;
+}
+.aspect-ratio-video {
+  aspect-ratio: 16 / 9;
+  width: 100%;
+}
+.aspect-ratio-portrait {
+  aspect-ratio: 3 / 4;
+  width: 100%;
+}
+.aspect-ratio-landscape {
+  aspect-ratio: 4 / 3;
+  width: 100%;
+}
+.aspect-ratio-icon {
+  aspect-ratio: 1 / 1;
+  width: 24px;
+  height: 24px;
+}
+
+/* Fixed dimensions for common elements to prevent CLS */
+.dimension-avatar-sm {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+}
+.dimension-avatar-md {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+.dimension-avatar-lg {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+}
+.dimension-avatar-xl {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+}
+
+.dimension-icon-sm {
+  width: 16px;
+  height: 16px;
+}
+.dimension-icon-md {
+  width: 20px;
+  height: 20px;
+}
+.dimension-icon-lg {
+  width: 24px;
+  height: 24px;
+}
+.dimension-icon-xl {
+  width: 32px;
+  height: 32px;
+}
+
+/* Typography placeholders - reserve space for text */
+.text-placeholder {
+  display: block;
+  background: hsl(var(--muted));
+  border-radius: 4px;
+  height: 1em;
+}
+.text-placeholder-2xl {
+  height: 2.5rem;
+  max-width: 80%;
+}
+.text-placeholder-xl {
+  height: 2rem;
+  max-width: 70%;
+}
+.text-placeholder-lg {
+  height: 1.5rem;
+  max-width: 60%;
+}
+.text-placeholder-md {
+  height: 1.25rem;
+  max-width: 50%;
+}
+.text-placeholder-sm {
+  height: 1rem;
+  max-width: 40%;
+}
+
+/* Card skeleton with reserved space */
+.card-skeleton {
+  background: hsl(var(--muted));
+  border-radius: var(--radius);
+  min-height: 200px;
+  position: relative;
+  overflow: hidden;
+}
+.card-skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    hsl(var(--muted-foreground) / 0.1) 50%,
+    transparent 100%
+  );
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
+/* Loading spinner with fixed dimensions */
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 2px solid hsl(var(--border));
+  border-top-color: hsl(var(--primary));
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* Reserve space for dynamic content */
+.reserve-space {
+  contain: layout;
+}
+
+/* Skeleton shimmer animation */
+@keyframes skeleton-shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Font-display swap for web fonts */
+@font-face {
+  font-family: 'System Fallback';
+  font-display: swap;
+  src: local(-apple-system), local(BlinkMacSystemFont), local(Segoe UI);
+}
+
+/* Prevent CLS from web fonts */
+.fonts-loaded {
+  font-display: swap;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Min-height reserve for content that loads asynchronously */
+.reserve-min-height {
+  min-height: 0;
+}
+
+/* Prevent CLS from injected banners/modals */
+.stable-position {
+  position: relative;
+  z-index: 0;
+}
+
+/* Loading state placeholder */
+.placeholder-wave {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--muted)) 0%,
+    hsl(var(--muted-foreground) / 0.1) 50%,
+    hsl(var(--muted)) 100%
+  );
+  background-size: 200% 100%;
+  animation: placeholder-wave 1.5s ease-in-out infinite;
+}
+
+@keyframes placeholder-wave {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Reserve space for inline SVG icons */
+.icon-placeholder {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Image container with aspect ratio preservation */
+.img-container {
+  position: relative;
+  overflow: hidden;
+  background: hsl(var(--muted));
+}
+.img-container img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.img-container.loaded img {
+  opacity: 1;
+  transition: opacity 0.3s ease-out;
+}
+.img-container:not(.loaded) img {
+  opacity: 0;
+}
+
+/* Defer non-critical content */
+.defer-visible {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 300px;
+}
+
+/* Priority loading for above-fold content */
+.priority-high {
+  fetchpriority: high;
+}
+.priority-low {
+  fetchpriority: low;
+}
+.priority-normal {
+  fetchpriority: normal;
+}
+
+/* Reduced CLS from dynamic embeds */
+.embed-container {
+  position: relative;
+  padding-bottom: 56.25%;
+  height: 0;
+  overflow: hidden;
+}
+.embed-container iframe,
+.embed-container object,
+.embed-container embed {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Virtual scroll container stability */
+.virtual-scroll-item {
+  contain: layout style;
+}
+
+/* Animation safety for CLS-sensitive components */
+.safe-animation {
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+/* Ensure stable layout for grids */
+.grid-stable {
+  contain: layout;
+}
+
+/* Lazy load boundary for images */
+.img-lazy-boundary {
+  contain: layout;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 200px;
 }

@@ -4,7 +4,7 @@ import type { Flashcard } from '@/data/flashcards'
 import type { ExamQuestion } from '@/data/exam'
 import type { VoicePrompt } from '@/data/voicePractice'
 import type { CodingChallenge } from '@/data/coding'
-import { initDatabase, getDatabase } from '@/services/dbClient'
+import { fetchAllContent, type ContentRecord } from '@/services/contentApi'
 
 export interface GeneratedContentMap {
   question?: Question[]
@@ -14,7 +14,7 @@ export interface GeneratedContentMap {
   coding?: CodingChallenge[]
 }
 
-const CACHE_KEY = 'devprep:generated-content'
+const CACHE_KEY = 'devprep:generated-content-v2'
 const CACHE_TTL_MS = 2 * 60 * 1000
 
 type CacheEntry = { ts: number; data: GeneratedContentMap }
@@ -48,21 +48,27 @@ function saveCache(data: GeneratedContentMap) {
   }
 }
 
+const memoryCache = new Map<string, GeneratedContentMap>()
+let fetchPromise: Promise<void> | null = null
+
 interface UseGeneratedContentResult {
   generated: GeneratedContentMap
   loading: boolean
   error: string | null
   refresh: () => void
+  parseErrors?: Array<{ type: string; message: string }>
 }
 
-async function queryAllContent(): Promise<GeneratedContentMap> {
-  await initDatabase()
-  const db = getDatabase()
-  if (!db) throw new Error('Database not initialized')
+interface QueryResult {
+  data: GeneratedContentMap
+  parseErrors: Array<{ type: string; message: string }>
+}
 
-  const result = db.exec(
-    `SELECT content_type, channel_id, data FROM generated_content WHERE status IN ('published', 'approved') ORDER BY created_at DESC`
-  )
+async function queryAllContentFromApi(): Promise<QueryResult> {
+  const records = await fetchAllContent({
+    status: 'published,approved',
+    limit: 1000,
+  })
 
   const grouped: Record<string, unknown[]> = {
     question: [],
@@ -72,74 +78,100 @@ async function queryAllContent(): Promise<GeneratedContentMap> {
     coding: [],
   }
 
-  if (!result[0]) return grouped as unknown as GeneratedContentMap
+  const parseErrors: Array<{ type: string; message: string }> = []
 
-  for (const row of result[0].values) {
-    const [content_type, channel_id, dataStr] = row as [string, string, string]
-    const type = content_type as string
+  for (const record of records) {
+    const type = record.content_type as string
+    const channelId = record.channel_id as string
 
-    if (grouped[type] && typeof dataStr === 'string') {
-      try {
-        const parsed = JSON.parse(dataStr)
-        if (parsed && typeof parsed === 'object') {
-          const item = parsed as Record<string, unknown>
-          item.channelId = channel_id
-          // Ensure required fields for questions
-          if (type === 'question') {
-            if (!item.id) {
-              item.id = `gen-${channel_id}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
-            }
-            if (!item.difficulty) item.difficulty = 'intermediate'
-            if (!Array.isArray(item.sections)) item.sections = []
-            if (!item.tags) item.tags = []
-            if (!item.title) continue
+    if (!grouped[type]) continue
+
+    try {
+      const data = record.data as Record<string, unknown>
+      if (data && typeof data === 'object') {
+        data.channelId = channelId
+        if (type === 'question') {
+          if (!data.id) {
+            data.id = `gen-${channelId}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
           }
+          if (!data.difficulty) data.difficulty = 'intermediate'
+          if (!Array.isArray(data.sections)) data.sections = []
+          if (!data.tags) data.tags = []
+          if (!data.title) continue
         }
-        grouped[type].push(parsed)
-      } catch {
-        console.warn(`[DevPrep] Failed to parse JSON for ${type}`)
+        grouped[type].push(data)
       }
+    } catch (e) {
+      const errorMsg = e instanceof Error ? e.message : 'Invalid data'
+      parseErrors.push({ type, message: errorMsg })
+      console.warn(`[DevPrep] Failed to process ${type} record:`, errorMsg, { recordId: record.id })
     }
   }
 
-  return grouped as unknown as GeneratedContentMap
+  return { data: grouped as unknown as GeneratedContentMap, parseErrors }
+}
+
+function getUserFriendlyErrorMessage(errors: Array<{ type: string; message: string }>): string {
+  if (errors.length === 0) return ''
+  const uniqueTypes = [...new Set(errors.map(e => e.type))]
+  if (errors.length > 5) {
+    return `${errors.length} records failed to load. Content may be incomplete.`
+  }
+  if (uniqueTypes.length > 2) {
+    return `Some ${uniqueTypes.length} content types failed to load.`
+  }
+  return `Unable to load ${uniqueTypes.join(', ')} content. Refresh to retry.`
 }
 
 export function useGeneratedContent(): UseGeneratedContentResult {
-  const [generated, setGenerated] = useState<GeneratedContentMap>({})
-  const [loading, setLoading] = useState(false)
+  const [generated, setGenerated] = useState<GeneratedContentMap>(() => {
+    const cached = loadCache()
+    if (cached) memoryCache.set(CACHE_KEY, cached)
+    return cached ?? {}
+  })
+  const [loading, setLoading] = useState(() => !loadCache())
   const [error, setError] = useState<string | null>(null)
+  const [parseErrors, setParseErrors] = useState<Array<{ type: string; message: string }>>([])
 
-  const fetchContent = useCallback(async () => {
+  const fetchContent = useCallback(async (): Promise<void> => {
+    if (fetchPromise) return fetchPromise
+
     setLoading(true)
     setError(null)
 
-    try {
-      const content = await queryAllContent()
-      setGenerated(content)
-      saveCache(content)
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Unknown error')
-      console.warn('[DevPrep] Generated content unavailable:', e)
-    } finally {
-      setLoading(false)
-    }
+    fetchPromise = queryAllContentFromApi()
+      .then(({ data, parseErrors: errors }) => {
+        setGenerated(data)
+        saveCache(data)
+        memoryCache.set(CACHE_KEY, data)
+        setParseErrors(errors)
+        if (errors.length > 0) {
+          setError(getUserFriendlyErrorMessage(errors))
+        }
+      })
+      .catch(e => {
+        setError(e instanceof Error ? e.message : 'Failed to load content from server')
+        console.warn('[DevPrep] Generated content unavailable from API:', e)
+      })
+      .finally(() => {
+        setLoading(false)
+        fetchPromise = null
+      })
+
+    return fetchPromise
   }, [])
 
   useEffect(() => {
-    const cached = loadCache()
-    if (cached) {
-      setGenerated(cached)
-      return
-    }
-
+    if (memoryCache.has(CACHE_KEY)) return
     fetchContent()
   }, [fetchContent])
 
   const refresh = useCallback(() => {
     localStorage.removeItem(CACHE_KEY)
+    memoryCache.delete(CACHE_KEY)
+    fetchPromise = null
     fetchContent()
   }, [fetchContent])
 
-  return { generated, loading, error, refresh }
+  return { generated, loading, error, refresh, parseErrors }
 }

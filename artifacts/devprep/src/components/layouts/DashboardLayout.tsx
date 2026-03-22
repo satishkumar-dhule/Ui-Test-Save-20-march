@@ -24,9 +24,7 @@ export function DashboardLayout({
       sidebarContent={sidebar}
       headerActions={actions}
     >
-      <div className="space-y-6">
-        {children}
-      </div>
+      {children}
     </Layout>
   )
 }

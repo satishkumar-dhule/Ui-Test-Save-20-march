@@ -404,7 +404,9 @@ export function SearchModal({
 
         {/* Mobile Header */}
         <div className="flex items-center justify-between p-4 border-b md:hidden">
-          <h3 className="font-semibold text-lg">Search</h3>
+          <h3 id="search-modal-title" className="font-semibold text-lg">
+            Search
+          </h3>
           <button
             onClick={onClose}
             className="min-h-[44px] min-w-[44px] flex items-center justify-center text-muted-foreground hover:text-foreground rounded-lg touch-manipulation"

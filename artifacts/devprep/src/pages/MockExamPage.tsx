@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { useAnnounce, SkipLink, LiveRegion } from '@/hooks/useAnnounce'
 import {
   Trophy,
   Flag,
@@ -8,9 +9,11 @@ import {
   CheckCircle,
   XCircle,
   Menu,
+  GraduationCap,
 } from 'lucide-react'
 import type { ExamQuestion } from '@/data/exam'
 import { progressApi } from '@/services/progressApi'
+import { Empty, EmptyMedia, EmptyTitle, EmptyDescription } from '@/components/ui/empty'
 
 type Phase = 'ready' | 'exam' | 'result' | 'review'
 
@@ -39,14 +42,13 @@ export function MockExamPage({ questions, channelId, onExamComplete }: MockExamP
   const navRef = useRef<HTMLDivElement>(null)
   const pausedTimeRef = useRef<number>(0)
   const visibilityChangeRef = useRef<number>(0)
+  const answersRef = useRef<Record<number, string>>({})
+  const mainContentRef = useRef<HTMLDivElement>(null)
+  const { announce } = useAnnounce()
 
   useEffect(() => {
-    setPhase('ready')
-    setCurrent(0)
-    setAnswers({})
-    setFlagged(new Set())
-    setTimeLeft(45 * 60)
-  }, [channelId])
+    answersRef.current = answers
+  })
 
   useEffect(() => {
     setPhase('ready')
@@ -82,7 +84,10 @@ export function MockExamPage({ questions, channelId, onExamComplete }: MockExamP
   const submitExam = useCallback(() => {
     setPhase('result')
     const durationMs = (45 * 60 - timeLeft + visibilityChangeRef.current) * 1000
-    const score = questions.reduce((acc, q, i) => acc + (answers[i] === q.correct ? 1 : 0), 0)
+    const score = questions.reduce(
+      (acc, q, i) => acc + (answersRef.current[i] === q.correct ? 1 : 0),
+      0
+    )
     const pct = questions.length > 0 ? Math.round((score / questions.length) * 100) : 0
     const passed = pct >= 72
 
@@ -95,7 +100,7 @@ export function MockExamPage({ questions, channelId, onExamComplete }: MockExamP
       total: questions.length,
       passed,
     })
-  }, [examStartTime, onExamComplete, timeLeft, questions, answers, channelId])
+  }, [examStartTime, onExamComplete, timeLeft, questions, channelId])
 
   useEffect(() => {
     if (phase === 'exam' && isVisible) {
@@ -138,14 +143,26 @@ export function MockExamPage({ questions, channelId, onExamComplete }: MockExamP
 
   if (questions.length === 0) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
-        <Trophy size={48} className="text-muted-foreground mb-4" />
-        <h3 className="text-lg font-semibold mb-2">No exam questions for this channel</h3>
-        <p className="text-muted-foreground text-sm">
-          Try AWS SAA, CKA, or switch to JavaScript/React channels.
-        </p>
-      </div>
+      <Empty>
+        <EmptyMedia variant="icon">
+          <GraduationCap size={24} aria-hidden="true" />
+        </EmptyMedia>
+        <EmptyTitle>No exam questions available</EmptyTitle>
+        <EmptyDescription>
+          Try switching to certification channels like AWS SAA, CKA, or Terraform.
+        </EmptyDescription>
+      </Empty>
     )
+  }
+
+  const announcePhase = (newPhase: Phase) => {
+    const messages: Record<Phase, string> = {
+      ready: 'Ready to start exam',
+      exam: 'Exam started',
+      result: `Exam complete. Score: ${pct}%`,
+      review: 'Reviewing answers',
+    }
+    announce(messages[newPhase])
   }
 
   if (phase === 'ready') {
@@ -155,52 +172,62 @@ export function MockExamPage({ questions, channelId, onExamComplete }: MockExamP
       hard: questions.filter(q => q.difficulty === 'hard').length,
     }
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-8">
-        <div className="w-full max-w-md text-center space-y-6">
-          <div
-            className="w-16 h-16 rounded-full flex items-center justify-center mx-auto"
-            style={{
-              background: 'hsl(var(--chart-3) / 0.15)',
-              border: '2px solid hsl(var(--chart-3) / 0.4)',
-            }}
-          >
-            <Trophy size={28} style={{ color: 'hsl(var(--chart-3))' }} />
-          </div>
-          <div>
-            <h2 className="text-2xl font-bold text-foreground mb-1">Mock Exam</h2>
-            <p className="text-muted-foreground text-sm">
-              {questions.length} questions · 45 minutes · 72% to pass
-            </p>
-          </div>
-          <div className="grid grid-cols-3 gap-3">
-            {Object.entries(byDiff).map(([d, c]) => (
-              <div key={d} className="p-3 rounded-lg border border-border bg-card text-center">
-                <div className="text-lg font-bold" style={{ color: DIFF_COLORS[d] }}>
-                  {c}
+      <div className="flex flex-1 h-full overflow-hidden">
+        <SkipLink targetId="exam-main-content">Skip to main content</SkipLink>
+        <LiveRegion />
+        <main
+          id="exam-main-content"
+          ref={mainContentRef}
+          tabIndex={-1}
+          className="flex-1 flex flex-col items-center justify-center p-8 focus:outline-none"
+          aria-label="Mock exam start screen"
+        >
+          <div className="w-full max-w-md text-center space-y-6">
+            <div
+              className="w-16 h-16 rounded-full flex items-center justify-center mx-auto"
+              style={{
+                background: 'hsl(var(--chart-3) / 0.15)',
+                border: '2px solid hsl(var(--chart-3) / 0.4)',
+              }}
+            >
+              <Trophy size={28} style={{ color: 'hsl(var(--chart-3))' }} />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-foreground mb-1">Mock Exam</h2>
+              <p className="text-muted-foreground text-sm">
+                {questions.length} questions · 45 minutes · 72% to pass
+              </p>
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              {Object.entries(byDiff).map(([d, c]) => (
+                <div key={d} className="p-3 rounded-lg border border-border bg-card text-center">
+                  <div className="text-lg font-bold" style={{ color: DIFF_COLORS[d] }}>
+                    {c}
+                  </div>
+                  <div className="text-[11px] text-muted-foreground capitalize">{d}</div>
                 </div>
-                <div className="text-[11px] text-muted-foreground capitalize">{d}</div>
-              </div>
-            ))}
+              ))}
+            </div>
+            <button
+              data-testid="exam-start-btn"
+              onClick={() => {
+                setExamStartTime(Date.now())
+                setPhase('exam')
+                setCurrent(0)
+                setAnswers({})
+                setFlagged(new Set())
+                setTimeLeft(45 * 60)
+              }}
+              className="w-full py-3 rounded-lg text-sm font-bold transition-all hover:opacity-90"
+              style={{
+                background: 'hsl(var(--primary))',
+                color: 'hsl(var(--primary-foreground))',
+              }}
+            >
+              Start Exam →
+            </button>
           </div>
-          <button
-            data-testid="exam-start-btn"
-            onClick={() => {
-              setExamStartTime(Date.now())
-              setPhase('exam')
-              setCurrent(0)
-              setAnswers({})
-              setFlagged(new Set())
-              setTimeLeft(45 * 60)
-            }}
-            className="w-full py-3 rounded-lg text-sm font-bold transition-all hover:opacity-90"
-            style={{
-              background: 'hsl(var(--primary))',
-              color: 'hsl(var(--primary-foreground))',
-            }}
-          >
-            Start Exam →
-          </button>
-        </div>
+        </main>
       </div>
     )
   }

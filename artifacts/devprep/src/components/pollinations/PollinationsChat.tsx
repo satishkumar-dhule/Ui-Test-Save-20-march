@@ -87,13 +87,27 @@ export function PollinationsChat() {
     } catch (err: unknown) {
       const error = err as Error
       if (error.name !== 'AbortError') {
-        setError(error.message || 'Failed to send message')
+        let errorMessage = error.message || 'Failed to send message'
+        
+        // Provide user-friendly error messages
+        if (errorMessage.includes('does not support image input')) {
+          errorMessage = 'This AI model only supports text. Images are not supported.'
+        } else if (errorMessage.includes('Failed to fetch') || errorMessage.includes('NetworkError')) {
+          errorMessage = 'Network error. Please check your connection and try again.'
+        } else if (errorMessage.includes('429')) {
+          errorMessage = 'Too many requests. Please wait a moment and try again.'
+        } else if (errorMessage.includes('500') || errorMessage.includes('502') || errorMessage.includes('503')) {
+          errorMessage = 'AI service is temporarily unavailable. Please try again later.'
+        }
+        
+        setError(errorMessage)
         setMessages(prev => {
           if (prev[prev.length - 1].role === 'assistant' && prev[prev.length - 1].content === '') {
             return prev.slice(0, -1)
           }
           return prev
         })
+        console.error('[PollinationsChat] Error:', error)
       }
     } finally {
       setIsTyping(false)

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { useAnnounce } from '@/hooks/useAnnounce'
 import {
   Volume2,
   Shuffle,
@@ -24,16 +25,16 @@ const DIFF_BADGE: Record<string, { label: string; cls: string }> = {
 const WAVEFORM_HEIGHTS = [30, 50, 80, 40, 90, 50, 20, 40, 70, 30]
 const WAVEFORM_DELAYS = [0.1, 0.3, 0.2, 0.5, 0.4, 0.7, 0.6, 0.8, 1.0, 0.9]
 const WAVEFORM_COLORS = [
-  'bg-[#c3c0ff]',
-  'bg-[#c3c0ff]',
-  'bg-[#4cd7f6]',
-  'bg-[#c3c0ff]',
-  'bg-[#4cd7f6]',
-  'bg-[#c3c0ff]',
-  'bg-[#c3c0ff]',
-  'bg-[#c3c0ff]',
-  'bg-[#4cd7f6]',
-  'bg-[#c3c0ff]',
+  'bg-[var(--dp-blue)]',
+  'bg-[var(--dp-blue)]',
+  'bg-[var(--dp-purple)]',
+  'bg-[var(--dp-blue)]',
+  'bg-[var(--dp-purple)]',
+  'bg-[var(--dp-blue)]',
+  'bg-[var(--dp-blue)]',
+  'bg-[var(--dp-blue)]',
+  'bg-[var(--dp-purple)]',
+  'bg-[var(--dp-blue)]',
 ]
 
 type RecordPhase = 'idle' | 'countdown' | 'recording' | 'done'
@@ -225,7 +226,7 @@ export function VoicePracticePage({ prompts, channelId, onVoicePractice }: Voice
   }
 
   return (
-    <div className="flex-1 flex flex-col overflow-y-auto bg-[#0e0e0e] text-[#e5e2e1]">
+    <div className="flex-1 flex flex-col overflow-y-auto bg-[var(--dp-bg-1)] text-[var(--dp-text-0)]">
       <style>{`
         @keyframes pulse-height {
           from { height: 10px; opacity: 0.4; }
@@ -239,12 +240,12 @@ export function VoicePracticePage({ prompts, channelId, onVoicePractice }: Voice
       {/* Page Header */}
       <div className="px-4 pt-5 pb-3 flex flex-col sm:flex-row sm:items-end justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold tracking-[0.2em] uppercase text-[#4cd7f6] mb-1">
+          <p className="text-xs font-semibold tracking-[0.2em] uppercase text-[var(--dp-blue)] mb-1">
             Certification Mastery
           </p>
           <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tighter leading-none">
             Voice{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#c3c0ff] to-[#4cd7f6]">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--dp-blue)] to-[var(--dp-purple)]">
               Practice
             </span>
           </h1>
@@ -264,8 +265,8 @@ export function VoicePracticePage({ prompts, channelId, onVoicePractice }: Voice
               className={cn(
                 'flex items-center gap-1 text-[0.6rem] px-2 py-1 rounded border uppercase tracking-widest font-bold transition-colors',
                 shuffle
-                  ? 'border-[#4f46e5] text-[#c3c0ff] bg-[#4f46e5]/10'
-                  : 'border-[#464555]/40 text-[#c7c4d8] hover:bg-[#1c1b1b]'
+                  ? 'border-[var(--dp-blue)] text-[var(--dp-blue)] bg-[var(--dp-blue-muted)]'
+                  : 'border-[var(--dp-border-0)] text-[var(--dp-text-1)] hover:bg-[var(--dp-bg-3)]'
               )}
             >
               <Shuffle size={10} /> {shuffle ? 'Shuffled' : 'Shuffle'}
@@ -273,27 +274,27 @@ export function VoicePracticePage({ prompts, channelId, onVoicePractice }: Voice
             <button
               onClick={() => go(-1)}
               disabled={activeIdx === 0}
-              className="w-7 h-7 rounded flex items-center justify-center border border-[#464555]/40 hover:bg-[#1c1b1b] disabled:opacity-30 transition-colors"
+              className="w-7 h-7 rounded flex items-center justify-center border border-[var(--dp-border-0)] hover:bg-[var(--dp-bg-3)] disabled:opacity-30 transition-colors"
             >
               <ChevronLeft size={12} />
             </button>
-            <span className="text-xs text-[#918fa1] font-mono w-10 text-center">
+            <span className="text-xs text-[var(--dp-text-2)] font-mono w-10 text-center">
               {activeIdx + 1}/{displayPrompts.length}
             </span>
             <button
               onClick={() => go(1)}
               disabled={activeIdx === displayPrompts.length - 1}
-              className="w-7 h-7 rounded flex items-center justify-center border border-[#464555]/40 hover:bg-[#1c1b1b] disabled:opacity-30 transition-colors"
+              className="w-7 h-7 rounded flex items-center justify-center border border-[var(--dp-border-0)] hover:bg-[var(--dp-bg-3)] disabled:opacity-30 transition-colors"
             >
               <ChevronRight size={12} />
             </button>
           </div>
           <div className="hidden sm:flex items-center gap-2">
             <div className="text-right">
-              <p className="text-[0.55rem] uppercase tracking-widest text-[#c7c4d8]">
+              <p className="text-[0.55rem] uppercase tracking-widest text-[var(--dp-text-1)]">
                 Session Status
               </p>
-              <p className="text-xs font-bold text-[#4cd7f6]">
+              <p className="text-xs font-bold text-[var(--dp-blue)]">
                 {phase === 'recording'
                   ? 'RECORDING'
                   : phase === 'countdown'
@@ -304,9 +305,7 @@ export function VoicePracticePage({ prompts, channelId, onVoicePractice }: Voice
             <div
               className={cn(
                 'w-2 h-2 rounded-full',
-                phase === 'recording'
-                  ? 'bg-rose-400 shadow-[0_0_8px_rgba(251,113,133,0.6)] animate-pulse'
-                  : 'bg-[#4cd7f6] shadow-[0_0_8px_#4cd7f6]'
+                phase === 'recording' ? 'bg-[var(--dp-red)] animate-pulse' : 'bg-[var(--dp-blue)]'
               )}
             />
           </div>
@@ -317,7 +316,7 @@ export function VoicePracticePage({ prompts, channelId, onVoicePractice }: Voice
       <div className="grid grid-cols-1 gap-4 px-4 pb-4 pt-3 flex-1">
         {/* Left: Prompt List */}
         <div className="col-span-3 space-y-2">
-          <h3 className="text-xs font-bold uppercase tracking-widest text-[#c7c4d8] mb-2">
+          <h3 className="text-xs font-bold uppercase tracking-widest text-[var(--dp-text-1)] mb-2">
             Practice Scenarios
           </h3>
           <div className="space-y-1.5">
@@ -339,19 +338,19 @@ export function VoicePracticePage({ prompts, channelId, onVoicePractice }: Voice
                   className={cn(
                     'w-full text-left p-2.5 rounded-lg transition-all duration-200 border',
                     isActive
-                      ? 'bg-[#201f1f] border-l-2 border-l-[#c3c0ff] border-t-transparent border-r-transparent border-b-transparent shadow-md'
-                      : 'bg-[#1c1b1b]/50 border-[#464555]/20 opacity-60 hover:opacity-100 hover:bg-[#201f1f]'
+                      ? 'bg-[var(--dp-bg-2)] border-l-2 border-l-[var(--dp-blue)] border-t-transparent border-r-transparent border-b-transparent shadow-md'
+                      : 'bg-[var(--dp-bg-1)]/50 border-[var(--dp-border-0)] opacity-60 hover:opacity-100 hover:bg-[var(--dp-bg-2)]'
                   )}
                 >
                   <p
                     className={cn(
                       'text-[0.55rem] uppercase tracking-widest mb-1',
-                      isActive ? 'text-[#c3c0ff]' : 'text-[#918fa1]'
+                      isActive ? 'text-[var(--dp-blue)]' : 'text-[var(--dp-text-2)]'
                     )}
                   >
                     Scenario {String(i + 1).padStart(2, '0')}
                   </p>
-                  <h4 className="font-medium text-[0.875rem] text-[#e5e2e1] leading-snug line-clamp-2">
+                  <h4 className="font-medium text-[0.875rem] text-[var(--dp-text-0)] leading-snug line-clamp-2">
                     {p.prompt.length > 50 ? p.prompt.slice(0, 50) + '…' : p.prompt}
                   </h4>
                   <div className="flex items-center gap-1.5 mt-2 flex-wrap">
@@ -363,7 +362,7 @@ export function VoicePracticePage({ prompts, channelId, onVoicePractice }: Voice
                     >
                       {p.domain}
                     </span>
-                    <span className="text-[0.5rem] text-[#918fa1]">{p.timeLimit}s</span>
+                    <span className="text-[0.5rem] text-[var(--dp-text-2)]">{p.timeLimit}s</span>
                     {ratings[p.id] && (
                       <div className="flex gap-0.5 ml-auto">
                         {Array.from({ length: 5 }).map((_, si) => (
@@ -387,12 +386,12 @@ export function VoicePracticePage({ prompts, channelId, onVoicePractice }: Voice
         <div className="lg:col-span-6 space-y-4 order-1 lg:order-2">
           {/* Prompt card */}
           {active && (
-            <div className="p-4 rounded-xl bg-[#201f1f] border border-[#464555]/20">
+            <div className="p-4 rounded-xl bg-[var(--dp-bg-2)] border border-[var(--dp-border-0)]">
               <div className="flex items-center gap-2 flex-wrap mb-2">
-                <span className="text-[0.6rem] font-bold uppercase tracking-widest text-[#918fa1]">
+                <span className="text-[0.6rem] font-bold uppercase tracking-widest text-[var(--dp-text-2)]">
                   {active.domain}
                 </span>
-                <span className="text-[0.6rem] font-bold uppercase px-1.5 py-0.5 rounded bg-[#4f46e5]/20 text-[#c3c0ff]">
+                <span className="text-[0.6rem] font-bold uppercase px-1.5 py-0.5 rounded bg-[var(--dp-blue-muted)] text-[var(--dp-blue)]">
                   {active.type}
                 </span>
                 <span
@@ -404,22 +403,24 @@ export function VoicePracticePage({ prompts, channelId, onVoicePractice }: Voice
                   {active.difficulty}
                 </span>
               </div>
-              <p className="text-sm font-bold text-[#e5e2e1] leading-snug">{active.prompt}</p>
+              <p className="text-sm font-bold text-[var(--dp-text-0)] leading-snug">
+                {active.prompt}
+              </p>
             </div>
           )}
 
           {/* Main Voice Panel */}
-          <div className="bg-[#201f1f] relative overflow-hidden rounded-2xl p-8 flex flex-col items-center justify-center border border-[#464555]/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] min-h-[340px]">
+          <div className="bg-[var(--dp-bg-2)] relative overflow-hidden rounded-2xl p-8 flex flex-col items-center justify-center border border-[var(--dp-border-0)] min-h-[340px]">
             {/* Countdown overlay */}
             {phase === 'countdown' && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#0e0e0e]/80 z-10 rounded-2xl">
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-[var(--dp-bg-1)]/80 z-10 rounded-2xl">
                 <div
                   data-testid="voice-countdown"
-                  className="w-20 h-20 rounded-full border-4 border-[#c3c0ff] flex items-center justify-center text-4xl font-black text-[#c3c0ff] mb-3"
+                  className="w-20 h-20 rounded-full border-4 border-[var(--dp-blue)] flex items-center justify-center text-4xl font-black text-[var(--dp-blue)] mb-3"
                 >
                   {countdown}
                 </div>
-                <p className="text-xs text-[#918fa1]">Get ready to speak…</p>
+                <p className="text-xs text-[var(--dp-text-2)]">Get ready to speak…</p>
               </div>
             )}
 
@@ -460,7 +461,7 @@ export function VoicePracticePage({ prompts, channelId, onVoicePractice }: Voice
                   'absolute inset-0 blur-2xl rounded-full transition-transform',
                   phase === 'recording'
                     ? 'bg-rose-400/20 group-active:scale-150'
-                    : 'bg-[#c3c0ff]/20 group-active:scale-150'
+                    : 'bg-[var(--dp-blue-muted)] group-active:scale-150'
                 )}
               />
               <div
@@ -468,7 +469,7 @@ export function VoicePracticePage({ prompts, channelId, onVoicePractice }: Voice
                   'relative w-20 h-20 rounded-full flex items-center justify-center shadow-lg transition-transform active:scale-90',
                   phase === 'recording'
                     ? 'bg-gradient-to-br from-rose-500 to-rose-700'
-                    : 'bg-gradient-to-br from-[#4f46e5] to-[#03b5d3]'
+                    : 'bg-gradient-to-br from-[var(--dp-blue)] to-[var(--dp-purple)]'
                 )}
               >
                 <Mic
@@ -480,13 +481,13 @@ export function VoicePracticePage({ prompts, channelId, onVoicePractice }: Voice
             </button>
 
             {/* State label */}
-            <p className="text-[#e5e2e1] font-bold text-base mb-1">
+            <p className="text-[var(--dp-text-0)] font-bold text-base mb-1">
               {phase === 'idle' && (srSupported ? 'Tap to Speak' : 'Not Supported')}
               {phase === 'countdown' && 'Get Ready…'}
               {phase === 'recording' && `Recording  ${mm}:${ss}`}
               {phase === 'done' && 'Session Complete'}
             </p>
-            <p className="text-[#918fa1] text-xs">
+            <p className="text-[var(--dp-text-2)] text-xs">
               {phase === 'idle' &&
                 (srSupported
                   ? 'Tap the mic to begin your practice session'
@@ -498,19 +499,21 @@ export function VoicePracticePage({ prompts, channelId, onVoicePractice }: Voice
 
             {/* Transcript */}
             {(transcript || phase === 'done') && (
-              <div className="mt-8 w-full p-5 bg-[#0e0e0e] rounded-xl border border-[#464555]/10">
+              <div className="mt-8 w-full p-5 bg-[var(--dp-bg-1)] rounded-xl border border-[var(--dp-border-0)]">
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-[0.6rem] uppercase tracking-widest text-[#918fa1]">
+                  <span className="text-[0.6rem] uppercase tracking-widest text-[var(--dp-text-2)]">
                     Live Transcript
                   </span>
                   {phase === 'recording' && (
                     <span className="flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#4cd7f6] animate-pulse" />
-                      <span className="text-[0.6rem] text-[#4cd7f6] font-bold">STT ACTIVE</span>
+                      <span className="w-1.5 h-1.5 rounded-full bg-[var(--dp-blue)] animate-pulse" />
+                      <span className="text-[0.6rem] text-[var(--dp-blue)] font-bold">
+                        STT ACTIVE
+                      </span>
                     </span>
                   )}
                 </div>
-                <p className="text-xs leading-relaxed text-[#e5e2e1]/80 italic">
+                <p className="text-xs leading-relaxed text-[var(--dp-text-0)]/80 italic">
                   {transcript
                     ? `"${transcript}"`
                     : 'No speech detected. Try again in a Chrome browser.'}
@@ -521,31 +524,31 @@ export function VoicePracticePage({ prompts, channelId, onVoicePractice }: Voice
 
           {/* Key Points */}
           {active && (
-            <div className="rounded-xl border border-[#464555]/20 bg-[#201f1f] overflow-hidden">
+            <div className="rounded-xl border border-[var(--dp-border-0)] bg-[var(--dp-bg-2)] overflow-hidden">
               <button
                 onClick={() => setKeyPointsOpen(o => !o)}
-                className="w-full flex items-center justify-between px-5 py-3.5 text-xs font-bold text-[#e5e2e1] hover:bg-[#2a2a2a] transition-colors uppercase tracking-widest"
+                className="w-full flex items-center justify-between px-5 py-3.5 text-xs font-bold text-[var(--dp-text-0)] hover:bg-[var(--dp-bg-3)] transition-colors uppercase tracking-widest"
               >
                 <span className="flex items-center gap-2">
-                  <CheckCircle2 size={13} className="text-[#4cd7f6]" />
+                  <CheckCircle2 size={13} className="text-[var(--dp-blue)]" />
                   Key Points to Cover
                 </span>
-                <span className="text-[#918fa1]">{keyPointsOpen ? '▲' : '▼'}</span>
+                <span className="text-[var(--dp-text-2)]">{keyPointsOpen ? '▲' : '▼'}</span>
               </button>
               {keyPointsOpen && (
-                <div className="px-5 pb-5 space-y-2 border-t border-[#464555]/20">
+                <div className="px-5 pb-5 space-y-2 border-t border-[var(--dp-border-0)]">
                   {active.keyPoints.map((kp, i) => (
                     <div key={i} className="flex items-start gap-2 pt-2">
-                      <CheckCircle2 size={13} className="shrink-0 mt-0.5 text-[#4cd7f6]" />
-                      <span className="text-xs text-[#e5e2e1]">{kp}</span>
+                      <CheckCircle2 size={13} className="shrink-0 mt-0.5 text-[var(--dp-blue)]" />
+                      <span className="text-xs text-[var(--dp-text-0)]">{kp}</span>
                     </div>
                   ))}
                   {active.followUp && (
-                    <div className="mt-3 pt-3 border-t border-[#464555]/20">
-                      <span className="text-[0.6rem] font-bold text-[#918fa1] uppercase tracking-widest">
+                    <div className="mt-3 pt-3 border-t border-[var(--dp-border-0)]">
+                      <span className="text-[0.6rem] font-bold text-[var(--dp-text-2)] uppercase tracking-widest">
                         Follow-up:{' '}
                       </span>
-                      <span className="text-xs text-[#e5e2e1]">{active.followUp}</span>
+                      <span className="text-xs text-[var(--dp-text-0)]">{active.followUp}</span>
                     </div>
                   )}
                 </div>
@@ -555,8 +558,8 @@ export function VoicePracticePage({ prompts, channelId, onVoicePractice }: Voice
 
           {/* Self-rating */}
           {phase === 'done' && (
-            <div className="flex flex-col items-center gap-3 p-5 rounded-xl border border-[#464555]/20 bg-[#201f1f]">
-              <p className="text-xs font-bold uppercase tracking-widest text-[#c7c4d8]">
+            <div className="flex flex-col items-center gap-3 p-5 rounded-xl border border-[var(--dp-border-0)] bg-[var(--dp-bg-2)]">
+              <p className="text-xs font-bold uppercase tracking-widest text-[var(--dp-text-1)]">
                 Rate Your Response
               </p>
               <div className="flex gap-2">
@@ -578,7 +581,7 @@ export function VoicePracticePage({ prompts, channelId, onVoicePractice }: Voice
               {rating > 0 && (
                 <button
                   onClick={() => rateAndNext(rating)}
-                  className="px-6 py-2 rounded-lg text-[0.7rem] uppercase tracking-widest font-bold bg-gradient-to-r from-[#4f46e5] to-[#03b5d3] text-white shadow-lg active:scale-95 transition-transform"
+                  className="px-6 py-2 rounded-lg text-[0.7rem] uppercase tracking-widest font-bold bg-gradient-to-r from-[var(--dp-blue)] to-[var(--dp-purple)] text-white shadow-lg active:scale-95 transition-transform"
                 >
                   Save & Next →
                 </button>
@@ -589,18 +592,18 @@ export function VoicePracticePage({ prompts, channelId, onVoicePractice }: Voice
 
         {/* Right: Live Analysis */}
         <div className="lg:col-span-3 space-y-4 order-3">
-          <h3 className="text-sm font-bold px-1 mb-3 uppercase tracking-widest text-[#c7c4d8]">
+          <h3 className="text-sm font-bold px-1 mb-3 uppercase tracking-widest text-[var(--dp-text-1)]">
             Live Analysis
           </h3>
 
           {/* Fluency Score */}
-          <div className="bg-[#201f1f] p-5 rounded-2xl border border-[#464555]/10 shadow-xl">
+          <div className="bg-[var(--dp-bg-2)] p-5 rounded-2xl border border-[var(--dp-border-0)] shadow-xl">
             <div className="flex justify-between items-start mb-5">
               <div>
-                <p className="text-[0.6rem] uppercase tracking-widest text-[#918fa1] mb-1">
+                <p className="text-[0.6rem] uppercase tracking-widest text-[var(--dp-text-2)] mb-1">
                   Fluency Score
                 </p>
-                <h5 className="text-3xl font-black text-[#e5e2e1]">
+                <h5 className="text-3xl font-black text-[var(--dp-text-0)]">
                   {phase === 'recording'
                     ? elapsed < 10
                       ? '—'
@@ -608,23 +611,23 @@ export function VoicePracticePage({ prompts, channelId, onVoicePractice }: Voice
                     : phase === 'done'
                       ? '8.4'
                       : '—'}
-                  <span className="text-xs text-[#918fa1] font-normal">/10</span>
+                  <span className="text-xs text-[var(--dp-text-2)] font-normal">/10</span>
                 </h5>
               </div>
-              <div className="p-2 bg-[#c3c0ff]/10 rounded-lg">
-                <Gauge size={20} className="text-[#c3c0ff]" />
+              <div className="p-2 bg-[var(--dp-blue-muted)] rounded-lg">
+                <Gauge size={20} className="text-[var(--dp-blue)]" />
               </div>
             </div>
-            <div className="w-full h-1.5 bg-[#353534] rounded-full overflow-hidden">
+            <div className="w-full h-1.5 bg-[var(--dp-bg-3)] rounded-full overflow-hidden">
               <div
-                className="h-full bg-[#c3c0ff] shadow-[0_0_10px_#c3c0ff] transition-all duration-1000 rounded-full"
+                className="h-full bg-[var(--dp-blue)] transition-all duration-1000 rounded-full"
                 style={{
                   width:
                     phase === 'done' ? '84%' : phase === 'recording' && elapsed > 10 ? '78%' : '0%',
                 }}
               />
             </div>
-            <p className="mt-3 text-[0.6rem] text-[#918fa1] italic leading-snug">
+            <p className="mt-3 text-[0.6rem] text-[var(--dp-text-2)] italic leading-snug">
               {phase === 'done'
                 ? 'Excellent pacing. Minimal hesitation noted during technical transition.'
                 : 'Begin speaking to generate analysis.'}
@@ -632,31 +635,30 @@ export function VoicePracticePage({ prompts, channelId, onVoicePractice }: Voice
           </div>
 
           {/* Technical Accuracy */}
-          <div className="bg-[#201f1f] p-5 rounded-2xl border border-[#464555]/10 shadow-xl">
+          <div className="bg-[var(--dp-bg-2)] p-5 rounded-2xl border border-[var(--dp-border-0)] shadow-xl">
             <div className="flex justify-between items-start mb-5">
               <div>
-                <p className="text-[0.6rem] uppercase tracking-widest text-[#918fa1] mb-1">
+                <p className="text-[0.6rem] uppercase tracking-widest text-[var(--dp-text-2)] mb-1">
                   Technical Accuracy
                 </p>
-                <h5 className="text-3xl font-black text-[#e5e2e1]">
+                <h5 className="text-3xl font-black text-[var(--dp-text-0)]">
                   {phase === 'done' ? '92' : phase === 'recording' && elapsed > 10 ? '87' : '—'}
-                  <span className="text-xs text-[#918fa1] font-normal">%</span>
+                  <span className="text-xs text-[var(--dp-text-2)] font-normal">%</span>
                 </h5>
               </div>
-              <div className="p-2 bg-[#4cd7f6]/10 rounded-lg">
-                <BadgeCheck size={20} className="text-[#4cd7f6]" />
+              <div className="p-2 bg-[var(--dp-blue-muted)] rounded-lg">
+                <BadgeCheck size={20} className="text-[var(--dp-blue)]" />
               </div>
             </div>
             <div className="flex items-end gap-1 h-10">
               {[20, 40, 30, 60, 100].map((h, i) => (
                 <div
                   key={i}
-                  className="flex-1 bg-[#4cd7f6] rounded-t-sm transition-all duration-700"
+                  className="flex-1 bg-[var(--dp-blue)] rounded-t-sm transition-all duration-700"
                   style={{
                     height:
                       phase === 'done' || (phase === 'recording' && elapsed > 10) ? `${h}%` : '0%',
                     opacity: 0.2 + i * 0.2,
-                    boxShadow: i === 4 ? '0 -5px 15px rgba(76,215,246,0.3)' : 'none',
                   }}
                 />
               ))}
@@ -666,7 +668,7 @@ export function VoicePracticePage({ prompts, channelId, onVoicePractice }: Voice
                 {active?.keyPoints.slice(0, 2).map((kp, i) => (
                   <span
                     key={i}
-                    className="px-2 py-0.5 rounded bg-[#566175]/20 text-[0.55rem] text-[#bcc7de] border border-[#464555]/20"
+                    className="px-2 py-0.5 rounded bg-[var(--dp-bg-3)]/20 text-[0.55rem] text-[var(--dp-text-1)] border border-[var(--dp-border-0)]"
                   >
                     {kp.split(/[—–,]/)[0].trim().slice(0, 20)}
                   </span>
@@ -676,12 +678,12 @@ export function VoicePracticePage({ prompts, channelId, onVoicePractice }: Voice
           </div>
 
           {/* Architect's Note */}
-          <div className="p-5 bg-gradient-to-br from-[#201f1f] to-[#2a2a2a] rounded-2xl border border-[#464555]/10">
-            <h6 className="text-[0.6rem] font-bold uppercase tracking-widest text-[#c3c0ff] mb-2 flex items-center gap-1.5">
+          <div className="p-5 bg-[var(--dp-bg-2)] rounded-2xl border border-[var(--dp-border-0)]">
+            <h6 className="text-[0.6rem] font-bold uppercase tracking-widest text-[var(--dp-blue)] mb-2 flex items-center gap-1.5">
               <Lightbulb size={12} />
               Architect's Note
             </h6>
-            <p className="text-xs text-[#918fa1] leading-relaxed">
+            <p className="text-xs text-[var(--dp-text-2)] leading-relaxed">
               {active
                 ? `To maximize your score, ensure you cover all ${active.keyPoints.length} key points clearly.${active.followUp ? ` Also prepare for: "${active.followUp}"` : ''}`
                 : 'Select a scenario to receive personalized coaching notes.'}
@@ -689,24 +691,24 @@ export function VoicePracticePage({ prompts, channelId, onVoicePractice }: Voice
           </div>
 
           {/* Session Stats */}
-          <div className="p-5 bg-[#201f1f] rounded-2xl border border-[#464555]/10">
-            <h6 className="text-[0.6rem] font-bold uppercase tracking-widest text-[#918fa1] mb-3">
+          <div className="p-5 bg-[var(--dp-bg-2)] rounded-2xl border border-[var(--dp-border-0)]">
+            <h6 className="text-[0.6rem] font-bold uppercase tracking-widest text-[var(--dp-text-2)] mb-3">
               Session Stats
             </h6>
             <div className="space-y-2">
               <div className="flex justify-between">
-                <span className="text-[0.6rem] uppercase tracking-widest text-[#918fa1]">
+                <span className="text-[0.6rem] uppercase tracking-widest text-[var(--dp-text-2)]">
                   Completed
                 </span>
-                <span className="text-xs font-bold text-[#e5e2e1]">
+                <span className="text-xs font-bold text-[var(--dp-text-0)]">
                   {Object.keys(ratings).length} / {displayPrompts.length}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-[0.6rem] uppercase tracking-widest text-[#918fa1]">
+                <span className="text-[0.6rem] uppercase tracking-widest text-[var(--dp-text-2)]">
                   Avg Rating
                 </span>
-                <span className="text-xs font-bold text-[#4cd7f6]">
+                <span className="text-xs font-bold text-[var(--dp-blue)]">
                   {Object.keys(ratings).length === 0
                     ? '—'
                     : (
@@ -716,10 +718,10 @@ export function VoicePracticePage({ prompts, channelId, onVoicePractice }: Voice
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-[0.6rem] uppercase tracking-widest text-[#918fa1]">
+                <span className="text-[0.6rem] uppercase tracking-widest text-[var(--dp-text-2)]">
                   Time Limit
                 </span>
-                <span className="text-xs font-bold text-[#e5e2e1]">
+                <span className="text-xs font-bold text-[var(--dp-text-0)]">
                   {active ? `${active.timeLimit}s` : '—'}
                 </span>
               </div>

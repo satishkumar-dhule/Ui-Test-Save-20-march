@@ -1,10 +1,21 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { BookOpen, ChevronLeft, ChevronRight, Search, Menu, Copy, Check } from 'lucide-react'
+import { useAnnounce, SkipLink, LiveRegion } from '@/hooks/useAnnounce'
+import {
+  BookOpen,
+  ChevronLeft,
+  ChevronRight,
+  Search,
+  Menu,
+  Copy,
+  Check,
+  MessageSquare,
+} from 'lucide-react'
 import type { Question, AnswerSection } from '@/data/questions'
 import { channels } from '@/data/channels'
 import type { ReactElement } from 'react'
 import { Skeleton } from '@/components/ui/skeleton'
 import { sanitizeSVG } from '@/lib/security'
+import { Empty, EmptyMedia, EmptyTitle, EmptyDescription } from '@/components/ui/empty'
 
 const DIFF_COLOR: Record<string, string> = {
   beginner: 'hsl(var(--chart-2))',
@@ -366,6 +377,8 @@ export function QAPage({
   const [search, setSearch] = useState('')
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const contentRef = useRef<HTMLDivElement>(null)
+  const mainContentRef = useRef<HTMLDivElement>(null)
+  const { announce } = useAnnounce()
 
   const filtered = search.trim()
     ? questions.filter(
@@ -390,8 +403,12 @@ export function QAPage({
   const go = useCallback(
     (dir: 1 | -1) => {
       setActiveIdx(i => Math.max(0, Math.min(filtered.length - 1, i + dir)))
+      setTimeout(() => {
+        mainContentRef.current?.focus()
+        announce(`Navigated ${dir === 1 ? 'forward' : 'back'}`)
+      }, 100)
     },
-    [filtered.length]
+    [filtered.length, announce]
   )
 
   useEffect(() => {
@@ -428,20 +445,22 @@ export function QAPage({
 
   if (questions.length === 0) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
-        <BookOpen size={48} className="text-muted-foreground mb-4" />
-        <h3 className="text-lg font-semibold text-foreground mb-2">
-          No questions for this channel
-        </h3>
-        <p className="text-muted-foreground text-sm">
-          Check out the other sections or switch channels.
-        </p>
-      </div>
+      <Empty>
+        <EmptyMedia variant="icon">
+          <MessageSquare size={24} aria-hidden="true" />
+        </EmptyMedia>
+        <EmptyTitle>No questions available</EmptyTitle>
+        <EmptyDescription>
+          Check out the other sections or switch to a different channel to find study content.
+        </EmptyDescription>
+      </Empty>
     )
   }
 
   return (
     <div className="flex flex-1 h-full overflow-hidden">
+      <SkipLink targetId="qa-main-content">Skip to main content</SkipLink>
+      <LiveRegion />
       {/* Sidebar */}
       {sidebarOpen && (
         <div
@@ -454,13 +473,13 @@ export function QAPage({
         style={{ width: 260 }}
       >
         <div className="flex items-center gap-2 px-4 py-3 border-b border-border">
-          <BookOpen size={14} className="text-muted-foreground" />
+          <BookOpen size={14} className="text-muted-foreground" aria-hidden="true" />
           <span className="text-sm font-semibold text-foreground">Questions</span>
           <span className="ml-auto text-[10px] font-bold bg-primary/15 text-primary px-1.5 rounded-full">
             {filtered.length}
           </span>
         </div>
-        <div className="overflow-y-auto flex-1">
+        <div className="overflow-y-auto flex-1" role="list" aria-label="Question list">
           {filtered.map((q, i) => {
             const displayNum = q.number ?? i + 1
             const diff = q.difficulty ?? 'unknown'
@@ -470,6 +489,9 @@ export function QAPage({
               <button
                 key={q.id ?? String(i)}
                 data-testid={`qa-sidebar-item-${q.id ?? i}`}
+                role="listitem"
+                aria-current={i === activeIdx ? 'true' : undefined}
+                aria-label={`Question ${displayNum}: ${q.title}`}
                 onClick={() => {
                   setActiveIdx(i)
                   setSidebarOpen(false)
@@ -481,9 +503,7 @@ export function QAPage({
                 }}
               >
                 <div className="flex items-center gap-2 mb-0.5">
-                  <span className="text-[10px] font-mono text-muted-foreground">
-                    #{displayNum}
-                  </span>
+                  <span className="text-[10px] font-mono text-muted-foreground">#{displayNum}</span>
                   <span
                     className="text-[10px] font-semibold uppercase"
                     style={{ color: DIFF_COLOR[diff] ?? 'hsl(var(--muted-foreground))' }}
@@ -509,6 +529,8 @@ export function QAPage({
         <div
           className="flex items-center gap-2 px-3 border-b border-border bg-card/50"
           style={{ height: 44 }}
+          role="toolbar"
+          aria-label="Question navigation"
         >
           <button
             data-testid="qa-mob-menu"
@@ -522,16 +544,18 @@ export function QAPage({
             <Search
               size={12}
               className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground"
+              aria-hidden="true"
             />
             <input
               data-testid="qa-search"
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search questions..."
+              aria-label="Search questions"
               className="w-full pl-7 pr-3 py-1.5 text-xs rounded-md border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
             />
           </div>
-          <span className="text-xs text-muted-foreground ml-auto">
+          <span className="text-xs text-muted-foreground ml-auto" aria-live="polite">
             {activeIdx + 1} / {filtered.length}
           </span>
           <button
@@ -553,11 +577,18 @@ export function QAPage({
         </div>
 
         {/* Content */}
-        <div ref={contentRef} className="flex-1 overflow-y-auto p-3">
+        <div
+          ref={contentRef}
+          id="qa-main-content"
+          tabIndex={-1}
+          className="flex-1 overflow-y-auto p-3 focus:outline-none"
+        >
           {active ? (
             <div className="w-full space-y-4">
+              <h1 className="sr-only">{active.title}</h1>
               {/* Question header */}
               <div className="p-3 rounded-lg border border-border bg-card">
+                <h2 className="sr-only">Question {activeIdx + 1} Details</h2>
                 <div className="flex items-start gap-1.5 mb-1.5 flex-wrap">
                   {active.difficulty && (
                     <span

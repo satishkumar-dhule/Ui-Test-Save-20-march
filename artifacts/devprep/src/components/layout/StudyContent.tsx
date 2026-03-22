@@ -1,18 +1,21 @@
 import { lazy, Suspense } from 'react'
-import type { Section } from '@/App'
-import type { Question } from '@/data/questions'
-import type { Flashcard } from '@/data/flashcards'
-import type { ExamQuestion } from '@/data/exam'
-import type { VoicePrompt } from '@/data/voicePractice'
-import type { CodingChallenge } from '@/data/coding'
+import type { Section } from '@/stores/contentStore'
+import { useContentStore, useFilteredContent } from '@/stores/contentStore'
+import { useChannels } from '@/hooks/useChannels'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { Spinner } from '@/components/ui/spinner'
 
 const QAPage = lazy(() => import('@/pages/QAPage').then(m => ({ default: m.QAPage })))
-const FlashcardsPage = lazy(() => import('@/pages/FlashcardsPage').then(m => ({ default: m.FlashcardsPage })))
+const FlashcardsPage = lazy(() =>
+  import('@/pages/FlashcardsPage').then(m => ({ default: m.FlashcardsPage }))
+)
 const CodingPage = lazy(() => import('@/pages/CodingPage').then(m => ({ default: m.CodingPage })))
-const MockExamPage = lazy(() => import('@/pages/MockExamPage').then(m => ({ default: m.MockExamPage })))
-const VoicePracticePage = lazy(() => import('@/pages/VoicePracticePage').then(m => ({ default: m.VoicePracticePage })))
+const MockExamPage = lazy(() =>
+  import('@/pages/MockExamPage').then(m => ({ default: m.MockExamPage }))
+)
+const VoicePracticePage = lazy(() =>
+  import('@/pages/VoicePracticePage').then(m => ({ default: m.VoicePracticePage }))
+)
 
 type CodingStatus = 'not_started' | 'in_progress' | 'completed'
 type FlashcardStatus = 'unseen' | 'reviewing' | 'known' | 'hard'
@@ -20,11 +23,6 @@ type FlashcardStatus = 'unseen' | 'reviewing' | 'known' | 'hard'
 interface StudyContentProps {
   section: Section
   channelId: string
-  filteredQuestions: Question[]
-  filteredFlashcards: Flashcard[]
-  filteredExamQs: ExamQuestion[]
-  filteredVoicePs: VoicePrompt[]
-  filteredCoding: CodingChallenge[]
   onQuestionAnswered: (questionId: string) => void
   onFlashcardUpdate: (cardId: string, status: FlashcardStatus) => void
   onCodingUpdate: (challengeId: string, status: CodingStatus) => void
@@ -44,31 +42,31 @@ function LoadingFallback() {
 export function StudyContent({
   section,
   channelId,
-  filteredQuestions,
-  filteredFlashcards,
-  filteredExamQs,
-  filteredVoicePs,
-  filteredCoding,
   onQuestionAnswered,
   onFlashcardUpdate,
   onCodingUpdate,
   onExamComplete,
   onVoicePractice,
 }: StudyContentProps) {
+  const channels = useChannels()
+  const currentChannel = channels.find(c => c.id === channelId)
+
+  const filtered = useFilteredContent(currentChannel?.tagFilter)
+
   return (
     <main className="study-main">
       <ErrorBoundary>
         <Suspense fallback={<LoadingFallback />}>
           {section === 'qa' && (
             <QAPage
-              questions={filteredQuestions}
+              questions={filtered.questions}
               channelId={channelId}
               onQuestionAnswered={onQuestionAnswered}
             />
           )}
           {section === 'flashcards' && (
             <FlashcardsPage
-              flashcards={filteredFlashcards}
+              flashcards={filtered.flashcards}
               categories={[]}
               channelId={channelId}
               onFlashcardUpdate={onFlashcardUpdate}
@@ -76,21 +74,21 @@ export function StudyContent({
           )}
           {section === 'coding' && (
             <CodingPage
-              challenges={filteredCoding}
+              challenges={filtered.coding}
               channelId={channelId}
               onCodingUpdate={onCodingUpdate}
             />
           )}
           {section === 'exam' && (
             <MockExamPage
-              questions={filteredExamQs}
+              questions={filtered.exam}
               channelId={channelId}
               onExamComplete={onExamComplete}
             />
           )}
           {section === 'voice' && (
             <VoicePracticePage
-              prompts={filteredVoicePs}
+              prompts={filtered.voice}
               channelId={channelId}
               onVoicePractice={onVoicePractice}
             />

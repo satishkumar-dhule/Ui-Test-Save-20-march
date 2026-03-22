@@ -15,11 +15,15 @@ let initPromise: Promise<SqlJsDatabase> | null = null
 let isInitialized = false
 let initError: Error | null = null
 
+const DB_INIT_MAX_RETRIES = 3
+const DB_INIT_RETRY_DELAY_MS = 1000
+
 export interface DbState {
   isReady: boolean
   isLoading: boolean
   error: Error | null
   db: SqlJsDatabase | null
+  retryCount?: number
 }
 
 const listeners: Set<(state: DbState) => void> = new Set()
@@ -55,15 +59,15 @@ async function loadSqlJs(): Promise<{
   }>
 }
 
-export async function initDatabase(): Promise<SqlJsDatabase> {
+export async function initDatabase(retries = DB_INIT_MAX_RETRIES): Promise<SqlJsDatabase> {
   if (db && isInitialized) return db
   if (initPromise) return initPromise
 
-  initPromise = doInit()
+  initPromise = doInit(retries)
   return initPromise
 }
 
-async function doInit(): Promise<SqlJsDatabase> {
+async function doInit(retriesLeft: number): Promise<SqlJsDatabase> {
   try {
     const SQL = await loadSqlJs()
 
@@ -115,6 +119,16 @@ async function doInit(): Promise<SqlJsDatabase> {
   } catch (error) {
     initError = error instanceof Error ? error : new Error(String(error))
     notifyListeners()
+
+    if (retriesLeft > 1) {
+      console.warn(`[DevPrep] Database init failed, ${retriesLeft - 1} retries remaining...`)
+      initPromise = null
+      await new Promise(resolve =>
+        setTimeout(resolve, DB_INIT_RETRY_DELAY_MS * (DB_INIT_MAX_RETRIES - retriesLeft + 1))
+      )
+      return initDatabase(retriesLeft - 1)
+    }
+
     throw initError
   }
 }
@@ -559,7 +573,11 @@ export function getChannelsFromDb(): ChannelRecord[] | null {
       certCode: (row[6] as string | null) || undefined,
       description: (row[7] as string) || '',
       tagFilter: (() => {
-        try { return JSON.parse((row[8] as string) || '[]') } catch { return [] }
+        try {
+          return JSON.parse((row[8] as string) || '[]')
+        } catch {
+          return []
+        }
       })(),
     }))
   } catch {
@@ -618,7 +636,9 @@ function parseRecord(row: Record<string, unknown>): ContentRecord {
 
 export function getContentByType(type: string): ContentRecord[] {
   if (!db) return []
-  const stmt = db.prepare("SELECT * FROM generated_content WHERE content_type = ? AND status IN ('published', 'approved')")
+  const stmt = db.prepare(
+    "SELECT * FROM generated_content WHERE content_type = ? AND status IN ('published', 'approved')"
+  )
   stmt.bind([type])
   const results: ContentRecord[] = []
   while (stmt.step()) {
@@ -630,7 +650,9 @@ export function getContentByType(type: string): ContentRecord[] {
 
 export function getContentByChannel(channelId: string): ContentRecord[] {
   if (!db) return []
-  const stmt = db.prepare("SELECT * FROM generated_content WHERE channel_id = ? AND status IN ('published', 'approved')")
+  const stmt = db.prepare(
+    "SELECT * FROM generated_content WHERE channel_id = ? AND status IN ('published', 'approved')"
+  )
   stmt.bind([channelId])
   const results: ContentRecord[] = []
   while (stmt.step()) {
@@ -642,7 +664,9 @@ export function getContentByChannel(channelId: string): ContentRecord[] {
 
 export function getContentByTags(tags: string[]): ContentRecord[] {
   if (!db || tags.length === 0) return []
-  const stmt = db.prepare("SELECT * FROM generated_content WHERE status IN ('published', 'approved')")
+  const stmt = db.prepare(
+    "SELECT * FROM generated_content WHERE status IN ('published', 'approved')"
+  )
   stmt.bind([])
   const results: ContentRecord[] = []
   while (stmt.step()) {
@@ -665,7 +689,9 @@ export function getContentByTags(tags: string[]): ContentRecord[] {
 export function searchContent(query: string): ContentRecord[] {
   if (!db || !query.trim()) return []
   const lowerQuery = query.toLowerCase()
-  const stmt = db.prepare("SELECT * FROM generated_content WHERE status IN ('published', 'approved')")
+  const stmt = db.prepare(
+    "SELECT * FROM generated_content WHERE status IN ('published', 'approved')"
+  )
   stmt.bind([])
   const results: ContentRecord[] = []
   while (stmt.step()) {

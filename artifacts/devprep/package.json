@@ -142,6 +142,7 @@
     "typescript": "~5.9.2",
     "typescript-eslint": "^8.57.1",
     "vite": "^7.3.0",
+    "vite-plugin-compression": "^0.5.1",
     "vite-plugin-pwa": "^0.21.1",
     "vitest": "^4.1.0",
     "workbox-build": "^7.3.0"

@@ -36,26 +36,32 @@ const difficulties = [
 
 export function SearchFilters({ filters, onFiltersChange }: SearchFiltersProps) {
   const [expanded, setExpanded] = useState(true)
-  const { channels = [] } = useChannels()
-  
+  const channels = useChannels()
+
   // Common tags extracted from filters
   const commonTags = [
-    'javascript', 'typescript', 'react', 'nodejs', 'python', 
-    'docker', 'kubernetes', 'aws', 'terraform', 'devops'
+    'javascript',
+    'typescript',
+    'react',
+    'nodejs',
+    'python',
+    'docker',
+    'kubernetes',
+    'aws',
+    'terraform',
+    'devops',
   ]
-  
+
   const toggleArrayFilter = <T,>(key: keyof SearchFilters, value: T) => {
     const current = filters[key] as T[]
-    const updated = current.includes(value)
-      ? current.filter(v => v !== value)
-      : [...current, value]
-    
+    const updated = current.includes(value) ? current.filter(v => v !== value) : [...current, value]
+
     onFiltersChange({
       ...filters,
       [key]: updated,
     })
   }
-  
+
   const clearAllFilters = () => {
     onFiltersChange({
       channels: [],
@@ -64,13 +70,13 @@ export function SearchFilters({ filters, onFiltersChange }: SearchFiltersProps) 
       tags: [],
     })
   }
-  
-  const activeFiltersCount = 
-    filters.channels.length + 
-    filters.types.length + 
-    filters.difficulties.length + 
+
+  const activeFiltersCount =
+    filters.channels.length +
+    filters.types.length +
+    filters.difficulties.length +
     filters.tags.length
-  
+
   return (
     <div className="border-b bg-muted/30">
       {/* Filter header */}
@@ -78,13 +84,9 @@ export function SearchFilters({ filters, onFiltersChange }: SearchFiltersProps) 
         <button
           onClick={() => setExpanded(!expanded)}
           className="flex items-center gap-2 text-sm font-medium"
-          aria-label={expanded ? "Collapse filters" : "Expand filters"}
+          aria-label={expanded ? 'Collapse filters' : 'Expand filters'}
         >
-          {expanded ? (
-            <ChevronUp className="h-4 w-4" />
-          ) : (
-            <ChevronDown className="h-4 w-4" />
-          )}
+          {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
           <Filter className="h-4 w-4" />
           Filters
           {activeFiltersCount > 0 && (
@@ -93,7 +95,7 @@ export function SearchFilters({ filters, onFiltersChange }: SearchFiltersProps) 
             </Badge>
           )}
         </button>
-        
+
         {activeFiltersCount > 0 && (
           <Button
             variant="ghost"
@@ -105,7 +107,7 @@ export function SearchFilters({ filters, onFiltersChange }: SearchFiltersProps) 
           </Button>
         )}
       </div>
-      
+
       {/* Filter options */}
       {expanded && (
         <div className="px-4 pb-3 space-y-4">
@@ -119,20 +121,18 @@ export function SearchFilters({ filters, onFiltersChange }: SearchFiltersProps) 
               {channels.map((channel: any) => (
                 <Button
                   key={channel.id}
-                  variant={filters.channels.includes(channel.id) ? "default" : "outline"}
+                  variant={filters.channels.includes(channel.id) ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => toggleArrayFilter('channels', channel.id)}
                   className="h-7 text-xs"
                 >
                   {channel.name}
-                  {filters.channels.includes(channel.id) && (
-                    <X className="ml-1 h-3 w-3" />
-                  )}
+                  {filters.channels.includes(channel.id) && <X className="ml-1 h-3 w-3" />}
                 </Button>
               ))}
             </div>
           </div>
-          
+
           {/* Content Types */}
           <div>
             <h4 className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1">
@@ -140,23 +140,21 @@ export function SearchFilters({ filters, onFiltersChange }: SearchFiltersProps) 
               Content Type
             </h4>
             <div className="flex flex-wrap gap-1.5">
-              {contentTypes.map((type) => (
+              {contentTypes.map(type => (
                 <Button
                   key={type.value}
-                  variant={filters.types.includes(type.value) ? "default" : "outline"}
+                  variant={filters.types.includes(type.value) ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => toggleArrayFilter('types', type.value)}
                   className="h-7 text-xs"
                 >
                   {type.label}
-                  {filters.types.includes(type.value) && (
-                    <X className="ml-1 h-3 w-3" />
-                  )}
+                  {filters.types.includes(type.value) && <X className="ml-1 h-3 w-3" />}
                 </Button>
               ))}
             </div>
           </div>
-          
+
           {/* Difficulty */}
           <div>
             <h4 className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1">
@@ -164,23 +162,21 @@ export function SearchFilters({ filters, onFiltersChange }: SearchFiltersProps) 
               Difficulty
             </h4>
             <div className="flex flex-wrap gap-1.5">
-              {difficulties.map((diff) => (
+              {difficulties.map(diff => (
                 <Button
                   key={diff.value}
-                  variant={filters.difficulties.includes(diff.value) ? "default" : "outline"}
+                  variant={filters.difficulties.includes(diff.value) ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => toggleArrayFilter('difficulties', diff.value)}
                   className="h-7 text-xs"
                 >
                   {diff.label}
-                  {filters.difficulties.includes(diff.value) && (
-                    <X className="ml-1 h-3 w-3" />
-                  )}
+                  {filters.difficulties.includes(diff.value) && <X className="ml-1 h-3 w-3" />}
                 </Button>
               ))}
             </div>
           </div>
-          
+
           {/* Tags */}
           <div>
             <h4 className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1">
@@ -188,23 +184,21 @@ export function SearchFilters({ filters, onFiltersChange }: SearchFiltersProps) 
               Tags
             </h4>
             <div className="flex flex-wrap gap-1.5">
-              {commonTags.map((tag) => (
+              {commonTags.map(tag => (
                 <Button
                   key={tag}
-                  variant={filters.tags.includes(tag) ? "default" : "outline"}
+                  variant={filters.tags.includes(tag) ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => toggleArrayFilter('tags', tag)}
                   className="h-7 text-xs"
                 >
                   {tag}
-                  {filters.tags.includes(tag) && (
-                    <X className="ml-1 h-3 w-3" />
-                  )}
+                  {filters.tags.includes(tag) && <X className="ml-1 h-3 w-3" />}
                 </Button>
               ))}
             </div>
           </div>
-          
+
           {/* Active filters summary */}
           {activeFiltersCount > 0 && (
             <div className="pt-2 border-t">
@@ -212,7 +206,7 @@ export function SearchFilters({ filters, onFiltersChange }: SearchFiltersProps) 
                 Active Filters ({activeFiltersCount})
               </h4>
               <div className="flex flex-wrap gap-1.5">
-                {filters.channels.map((channelId) => (
+                {filters.channels.map(channelId => (
                   <Badge key={channelId} variant="secondary" className="gap-1">
                     <Hash className="h-3 w-3" />
                     {channelId}
@@ -224,7 +218,7 @@ export function SearchFilters({ filters, onFiltersChange }: SearchFiltersProps) 
                     </button>
                   </Badge>
                 ))}
-                {filters.types.map((type) => (
+                {filters.types.map(type => (
                   <Badge key={type} variant="secondary" className="gap-1">
                     <Layers className="h-3 w-3" />
                     {type}
@@ -236,7 +230,7 @@ export function SearchFilters({ filters, onFiltersChange }: SearchFiltersProps) 
                     </button>
                   </Badge>
                 ))}
-                {filters.difficulties.map((diff) => (
+                {filters.difficulties.map(diff => (
                   <Badge key={diff} variant="secondary" className="gap-1">
                     <Tag className="h-3 w-3" />
                     {diff}
@@ -248,7 +242,7 @@ export function SearchFilters({ filters, onFiltersChange }: SearchFiltersProps) 
                     </button>
                   </Badge>
                 ))}
-                {filters.tags.map((tag) => (
+                {filters.tags.map(tag => (
                   <Badge key={tag} variant="secondary" className="gap-1">
                     <Tag className="h-3 w-3" />
                     {tag}

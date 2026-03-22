@@ -1,31 +1,40 @@
 /**
  * V2 Routing System
- * 
+ *
  * Central routing configuration for all V2 pages.
  * Uses wouter for client-side routing with React 19 features.
- * 
+ *
  * @author INTEGRATION_MASTER (Jennifer Wong)
  * @version 2.0.0
  */
 
-import React, { Suspense, lazy } from 'react'
+import React, { Suspense } from 'react'
 import { Route, Switch, useLocation, Redirect } from 'wouter'
 import { useLoadingV2 } from '@/providers-v2'
 import { useUIStore } from '@/stores-v2'
 
 // ============================================================================
-// Lazy-loaded Page Components
+// Lazy-loaded Page Components (Code Splitting)
 // ============================================================================
 
-// Import pages directly for now (can be lazy-loaded later for code splitting)
-import {
-  HomePage,
-  ContentPage,
-  OnboardingPage,
-  ExamPage,
-  CodingPage,
-  VoicePage,
-} from '@/pages-v2'
+const HomePage = React.lazy(() =>
+  import('@/pages-v2/HomePage').then(m => ({ default: m.HomePage }))
+)
+const ContentPage = React.lazy(() =>
+  import('@/pages-v2/ContentPage').then(m => ({ default: m.ContentPage }))
+)
+const OnboardingPage = React.lazy(() =>
+  import('@/pages-v2/OnboardingPage').then(m => ({ default: m.OnboardingPage }))
+)
+const ExamPage = React.lazy(() =>
+  import('@/pages-v2/ExamPage').then(m => ({ default: m.ExamPage }))
+)
+const CodingPage = React.lazy(() =>
+  import('@/pages-v2/CodingPage').then(m => ({ default: m.CodingPage }))
+)
+const VoicePage = React.lazy(() =>
+  import('@/pages-v2/VoicePage').then(m => ({ default: m.VoicePage }))
+)
 
 // ============================================================================
 // Loading Component
@@ -99,12 +108,12 @@ interface PageWrapperProps {
 
 function PageWrapper({ children, title }: PageWrapperProps) {
   const { setContent } = useLoadingV2()
-  
+
   React.useEffect(() => {
     setContent(true)
     return () => setContent(false)
   }, [setContent])
-  
+
   React.useEffect(() => {
     if (title) {
       document.title = `${title} | DevPrep`
@@ -113,7 +122,7 @@ function PageWrapper({ children, title }: PageWrapperProps) {
       document.title = 'DevPrep - Technical Interview Prep'
     }
   }, [title])
-  
+
   return <>{children}</>
 }
 
@@ -144,7 +153,7 @@ export const routes: RouteConfig[] = [
     title: 'Get Started',
     exact: true,
   },
-  
+
   // Content routes
   {
     path: '/content',
@@ -158,7 +167,7 @@ export const routes: RouteConfig[] = [
     title: 'Content',
     exact: true,
   },
-  
+
   // Practice routes
   {
     path: '/practice/exam',
@@ -196,7 +205,7 @@ export const routes: RouteConfig[] = [
     title: 'Voice Interview',
     exact: true,
   },
-  
+
   // Catch-all 404 route
   {
     path: '/:rest*',
@@ -211,7 +220,7 @@ export const routes: RouteConfig[] = [
 
 function NotFoundPage() {
   const [, setLocation] = useLocation()
-  
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background">
       <div className="text-center">
@@ -246,7 +255,7 @@ function NotFoundPage() {
 
 function RouteRenderer({ config }: { config: RouteConfig }) {
   const Component = config.component
-  
+
   return (
     <PageWrapper title={config.title}>
       <Suspense fallback={<LoadingSpinner message={`Loading ${config.title || 'page'}...`} />}>
@@ -263,11 +272,8 @@ function RouteRenderer({ config }: { config: RouteConfig }) {
 export function AppRouter() {
   return (
     <Switch>
-      {routes.map((route) => (
-        <Route
-          key={route.path}
-          path={route.path}
-        >
+      {routes.map(route => (
+        <Route key={route.path} path={route.path}>
           <RouteRenderer config={route} />
         </Route>
       ))}
@@ -281,19 +287,19 @@ export function AppRouter() {
 
 export function useNavigation() {
   const [location, setLocation] = useLocation()
-  
+
   const navigate = (path: string) => {
     setLocation(path)
   }
-  
+
   const goBack = () => {
     window.history.back()
   }
-  
+
   const goHome = () => {
     setLocation('/')
   }
-  
+
   return {
     location,
     navigate,
@@ -308,23 +314,23 @@ export function useNavigation() {
 
 export function useActiveRoute() {
   const [location] = useLocation()
-  
+
   const isActive = (path: string) => {
     if (path === '/') {
       return location === '/'
     }
     return location.startsWith(path)
   }
-  
+
   const getCurrentRoute = () => {
-    return routes.find((route) => {
+    return routes.find(route => {
       if (route.path === '/') {
         return location === '/'
       }
       return location.startsWith(route.path)
     })
   }
-  
+
   return {
     isActive,
     getCurrentRoute,
@@ -342,26 +348,26 @@ interface ProtectedRouteProps {
   redirectTo?: string
 }
 
-export function ProtectedRoute({ 
-  children, 
-  requiredRoles = [], 
-  redirectTo = '/onboarding' 
+export function ProtectedRoute({
+  children,
+  requiredRoles = [],
+  redirectTo = '/onboarding',
 }: ProtectedRouteProps) {
   // This can be extended with auth state from stores-v2
   const isAuthenticated = true // TODO: Get from auth store
   const userRoles: string[] = [] // TODO: Get from user store
-  
+
   if (!isAuthenticated) {
     return <Redirect to={redirectTo} />
   }
-  
+
   if (requiredRoles.length > 0) {
     const hasRequiredRole = requiredRoles.some(role => userRoles.includes(role))
     if (!hasRequiredRole) {
       return <Redirect to="/" />
     }
   }
-  
+
   return <>{children}</>
 }
 
@@ -377,15 +383,15 @@ export interface Breadcrumb {
 export function useBreadcrumbs(): Breadcrumb[] {
   const [location] = useLocation()
   const breadcrumbs: Breadcrumb[] = [{ label: 'Home', path: '/' }]
-  
+
   // Parse path segments and build breadcrumbs
   const segments = location.split('/').filter(Boolean)
   let currentPath = ''
-  
-  segments.forEach((segment) => {
+
+  segments.forEach(segment => {
     currentPath += `/${segment}`
-    const route = routes.find((r) => r.path === currentPath)
-    
+    const route = routes.find(r => r.path === currentPath)
+
     if (route && route.title) {
       breadcrumbs.push({
         label: route.title,
@@ -397,7 +403,7 @@ export function useBreadcrumbs(): Breadcrumb[] {
       breadcrumbs.push({ label, path: currentPath })
     }
   })
-  
+
   return breadcrumbs
 }
 

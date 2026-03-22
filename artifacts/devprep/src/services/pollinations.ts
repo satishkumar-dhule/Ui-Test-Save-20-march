@@ -39,7 +39,8 @@ export class PollinationsService {
     })
 
     if (!response.ok) {
-      throw new Error(`API Error: ${response.status}`)
+      const errorText = await response.text().catch(() => 'Unknown error')
+      throw new Error(`API Error ${response.status}: ${errorText}`)
     }
 
     const reader = response.body?.getReader()
@@ -60,6 +61,21 @@ export class PollinationsService {
 
       for (const line of lines) {
         const trimmedLine = line.trim()
+        
+        // Check for error messages in the stream
+        if (trimmedLine.startsWith('data: error') || trimmedLine.includes('error')) {
+          try {
+            const errorData = JSON.parse(trimmedLine.slice(6))
+            if (errorData.error) {
+              throw new Error(errorData.error)
+            }
+          } catch (e) {
+            if (e instanceof Error && e.message !== 'Invalid JSON') {
+              throw e
+            }
+          }
+        }
+        
         if (trimmedLine.startsWith('data: ') && trimmedLine !== 'data: [DONE]') {
           try {
             const data = JSON.parse(trimmedLine.slice(6))

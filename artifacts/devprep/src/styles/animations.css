@@ -627,6 +627,40 @@
 }
 
 /* ============================================================================
+   Accordion Animations (required by Radix UI Accordion)
+   ============================================================================ */
+
+.animate-accordion-down {
+  animation: accordion-down 200ms ease-out;
+}
+
+.animate-accordion-up {
+  animation: accordion-up 200ms ease-out;
+}
+
+@keyframes accordion-down {
+  from {
+    height: 0;
+    overflow: hidden;
+  }
+  to {
+    height: var(--radix-accordion-content-height);
+    overflow: hidden;
+  }
+}
+
+@keyframes accordion-up {
+  from {
+    height: var(--radix-accordion-content-height);
+    overflow: hidden;
+  }
+  to {
+    height: 0;
+    overflow: hidden;
+  }
+}
+
+/* ============================================================================
    Reduced Motion Support
    ============================================================================ */
 
@@ -655,6 +689,11 @@
   .glass-scroll-reveal {
     opacity: 1;
     transform: none;
+  }
+
+  .animate-accordion-down,
+  .animate-accordion-up {
+    animation: none;
   }
 }
 

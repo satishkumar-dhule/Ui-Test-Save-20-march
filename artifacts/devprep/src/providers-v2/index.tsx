@@ -1,9 +1,9 @@
 /**
  * V2 Provider Composition
- * 
+ *
  * Central provider composition for all V2 systems.
  * Integrates: Error Boundary, Theme, Query Client, State Stores, WebSocket, Accessibility
- * 
+ *
  * @author INTEGRATION_MASTER (Jennifer Wong)
  * @version 2.0.0
  */
@@ -49,8 +49,12 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
             <div className="text-center p-8 max-w-md">
               <div className="w-16 h-16 mx-auto mb-4 text-destructive">
                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
                 </svg>
               </div>
               <h1 className="text-2xl font-bold text-destructive mb-2">Something went wrong</h1>
@@ -146,9 +150,7 @@ export function NotificationProviderV2({ children }: { children: React.ReactNode
   const notifications = useNotifications()
 
   return (
-    <NotificationContext.Provider value={notifications}>
-      {children}
-    </NotificationContext.Provider>
+    <NotificationContext.Provider value={notifications}>{children}</NotificationContext.Provider>
   )
 }
 
@@ -182,7 +184,7 @@ export function A11yProviderV2({ children }: { children: React.ReactNode }) {
     // Check for reduced motion preference
     const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
     setReducedMotion(motionQuery.matches)
-    
+
     const handleMotionChange = (e: MediaQueryListEvent) => {
       setReducedMotion(e.matches)
     }
@@ -191,7 +193,7 @@ export function A11yProviderV2({ children }: { children: React.ReactNode }) {
     // Check for high contrast preference
     const contrastQuery = window.matchMedia('(prefers-contrast: more)')
     setHighContrast(contrastQuery.matches)
-    
+
     const handleContrastChange = (e: MediaQueryListEvent) => {
       setHighContrast(e.matches)
     }
@@ -222,12 +224,7 @@ export function A11yProviderV2({ children }: { children: React.ReactNode }) {
     <A11yContext.Provider value={{ announce, skipToContent, reducedMotion, highContrast }}>
       {children}
       {/* Screen reader announcer */}
-      <div
-        ref={announcerRef}
-        className="sr-only"
-        aria-live="polite"
-        aria-atomic="true"
-      />
+      <div ref={announcerRef} className="sr-only" aria-live="polite" aria-atomic="true" />
     </A11yContext.Provider>
   )
 }
@@ -290,31 +287,11 @@ export function AppProvidersV2({ children }: AppProvidersV2Props) {
         <ThemeProviderV2>
           <NotificationProviderV2>
             <A11yProviderV2>
-              <LoadingProviderV2>
-                {children}
-              </LoadingProviderV2>
+              <LoadingProviderV2>{children}</LoadingProviderV2>
             </A11yProviderV2>
           </NotificationProviderV2>
         </ThemeProviderV2>
       </QueryProviderV2>
     </ErrorBoundary>
   )
-}
-
-// Export all providers for individual use
-export {
-  ErrorBoundary,
-  ThemeProviderV2,
-  QueryProviderV2,
-  NotificationProviderV2,
-  A11yProviderV2,
-  LoadingProviderV2,
-}
-
-// Export hooks
-export {
-  useThemeV2,
-  useNotificationV2,
-  useA11yV2,
-  useLoadingV2,
 }

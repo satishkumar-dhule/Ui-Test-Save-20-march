@@ -1,10 +1,10 @@
-import { useEffect } from 'react'
+import { useEffect, type ReactNode } from 'react'
 
 export type Theme = 'dark' | 'light' | 'high-contrast' | 'blue-light' | 'ocean' | 'forest'
 
 interface AppProvidersProps {
   theme: Theme
-  children: React.ReactNode
+  children: ReactNode
 }
 
 /**

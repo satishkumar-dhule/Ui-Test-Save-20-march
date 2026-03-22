@@ -54,20 +54,20 @@ export function Layout({
 
       {/* Main Content */}
       <main className="flex-1">
-        <div className="container mx-auto px-4 py-6">
-          {/* Page Header */}
-          {(title || description) && (
-            <div className="mb-8">
-              {title && <h1 className="text-3xl font-bold tracking-tight">{title}</h1>}
-              {description && <p className="mt-2 text-muted-foreground max-w-2xl">{description}</p>}
-            </div>
-          )}
+        {/* Page Header */}
+        {title && (
+          <div className="container mx-auto px-4 pt-6">
+            <h1 className="text-2xl font-bold">{title}</h1>
+            {description && <p className="mt-1 text-sm text-muted-foreground">{description}</p>}
+          </div>
+        )}
 
-          {/* Content with Optional Sidebar */}
+        {/* Content with Optional Sidebar */}
+        <div className="container mx-auto px-4 py-6">
           {showSidebar ? (
-            <div className="grid gap-8 lg:grid-cols-[280px_1fr]">
-              <aside className="lg:sticky lg:top-24 lg:self-start">{sidebarContent}</aside>
-              <div className="min-w-0">{children}</div>
+            <div className="grid gap-6 lg:grid-cols-[200px_1fr]">
+              <aside className="lg:sticky lg:top-20 lg:self-start">{sidebarContent}</aside>
+              <div className="min-w-0 space-y-6">{children}</div>
             </div>
           ) : (
             <div className="min-w-0">{children}</div>

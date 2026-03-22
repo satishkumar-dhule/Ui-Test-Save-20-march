@@ -11,25 +11,10 @@
   --glass-opacity-dark: rgba(255, 255, 255, 0.3);
   --glass-opacity-subtle: rgba(255, 255, 255, 0.1);
 
-  /* Dark mode glass opacities */
-  .dark & {
-    --glass-opacity-light: rgba(0, 0, 0, 0.7);
-    --glass-opacity-medium: rgba(0, 0, 0, 0.5);
-    --glass-opacity-dark: rgba(0, 0, 0, 0.3);
-    --glass-opacity-subtle: rgba(0, 0, 0, 0.1);
-  }
-
   /* Glass border colors */
   --glass-border-light: rgba(255, 255, 255, 0.2);
   --glass-border-medium: rgba(255, 255, 255, 0.15);
   --glass-border-subtle: rgba(255, 255, 255, 0.08);
-
-  /* Dark mode glass borders */
-  .dark & {
-    --glass-border-light: rgba(255, 255, 255, 0.15);
-    --glass-border-medium: rgba(255, 255, 255, 0.1);
-    --glass-border-subtle: rgba(255, 255, 255, 0.05);
-  }
 
   /* Inner glow colors */
   --glass-glow-light: rgba(255, 255, 255, 0.08);
@@ -60,7 +45,17 @@
   --glass-shadow-mobile: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
+/* Dark mode glass opacities - separate block for dark class */
 .dark {
+  --glass-opacity-light: rgba(0, 0, 0, 0.7);
+  --glass-opacity-medium: rgba(0, 0, 0, 0.5);
+  --glass-opacity-dark: rgba(0, 0, 0, 0.3);
+  --glass-opacity-subtle: rgba(0, 0, 0, 0.1);
+
+  --glass-border-light: rgba(255, 255, 255, 0.15);
+  --glass-border-medium: rgba(255, 255, 255, 0.1);
+  --glass-border-subtle: rgba(255, 255, 255, 0.05);
+
   --glass-shadow-light: 0 4px 24px rgba(0, 0, 0, 0.4);
   --glass-shadow-medium: 0 8px 32px rgba(0, 0, 0, 0.5);
   --glass-shadow-heavy: 0 12px 40px rgba(0, 0, 0, 0.6);
@@ -959,7 +954,9 @@
   position: relative;
   overflow: hidden;
   transform-style: preserve-3d;
-  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s ease;
+  transition:
+    transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.4s ease;
   padding: 0.75rem 1.25rem;
   border-radius: 0.75rem;
   font-size: 1rem;
@@ -980,7 +977,9 @@
 .glass-vision-btn:focus-visible {
   outline: 2px solid rgba(124, 120, 232, 0.7);
   outline-offset: 3px;
-  box-shadow: var(--glass-shadow-vision-medium), 0 0 0 6px rgba(124, 120, 232, 0.1);
+  box-shadow:
+    var(--glass-shadow-vision-medium),
+    0 0 0 6px rgba(124, 120, 232, 0.1);
 }
 
 /* Vision Pro card sizes */
@@ -993,7 +992,9 @@
   position: relative;
   overflow: hidden;
   transform-style: preserve-3d;
-  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s ease;
+  transition:
+    transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.4s ease;
   border-radius: 0.75rem;
   padding: 1rem;
 }
@@ -1007,7 +1008,9 @@
   position: relative;
   overflow: hidden;
   transform-style: preserve-3d;
-  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s ease;
+  transition:
+    transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.4s ease;
   border-radius: 1rem;
   padding: 1.5rem;
 }
@@ -1021,7 +1024,9 @@
   position: relative;
   overflow: hidden;
   transform-style: preserve-3d;
-  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s ease;
+  transition:
+    transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.4s ease;
   border-radius: 1.5rem;
   padding: 2rem;
 }
@@ -1035,7 +1040,9 @@
   position: relative;
   overflow: hidden;
   transform-style: preserve-3d;
-  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s ease;
+  transition:
+    transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.4s ease;
   border-radius: 1.5rem;
   padding: 2.5rem;
 }
@@ -1062,7 +1069,9 @@
   position: relative;
   overflow: hidden;
   transform-style: preserve-3d;
-  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s ease;
+  transition:
+    transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.4s ease;
   border-radius: 0.75rem;
   padding: 0.75rem 1.25rem;
   min-height: 60px;
@@ -1094,7 +1103,9 @@
   position: relative;
   overflow: hidden;
   transform-style: preserve-3d;
-  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s ease;
+  transition:
+    transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.4s ease;
   border-radius: 0.75rem;
   padding: 0.75rem 1rem;
   font-size: 1rem;

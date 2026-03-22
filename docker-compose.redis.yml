@@ -1,0 +1,93 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: devprep-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+      - ./redis.conf:/usr/local/etc/redis/redis.conf:ro
+    command: redis-server /usr/local/etc/redis/redis.conf
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - devprep-network
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+
+  redis-sentinel:
+    image: redis:7-alpine
+    container_name: devprep-redis-sentinel
+    ports:
+      - "26379:26379"
+    volumes:
+      - redis-sentinel.conf:/etc/redis/sentinel.conf:ro
+    command: >
+      redis-sentinel /etc/redis/sentinel.conf
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "26379", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - devprep-network
+
+  redis-exporter:
+    image: oliver006/redis_exporter:latest
+    container_name: devprep-redis-exporter
+    ports:
+      - "9121:9121"
+    environment:
+      - REDIS_ADDR=redis://redis:6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+      - REDIS_EXPORTER_CHECK_KEYS=
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - devprep-network
+
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: devprep-redis-commander
+    ports:
+      - "8081:8081"
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+      - HTTP_USER=admin
+      - HTTP_PASSWORD=${REDIS_ADMIN_PASSWORD:-admin123}
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - devprep-network
+
+volumes:
+  redis-data:
+    driver: local
+
+networks:
+  devprep-network:
+    driver: bridge

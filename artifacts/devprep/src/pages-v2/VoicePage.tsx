@@ -34,7 +34,20 @@ export function VoicePage() {
     queryFn: () => contentApi.getByType('voice'),
   })
 
-  const practiceItems: VoicePracticeItem[] = data?.data || []
+  const practiceItems: VoicePracticeItem[] = (data?.data || []).map(item => ({
+    id: item.id,
+    title: (item.data.title as string) || 'Untitled Practice',
+    prompt: (item.data.prompt as string) || '',
+    duration: (item.data.duration as number) || 60,
+    difficulty: (item.data.difficulty as 'easy' | 'medium' | 'hard') || 'medium',
+    tags: (item.data.tags as string[]) || [],
+    feedback: (item.data.feedback as VoicePracticeItem['feedback']) || {
+      clarity: 0,
+      speed: 0,
+      confidence: 0,
+      suggestions: [],
+    },
+  }))
 
   useEffect(() => {
     if (practiceItems.length > 0 && !selectedItem) {
@@ -46,7 +59,7 @@ export function VoicePage() {
     let interval: NodeJS.Timeout
     if (isRecording) {
       interval = setInterval(() => {
-        setRecordingTime((prev) => prev + 1)
+        setRecordingTime(prev => prev + 1)
       }, 1000)
     }
     return () => clearInterval(interval)
@@ -65,7 +78,7 @@ export function VoicePage() {
       mediaRecorderRef.current = mediaRecorder
       audioChunksRef.current = []
 
-      mediaRecorder.ondataavailable = (event) => {
+      mediaRecorder.ondataavailable = event => {
         audioChunksRef.current.push(event.data)
       }
 
@@ -131,7 +144,7 @@ export function VoicePage() {
         <div className="space-y-4">
           <h2 className="text-lg font-semibold">Practice Prompts</h2>
           <div className="space-y-3">
-            {practiceItems.map((item) => (
+            {practiceItems.map(item => (
               <Card
                 key={item.id}
                 className={`cursor-pointer transition-colors hover:border-primary ${
@@ -147,8 +160,8 @@ export function VoicePage() {
                         item.difficulty === 'easy'
                           ? 'secondary'
                           : item.difficulty === 'medium'
-                          ? 'default'
-                          : 'destructive'
+                            ? 'default'
+                            : 'destructive'
                       }
                     >
                       {item.difficulty}
@@ -198,7 +211,11 @@ export function VoicePage() {
                     {formatTime(recordingTime)}
                   </div>
                   <div className="text-sm text-muted-foreground">
-                    {isRecording ? 'Recording in progress...' : audioBlob ? 'Recording complete' : 'Ready to record'}
+                    {isRecording
+                      ? 'Recording in progress...'
+                      : audioBlob
+                        ? 'Recording complete'
+                        : 'Ready to record'}
                   </div>
                 </div>
 

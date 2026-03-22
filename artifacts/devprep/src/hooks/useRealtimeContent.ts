@@ -162,6 +162,7 @@ export function useRealtimeContent(
 
   const queryFn = useCallback(async (): Promise<GeneratedContentMap> => {
     return queryContent({ channelId, contentType })
+     
   }, [channelId, contentType])
 
   const query = useQuery({

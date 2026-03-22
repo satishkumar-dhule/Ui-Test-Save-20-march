@@ -112,19 +112,27 @@ interface ContextMenuContextValue {
 const ContextMenuContext = React.createContext<ContextMenuContextValue | null>(null)
 
 // Main ContextMenu component
-export function ContextMenu({ children, open: controlledOpen, onOpenChange, modal = true }: ContextMenuProps) {
+function ContextMenu({
+  children,
+  open: controlledOpen,
+  onOpenChange,
+  modal = true,
+}: ContextMenuProps) {
   const [internalOpen, setInternalOpen] = React.useState(false)
   const [position, setPosition] = React.useState({ x: 0, y: 0 })
   const contentRef = React.useRef<HTMLDivElement>(null)
 
   const isControlled = controlledOpen !== undefined
   const open = isControlled ? controlledOpen : internalOpen
-  const setOpen = React.useCallback((newOpen: boolean) => {
-    if (!isControlled) {
-      setInternalOpen(newOpen)
-    }
-    onOpenChange?.(newOpen)
-  }, [isControlled, onOpenChange])
+  const setOpen = React.useCallback(
+    (newOpen: boolean) => {
+      if (!isControlled) {
+        setInternalOpen(newOpen)
+      }
+      onOpenChange?.(newOpen)
+    },
+    [isControlled, onOpenChange]
+  )
 
   // Handle click outside and escape
   React.useEffect(() => {
@@ -145,32 +153,33 @@ export function ContextMenu({ children, open: controlledOpen, onOpenChange, moda
 
     document.addEventListener('mousedown', handleClickOutside)
     document.addEventListener('keydown', handleEscape)
-    
+
     return () => {
       document.removeEventListener('mousedown', handleClickOutside)
       document.removeEventListener('keydown', handleEscape)
     }
   }, [open, setOpen])
 
-  const value = React.useMemo(() => ({
-    open,
-    setOpen,
-    position,
-    setPosition,
-    contentRef,
-  }), [open, setOpen, position])
+  const value = React.useMemo(
+    () => ({
+      open,
+      setOpen,
+      position,
+      setPosition,
+      contentRef,
+    }),
+    [open, setOpen, position]
+  )
 
   return (
     <ContextMenuContext.Provider value={value}>
-      <div className="relative">
-        {children}
-      </div>
+      <div className="relative">{children}</div>
     </ContextMenuContext.Provider>
   )
 }
 
 // ContextMenuTrigger
-export const ContextMenuTrigger = React.forwardRef<HTMLDivElement, ContextMenuTriggerProps>(
+const ContextMenuTrigger = React.forwardRef<HTMLDivElement, ContextMenuTriggerProps>(
   ({ children, className, disabled, ...props }, ref) => {
     const context = React.useContext(ContextMenuContext)
     if (!context) throw new Error('ContextMenuTrigger must be used within ContextMenu')
@@ -179,7 +188,7 @@ export const ContextMenuTrigger = React.forwardRef<HTMLDivElement, ContextMenuTr
 
     const handleContextMenu = (event: React.MouseEvent) => {
       if (disabled) return
-      
+
       event.preventDefault()
       setPosition({ x: event.clientX, y: event.clientY })
       setOpen(true)
@@ -201,7 +210,7 @@ export const ContextMenuTrigger = React.forwardRef<HTMLDivElement, ContextMenuTr
 ContextMenuTrigger.displayName = 'ContextMenuTrigger'
 
 // ContextMenuContent
-export const ContextMenuContent = React.forwardRef<HTMLDivElement, ContextMenuContentProps>(
+const ContextMenuContent = React.forwardRef<HTMLDivElement, ContextMenuContentProps>(
   ({ children, className, align = 'start', side = 'bottom', sideOffset = 4, ...props }, ref) => {
     const context = React.useContext(ContextMenuContext)
     if (!context) throw new Error('ContextMenuContent must be used within ContextMenu')
@@ -210,14 +219,17 @@ export const ContextMenuContent = React.forwardRef<HTMLDivElement, ContextMenuCo
 
     if (!open) return null
 
-    const combinedRef = React.useCallback((node: HTMLDivElement | null) => {
-      ;(contentRef as React.MutableRefObject<HTMLDivElement | null>).current = node
-      if (typeof ref === 'function') {
-        ref(node)
-      } else if (ref) {
-        ;(ref as React.MutableRefObject<HTMLDivElement | null>).current = node
-      }
-    }, [ref, contentRef])
+    const combinedRef = React.useCallback(
+      (node: HTMLDivElement | null) => {
+        ;(contentRef as React.MutableRefObject<HTMLDivElement | null>).current = node
+        if (typeof ref === 'function') {
+          ref(node)
+        } else if (ref) {
+          ;(ref as React.MutableRefObject<HTMLDivElement | null>).current = node
+        }
+      },
+      [ref, contentRef]
+    )
 
     // Calculate position based on mouse position
     const style = {
@@ -246,7 +258,7 @@ export const ContextMenuContent = React.forwardRef<HTMLDivElement, ContextMenuCo
 ContextMenuContent.displayName = 'ContextMenuContent'
 
 // ContextMenuItem
-export const ContextMenuItem = React.forwardRef<HTMLDivElement, ContextMenuItemProps>(
+const ContextMenuItem = React.forwardRef<HTMLDivElement, ContextMenuItemProps>(
   ({ children, className, disabled, onSelect, inset, shortcut, icon, ...props }, ref) => {
     const context = React.useContext(ContextMenuContext)
     if (!context) throw new Error('ContextMenuItem must be used within ContextMenu')
@@ -288,11 +300,7 @@ export const ContextMenuItem = React.forwardRef<HTMLDivElement, ContextMenuItemP
       >
         {icon}
         {children}
-        {shortcut && (
-          <span className="ml-auto text-xs tracking-widest opacity-60">
-            {shortcut}
-          </span>
-        )}
+        {shortcut && <span className="ml-auto text-xs tracking-widest opacity-60">{shortcut}</span>}
       </div>
     )
   }
@@ -300,15 +308,10 @@ export const ContextMenuItem = React.forwardRef<HTMLDivElement, ContextMenuItemP
 ContextMenuItem.displayName = 'ContextMenuItem'
 
 // ContextMenuGroup
-export const ContextMenuGroup = React.forwardRef<HTMLDivElement, ContextMenuGroupProps>(
+const ContextMenuGroup = React.forwardRef<HTMLDivElement, ContextMenuGroupProps>(
   ({ children, className, ...props }, ref) => {
     return (
-      <div
-        ref={ref}
-        role="group"
-        className={cn('', className)}
-        {...props}
-      >
+      <div ref={ref} role="group" className={cn('', className)} {...props}>
         {children}
       </div>
     )
@@ -317,16 +320,12 @@ export const ContextMenuGroup = React.forwardRef<HTMLDivElement, ContextMenuGrou
 ContextMenuGroup.displayName = 'ContextMenuGroup'
 
 // ContextMenuLabel
-export const ContextMenuLabel = React.forwardRef<HTMLDivElement, ContextMenuLabelProps>(
+const ContextMenuLabel = React.forwardRef<HTMLDivElement, ContextMenuLabelProps>(
   ({ children, className, inset, ...props }, ref) => {
     return (
       <div
         ref={ref}
-        className={cn(
-          'px-2 py-1.5 text-sm font-semibold',
-          inset && 'pl-8',
-          className
-        )}
+        className={cn('px-2 py-1.5 text-sm font-semibold', inset && 'pl-8', className)}
         {...props}
       >
         {children}
@@ -337,7 +336,7 @@ export const ContextMenuLabel = React.forwardRef<HTMLDivElement, ContextMenuLabe
 ContextMenuLabel.displayName = 'ContextMenuLabel'
 
 // ContextMenuSeparator
-export const ContextMenuSeparator = React.forwardRef<HTMLDivElement, ContextMenuSeparatorProps>(
+const ContextMenuSeparator = React.forwardRef<HTMLDivElement, ContextMenuSeparatorProps>(
   ({ className, ...props }, ref) => {
     return (
       <div
@@ -352,27 +351,33 @@ export const ContextMenuSeparator = React.forwardRef<HTMLDivElement, ContextMenu
 ContextMenuSeparator.displayName = 'ContextMenuSeparator'
 
 // ContextMenuSub
-export const ContextMenuSub = React.forwardRef<HTMLDivElement, ContextMenuSubProps>(
+const ContextMenuSub = React.forwardRef<HTMLDivElement, ContextMenuSubProps>(
   ({ children, open: controlledOpen, onOpenChange }, ref) => {
     const [internalOpen, setInternalOpen] = React.useState(false)
     const isControlled = controlledOpen !== undefined
     const open = isControlled ? controlledOpen : internalOpen
 
-    const setOpen = React.useCallback((newOpen: boolean) => {
-      if (!isControlled) {
-        setInternalOpen(newOpen)
-      }
-      onOpenChange?.(newOpen)
-    }, [isControlled, onOpenChange])
+    const setOpen = React.useCallback(
+      (newOpen: boolean) => {
+        if (!isControlled) {
+          setInternalOpen(newOpen)
+        }
+        onOpenChange?.(newOpen)
+      },
+      [isControlled, onOpenChange]
+    )
 
     return (
       <div ref={ref} className="relative">
-        {React.Children.map(children, (child) => {
+        {React.Children.map(children, child => {
           if (React.isValidElement(child)) {
-            return React.cloneElement(child as React.ReactElement<any>, {
-              open,
-              setOpen,
-            })
+            return React.cloneElement(
+              child as React.ReactElement<{ open?: boolean; setOpen?: (open: boolean) => void }>,
+              {
+                open,
+                setOpen,
+              }
+            )
           }
           return child
         })}
@@ -383,7 +388,7 @@ export const ContextMenuSub = React.forwardRef<HTMLDivElement, ContextMenuSubPro
 ContextMenuSub.displayName = 'ContextMenuSub'
 
 // ContextMenuSubTrigger
-export const ContextMenuSubTrigger = React.forwardRef<HTMLDivElement, ContextMenuSubTriggerProps>(
+const ContextMenuSubTrigger = React.forwardRef<HTMLDivElement, ContextMenuSubTriggerProps>(
   ({ children, className, inset, icon, ...props }, ref) => {
     const [open, setOpen] = React.useState(false)
 
@@ -419,7 +424,7 @@ export const ContextMenuSubTrigger = React.forwardRef<HTMLDivElement, ContextMen
 ContextMenuSubTrigger.displayName = 'ContextMenuSubTrigger'
 
 // ContextMenuSubContent
-export const ContextMenuSubContent = React.forwardRef<HTMLDivElement, ContextMenuSubContentProps>(
+const ContextMenuSubContent = React.forwardRef<HTMLDivElement, ContextMenuSubContentProps>(
   ({ children, className, ...props }, ref) => {
     return (
       <div
@@ -440,7 +445,7 @@ export const ContextMenuSubContent = React.forwardRef<HTMLDivElement, ContextMen
 ContextMenuSubContent.displayName = 'ContextMenuSubContent'
 
 // ContextMenuCheckboxItem
-export const ContextMenuCheckboxItem = React.forwardRef<HTMLDivElement, ContextMenuCheckboxItemProps>(
+const ContextMenuCheckboxItem = React.forwardRef<HTMLDivElement, ContextMenuCheckboxItemProps>(
   ({ children, className, checked, onCheckedChange, disabled, ...props }, ref) => {
     const handleClick = () => {
       if (!disabled) {
@@ -476,20 +481,19 @@ export const ContextMenuCheckboxItem = React.forwardRef<HTMLDivElement, ContextM
 ContextMenuCheckboxItem.displayName = 'ContextMenuCheckboxItem'
 
 // ContextMenuRadioGroup
-export const ContextMenuRadioGroup = React.forwardRef<HTMLDivElement, ContextMenuRadioGroupProps>(
+const ContextMenuRadioGroup = React.forwardRef<HTMLDivElement, ContextMenuRadioGroupProps>(
   ({ children, value, onValueChange, className, ...props }, ref) => {
     return (
-      <div
-        ref={ref}
-        role="radiogroup"
-        className={cn('', className)}
-        {...props}
-      >
-        {React.Children.map(children, (child) => {
-          if (React.isValidElement(child)) {
-            return React.cloneElement(child as React.ReactElement<any>, {
+      <div ref={ref} role="radiogroup" className={cn('', className)} {...props}>
+        {React.Children.map(children, child => {
+          if (
+            React.isValidElement<{ value?: string; selected?: boolean; onSelect?: () => void }>(
+              child
+            )
+          ) {
+            return React.cloneElement(child, {
               selected: child.props.value === value,
-              onSelect: () => onValueChange?.(child.props.value),
+              onSelect: () => child.props.value && onValueChange?.(child.props.value),
             })
           }
           return child
@@ -501,7 +505,7 @@ export const ContextMenuRadioGroup = React.forwardRef<HTMLDivElement, ContextMen
 ContextMenuRadioGroup.displayName = 'ContextMenuRadioGroup'
 
 // ContextMenuRadioItem
-export const ContextMenuRadioItem = React.forwardRef<HTMLDivElement, ContextMenuRadioItemProps>(
+const ContextMenuRadioItem = React.forwardRef<HTMLDivElement, ContextMenuRadioItemProps>(
   ({ children, className, value, disabled, ...props }, ref) => {
     const selected = (props as any).selected
     const onSelect = (props as any).onSelect
@@ -541,16 +545,13 @@ export const ContextMenuRadioItem = React.forwardRef<HTMLDivElement, ContextMenu
 ContextMenuRadioItem.displayName = 'ContextMenuRadioItem'
 
 // ContextMenuShortcut
-export const ContextMenuShortcut: React.FC<ContextMenuShortcutProps> = ({
+const ContextMenuShortcut: React.FC<ContextMenuShortcutProps> = ({
   children,
   className,
   ...props
 }) => {
   return (
-    <span
-      className={cn('ml-auto text-xs tracking-widest opacity-60', className)}
-      {...props}
-    >
+    <span className={cn('ml-auto text-xs tracking-widest opacity-60', className)} {...props}>
       {children}
     </span>
   )

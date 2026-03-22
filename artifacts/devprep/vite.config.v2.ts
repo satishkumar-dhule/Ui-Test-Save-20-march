@@ -217,7 +217,6 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: id => {
-          // Vendor chunk for React and React DOM
           if (id.includes('node_modules')) {
             if (id.includes('react') || id.includes('react-dom') || id.includes('react-dom/')) {
               return 'vendor-react'
@@ -231,7 +230,7 @@ export default defineConfig({
             if (id.includes('framer-motion')) {
               return 'vendor-motion'
             }
-            if (id.includes('recharts') || id.includes('victory')) {
+            if (id.includes('recharts') || id.includes('victory') || id.includes('recharts/lib')) {
               return 'vendor-charts'
             }
             if (id.includes('sql.js') || id.includes('better-sqlite3')) {
@@ -249,11 +248,18 @@ export default defineConfig({
             if (id.includes('web-vitals') || id.includes('workbox')) {
               return 'vendor-pwa'
             }
-            // Other vendor dependencies
+            if (id.includes('react-icons')) {
+              return 'vendor-icons'
+            }
+            if (id.includes('lucide-react')) {
+              return 'vendor-icons-lucide'
+            }
+            if (id.includes('sonner') || id.includes('@sonner')) {
+              return 'vendor-toast'
+            }
             return 'vendor'
           }
 
-          // Split pages into separate chunks for lazy loading
           if (id.includes('/pages/')) {
             if (id.includes('QAPage')) return 'page-qa'
             if (id.includes('FlashcardsPage')) return 'page-flashcards'
@@ -265,7 +271,6 @@ export default defineConfig({
             return 'page-common'
           }
 
-          // Split large UI components
           if (id.includes('/components/')) {
             if (id.includes('/ui/')) {
               return 'components-ui'
@@ -279,15 +284,23 @@ export default defineConfig({
             if (id.includes('/app/')) {
               return 'components-app'
             }
+            if (id.includes('/chart') || id.includes('RealtimeDashboard')) {
+              return 'components-charts'
+            }
             return 'components-common'
           }
 
-          // Split hooks and utilities
+          if (id.includes('/data/')) {
+            return 'data-static'
+          }
           if (id.includes('/hooks/')) {
             return 'hooks'
           }
           if (id.includes('/utils/')) {
             return 'utils'
+          }
+          if (id.includes('/stores/')) {
+            return 'stores'
           }
           if (id.includes('/services/')) {
             return 'services'
@@ -296,12 +309,15 @@ export default defineConfig({
             return 'lib'
           }
         },
+        chunkFileNames: 'assets/js/[name]-[hash].js',
+        entryFileNames: 'assets/js/[name]-[hash].js',
+        assetFileNames: 'assets/[ext]/[name]-[hash].[ext]',
       },
     },
-    // V2-specific: Asset optimization
-    assetsInlineLimit: 4096, // Inline assets smaller than 4kb
+    assetsInlineLimit: 4096,
     cssCodeSplit: true,
-    chunkSizeWarningLimit: 1000, // Warn for chunks larger than 1MB
+    chunkSizeWarningLimit: 500,
+    reportCompressedSize: true,
   },
   server: {
     port,
@@ -332,7 +348,9 @@ export default defineConfig({
   define: {
     __APP_VERSION__: JSON.stringify(process.env.npm_package_version || '2.0.0'),
     __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
-    __BUILD_ENV__: JSON.stringify(isStaging ? 'staging' : isProduction ? 'production' : 'development'),
+    __BUILD_ENV__: JSON.stringify(
+      isStaging ? 'staging' : isProduction ? 'production' : 'development'
+    ),
     __CDN_URL__: JSON.stringify(cdnUrl),
     __ENABLE_CDN__: JSON.stringify(enableCdn),
   },

@@ -5,41 +5,44 @@
  * - React.lazy wrapper with error boundary
  * - Preloading capabilities
  * - Loading state management
+ * - Route-based code splitting
  */
 
-import React, { lazy, Suspense } from 'react'
+import React, { lazy, Suspense, type ReactNode, type ComponentType } from 'react'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { Spinner } from '@/components/ui/spinner'
+import { PageSkeleton, type PageSkeletonType } from '@/components/ui/PageSkeleton'
 
 interface LazyComponentOptions {
-  fallback?: React.ReactNode
+  fallback?: ReactNode
   errorBoundary?: boolean
   preload?: boolean
+  skeleton?: PageSkeletonType
 }
 
 /**
  * Enhanced lazy loading with error boundary and loading state
  */
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type, @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function createLazyComponent<P extends Record<string, any> = {}>(
-  importFn: () => Promise<{ default: React.ComponentType<P> }>,
+  importFn: () => Promise<{ default: ComponentType<P> }>,
   options: LazyComponentOptions = {}
-): React.ComponentType<P> & { preload: () => Promise<void> } {
-  const {
-    fallback = (
-      <div className="flex items-center justify-center p-8">
-        <Spinner className="size-8" />
-      </div>
-    ),
-    errorBoundary = true,
-    preload = false,
-  } = options
+): ComponentType<P> & { preload: () => Promise<void> } {
+  const { fallback, errorBoundary = true, preload = false, skeleton } = options
 
   const LazyComponent = lazy(importFn)
 
-  const Component: React.FC<P> = props => {
+  const defaultFallback = skeleton ? (
+    <PageSkeleton type={skeleton} />
+  ) : (
+    <div className="flex items-center justify-center p-8">
+      <Spinner className="size-8" />
+    </div>
+  )
+
+  const Component: ComponentType<P> = props => {
     const content = (
-      <Suspense fallback={fallback}>
+      <Suspense fallback={fallback ?? defaultFallback}>
         <LazyComponent {...props} />
       </Suspense>
     )
@@ -51,77 +54,129 @@ export function createLazyComponent<P extends Record<string, any> = {}>(
     return content
   }
 
-  // Add preload method
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ;(Component as any).preload = () => importFn().then(() => {})
 
-  // Optionally preload immediately
   if (preload) {
-    importFn().catch(() => {
-      // Silently fail preload
-    })
+    importFn().catch(() => {})
   }
 
-  return Component as React.ComponentType<P> & { preload: () => Promise<void> }
+  return Component as ComponentType<P> & { preload: () => Promise<void> }
+}
+
+export const LAZY_PAGE_CONFIGS = {
+  QAPage: {
+    skeleton: 'qa' as PageSkeletonType,
+    priority: 'high' as const,
+  },
+  FlashcardsPage: {
+    skeleton: 'flashcards' as PageSkeletonType,
+    priority: 'high' as const,
+  },
+  MockExamPage: {
+    skeleton: 'exam' as PageSkeletonType,
+    priority: 'medium' as const,
+  },
+  VoicePracticePage: {
+    skeleton: 'voice' as PageSkeletonType,
+    priority: 'medium' as const,
+  },
+  CodingPage: {
+    skeleton: 'coding' as PageSkeletonType,
+    priority: 'medium' as const,
+  },
+  RealtimeDashboard: {
+    skeleton: 'dashboard' as PageSkeletonType,
+    priority: 'low' as const,
+  },
+  OnboardingPage: {
+    skeleton: 'onboarding' as PageSkeletonType,
+    priority: 'low' as const,
+  },
+  AIPage: {
+    skeleton: 'ai' as PageSkeletonType,
+    priority: 'low' as const,
+  },
+}
+
+type LazyPageKey = keyof typeof LAZY_PAGE_CONFIGS
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type LazyComponent = ComponentType<any> & { preload: () => Promise<void> }
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function getLazyPageImport(key: LazyPageKey): () => Promise<{ default: ComponentType<any> }> {
+  const pageMap: Record<LazyPageKey, () => Promise<{ default: ComponentType<any> }>> = {
+    QAPage: () => import('@/pages/QAPage').then(m => ({ default: m.QAPage })) as Promise<{ default: ComponentType<any> }>,
+    FlashcardsPage: () => import('@/pages/FlashcardsPage').then(m => ({ default: m.FlashcardsPage })) as Promise<{ default: ComponentType<any> }>,
+    MockExamPage: () => import('@/pages/MockExamPage').then(m => ({ default: m.MockExamPage })) as Promise<{ default: ComponentType<any> }>,
+    VoicePracticePage: () => import('@/pages/VoicePracticePage').then(m => ({ default: m.VoicePracticePage })) as Promise<{ default: ComponentType<any> }>,
+    CodingPage: () => import('@/pages/CodingPage').then(m => ({ default: m.CodingPage })) as Promise<{ default: ComponentType<any> }>,
+    RealtimeDashboard: () => import('@/pages/RealtimeDashboard').then(m => ({ default: m.RealtimeDashboard })) as Promise<{ default: ComponentType<any> }>,
+    OnboardingPage: () => import('@/pages/OnboardingPage').then(m => ({ default: m.OnboardingPage })) as Promise<{ default: ComponentType<any> }>,
+    AIPage: () => import('@/pages/AIPage').then(m => ({ default: m.default })) as Promise<{ default: ComponentType<any> }>,
+  }
+  return pageMap[key]
 }
 
 /**
- * Lazy load route components
+ * Lazy load route components with page-specific skeletons
  */
-export const LazyRoutes = {
-  QAPage: createLazyComponent(
-    () => import('@/pages/QAPage').then(module => ({ default: module.QAPage })),
-    {
-      fallback: <div className="p-8">Loading Q&A...</div>,
-    }
-  ),
-  FlashcardsPage: createLazyComponent(
-    () => import('@/pages/FlashcardsPage').then(module => ({ default: module.FlashcardsPage })),
-    {
-      fallback: <div className="p-8">Loading flashcards...</div>,
-    }
-  ),
-  MockExamPage: createLazyComponent(
-    () => import('@/pages/MockExamPage').then(module => ({ default: module.MockExamPage })),
-    {
-      fallback: <div className="p-8">Loading exam...</div>,
-    }
-  ),
-  VoicePracticePage: createLazyComponent(
-    () =>
-      import('@/pages/VoicePracticePage').then(module => ({ default: module.VoicePracticePage })),
-    {
-      fallback: <div className="p-8">Loading voice practice...</div>,
-    }
-  ),
-  CodingPage: createLazyComponent(
-    () => import('@/pages/CodingPage').then(module => ({ default: module.CodingPage })),
-    {
-      fallback: <div className="p-8">Loading coding challenges...</div>,
-    }
-  ),
-  RealtimeDashboard: createLazyComponent(
-    () =>
-      import('@/pages/RealtimeDashboard').then(module => ({ default: module.RealtimeDashboard })),
-    {
-      fallback: <div className="p-8">Loading realtime dashboard...</div>,
-    }
-  ),
-  OnboardingPage: createLazyComponent(
-    () => import('@/pages/OnboardingPage').then(module => ({ default: module.OnboardingPage })),
-    {
-      fallback: <div className="p-8">Loading onboarding...</div>,
-    }
-  ),
+export const LazyRoutes: Record<LazyPageKey, LazyComponent> = {
+  QAPage: createLazyComponent(getLazyPageImport('QAPage'), {
+    skeleton: 'qa',
+    preload: true,
+  }) as LazyComponent,
+  FlashcardsPage: createLazyComponent(getLazyPageImport('FlashcardsPage'), {
+    skeleton: 'flashcards',
+    preload: true,
+  }) as LazyComponent,
+  MockExamPage: createLazyComponent(getLazyPageImport('MockExamPage'), {
+    skeleton: 'exam',
+  }) as LazyComponent,
+  VoicePracticePage: createLazyComponent(getLazyPageImport('VoicePracticePage'), {
+    skeleton: 'voice',
+  }) as LazyComponent,
+  CodingPage: createLazyComponent(getLazyPageImport('CodingPage'), {
+    skeleton: 'coding',
+  }) as LazyComponent,
+  RealtimeDashboard: createLazyComponent(getLazyPageImport('RealtimeDashboard'), {
+    skeleton: 'dashboard',
+  }) as LazyComponent,
+  OnboardingPage: createLazyComponent(getLazyPageImport('OnboardingPage'), {
+    skeleton: 'onboarding',
+  }) as LazyComponent,
+  AIPage: createLazyComponent(getLazyPageImport('AIPage'), {
+    skeleton: 'ai',
+  }) as LazyComponent,
 }
+
+const CRITICAL_PAGES: LazyPageKey[] = ['QAPage', 'FlashcardsPage']
 
 /**
  * Preload critical routes
  */
 export function preloadCriticalRoutes(): void {
-  // Preload routes that are likely to be visited first
-  LazyRoutes.QAPage.preload()
-  LazyRoutes.FlashcardsPage.preload()
+  CRITICAL_PAGES.forEach(key => {
+    const route = LazyRoutes[key]
+    if (route?.preload) {
+      route.preload()
+    }
+  })
+}
+
+/**
+ * Preload all high priority routes
+ */
+export function preloadHighPriorityRoutes(): void {
+  Object.entries(LAZY_PAGE_CONFIGS)
+    .filter(([, config]) => config.priority === 'high')
+    .forEach(([key]) => {
+      const route = LazyRoutes[key as LazyPageKey]
+      if (route?.preload) {
+        route.preload()
+      }
+    })
 }
 
 /**
@@ -215,10 +270,25 @@ export function useLazyImage(
 }
 
 /**
- * Prefetch route data
+ * Section to page mapping
  */
-export function prefetchRouteData(route: string): void {
-  // Implement data prefetching logic based on route
-  // This could be used with React Query's prefetchQuery
-  console.log(`[Prefetch] Data for route: ${route}`)
+export const SECTION_TO_PAGE: Record<string, LazyPageKey> = {
+  qa: 'QAPage',
+  flashcards: 'FlashcardsPage',
+  exam: 'MockExamPage',
+  voice: 'VoicePracticePage',
+  coding: 'CodingPage',
+}
+
+export function getLazyPageForSection(section: string): LazyPageKey | null {
+  return SECTION_TO_PAGE[section] ?? null
+}
+
+/**
+ * Get lazy component for section
+ */
+export function useLazyPage(section: string): LazyComponent | null {
+  const pageKey = getLazyPageForSection(section)
+  if (!pageKey) return null
+  return LazyRoutes[pageKey]
 }

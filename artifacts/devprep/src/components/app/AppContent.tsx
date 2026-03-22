@@ -46,49 +46,46 @@ export function AppContent({
   return (
     <ErrorBoundary>
       <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-        <div className="flex-1 overflow-y-auto overflow-x-hidden">
-          <SpatialPageLayout variant="default" padding="md">
-            <div className="space-mobile-y">
-              {section === 'qa' && (
-                <LazyRoutes.QAPage
-                  questions={filteredQuestions}
-                  channelId={channelId}
-                  onQuestionAnswered={onQuestionAnswered}
-                />
-              )}
-              {section === 'flashcards' && (
-                <LazyRoutes.FlashcardsPage
-                  flashcards={filteredFlashcards}
-                  categories={[...new Set(filteredFlashcards.map(f => f.category))]}
-                  channelId={channelId}
-                  onFlashcardUpdate={onFlashcardUpdate}
-                />
-              )}
-              {section === 'coding' && (
-                <LazyRoutes.CodingPage
-                  challenges={filteredCoding}
-                  channelId={channelId}
-                  onCodingUpdate={onCodingUpdate}
-                />
-              )}
-              {section === 'exam' && (
-                <LazyRoutes.MockExamPage
-                  questions={filteredExamQs}
-                  channelId={channelId}
-                  onExamComplete={onExamComplete}
-                />
-              )}
-              {section === 'voice' && (
-                <LazyRoutes.VoicePracticePage
-                  prompts={filteredVoicePs}
-                  channelId={channelId}
-                  onVoicePractice={onVoicePractice}
-                />
-              )}
-            </div>
-          </SpatialPageLayout>
+        <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-6">
+          <div className="space-y-4">
+            {section === 'qa' && (
+              <LazyRoutes.QAPage
+                questions={filteredQuestions}
+                channelId={channelId}
+                onQuestionAnswered={onQuestionAnswered}
+              />
+            )}
+            {section === 'flashcards' && (
+              <LazyRoutes.FlashcardsPage
+                flashcards={filteredFlashcards}
+                categories={[...new Set(filteredFlashcards.map(f => f.category))]}
+                channelId={channelId}
+                onFlashcardUpdate={onFlashcardUpdate}
+              />
+            )}
+            {section === 'coding' && (
+              <LazyRoutes.CodingPage
+                challenges={filteredCoding}
+                channelId={channelId}
+                onCodingUpdate={onCodingUpdate}
+              />
+            )}
+            {section === 'exam' && (
+              <LazyRoutes.MockExamPage
+                questions={filteredExamQs}
+                channelId={channelId}
+                onExamComplete={onExamComplete}
+              />
+            )}
+            {section === 'voice' && (
+              <LazyRoutes.VoicePracticePage
+                prompts={filteredVoicePs}
+                channelId={channelId}
+                onVoicePractice={onVoicePractice}
+              />
+            )}
+          </div>
         </div>
-
       </div>
     </ErrorBoundary>
   )

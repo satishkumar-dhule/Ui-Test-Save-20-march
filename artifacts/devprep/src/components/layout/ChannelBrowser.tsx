@@ -4,20 +4,80 @@ import { cn } from '@/lib/utils'
 import { X, Search, Pin, PinOff, Check } from 'lucide-react'
 
 const CATEGORY_ORDER = [
-  'Frontend', 'Backend', 'Languages', 'Databases', 'Infrastructure',
-  'CS Fundamentals', 'Cloud / Certs', 'Security', 'Other'
+  'Frontend',
+  'Backend',
+  'Languages',
+  'Databases',
+  'Infrastructure',
+  'CS Fundamentals',
+  'Cloud / Certs',
+  'Security',
+  'Other',
 ]
 
 function categorize(channel: Channel): string {
   const id = channel.id
   if (channel.type === 'cert') return 'Cloud / Certs'
   if (['javascript', 'typescript', 'react', 'vue', 'angular'].includes(id)) return 'Frontend'
-  if (['node', 'python', 'java', 'go', 'rust', 'php', 'ruby', 'scala', 'kotlin', 'swift', 'csharp', 'cpp', 'c'].includes(id)) return 'Backend'
-  if (['sql', 'postgresql', 'mysql', 'mongodb', 'redis', 'elasticsearch', 'cassandra', 'dynamodb'].includes(id)) return 'Databases'
-  if (['devops', 'docker', 'kubernetes', 'linux', 'networking', 'terraform', 'ansible', 'prometheus', 'grafana', 'nginx'].includes(id)) return 'Infrastructure'
-  if (['algorithms', 'system-design', 'data-structures', 'operating-systems', 'computer-science'].includes(id)) return 'CS Fundamentals'
+  if (
+    [
+      'node',
+      'python',
+      'java',
+      'go',
+      'rust',
+      'php',
+      'ruby',
+      'scala',
+      'kotlin',
+      'swift',
+      'csharp',
+      'cpp',
+      'c',
+    ].includes(id)
+  )
+    return 'Backend'
+  if (
+    [
+      'sql',
+      'postgresql',
+      'mysql',
+      'mongodb',
+      'redis',
+      'elasticsearch',
+      'cassandra',
+      'dynamodb',
+    ].includes(id)
+  )
+    return 'Databases'
+  if (
+    [
+      'devops',
+      'docker',
+      'kubernetes',
+      'linux',
+      'networking',
+      'terraform',
+      'ansible',
+      'prometheus',
+      'grafana',
+      'nginx',
+    ].includes(id)
+  )
+    return 'Infrastructure'
+  if (
+    [
+      'algorithms',
+      'system-design',
+      'data-structures',
+      'operating-systems',
+      'computer-science',
+    ].includes(id)
+  )
+    return 'CS Fundamentals'
   if (['security', 'web-security', 'owasp', 'cryptography'].includes(id)) return 'Security'
-  if (channel.jobRole?.includes('backend') && channel.jobRole?.includes('frontend')) return 'Languages'
+  if (channel.jobRole?.includes('backend') && channel.jobRole?.includes('frontend'))
+    return 'Languages'
   return 'Other'
 }
 
@@ -73,52 +133,75 @@ export function ChannelBrowser({
     : categories
 
   return (
-    <div className="channel-browser-overlay" onClick={onClose}>
-      <div className="channel-browser" onClick={e => e.stopPropagation()}>
+    <div className="channel-browser-overlay" onClick={onClose} role="presentation">
+      <div
+        className="channel-browser"
+        onClick={e => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="channel-browser-title"
+      >
         {/* Header */}
         <div className="channel-browser-header">
           <div>
-            <h2 className="channel-browser-title">Browse Channels</h2>
-            <p className="channel-browser-sub">
+            <h2 id="channel-browser-title" className="channel-browser-title">
+              Browse Channels
+            </h2>
+            <p className="channel-browser-sub" aria-live="polite">
               {allChannels.length} channels · {selectedIds.length} pinned
             </p>
           </div>
-          <button className="channel-browser-close" onClick={onClose}>
-            <X size={18} />
+          <button
+            className="channel-browser-close"
+            onClick={onClose}
+            aria-label="Close channel browser"
+          >
+            <X size={18} aria-hidden="true" />
           </button>
         </div>
 
         {/* Search */}
         <div className="channel-browser-search-wrap">
-          <Search size={15} className="channel-browser-search-icon" />
+          <Search size={15} className="channel-browser-search-icon" aria-hidden="true" />
           <input
             autoFocus
             className="channel-browser-search"
             placeholder="Search channels by name, tech, or topic..."
             value={search}
             onChange={e => setSearch(e.target.value)}
+            aria-label="Search channels"
+            aria-controls="channel-list"
           />
           {search && (
-            <button className="channel-browser-clear" onClick={() => setSearch('')}>
-              <X size={14} />
+            <button
+              className="channel-browser-clear"
+              onClick={() => setSearch('')}
+              aria-label="Clear search"
+            >
+              <X size={14} aria-hidden="true" />
             </button>
           )}
         </div>
 
         {/* Category filter pills */}
         {!search && (
-          <div className="channel-browser-cats">
+          <div className="channel-browser-cats" role="group" aria-label="Filter by category">
             <button
               className={cn('channel-cat-pill', !activeCategory && 'channel-cat-pill--active')}
               onClick={() => setActiveCategory(null)}
+              aria-pressed={!activeCategory}
             >
               All
             </button>
             {categories.map(cat => (
               <button
                 key={cat}
-                className={cn('channel-cat-pill', activeCategory === cat && 'channel-cat-pill--active')}
+                className={cn(
+                  'channel-cat-pill',
+                  activeCategory === cat && 'channel-cat-pill--active'
+                )}
                 onClick={() => setActiveCategory(activeCategory === cat ? null : cat)}
+                aria-pressed={activeCategory === cat}
               >
                 {cat}
                 <span className="channel-cat-pill-count">{categorized[cat]?.length}</span>
@@ -128,10 +211,17 @@ export function ChannelBrowser({
         )}
 
         {/* Channel grid */}
-        <div className="channel-browser-body">
+        <div
+          className="channel-browser-body"
+          id="channel-list"
+          role="list"
+          aria-label="Channel list"
+        >
           {visibleCategories.map(cat => (
-            <div key={cat} className="channel-browser-group">
-              <h3 className="channel-browser-group-title">{cat}</h3>
+            <div key={cat} className="channel-browser-group" role="listitem">
+              <h3 id={`category-${cat}`} className="channel-browser-group-title">
+                {cat}
+              </h3>
               <div className="channel-grid">
                 {(categorized[cat] ?? []).map(channel => {
                   const isPinned = selectedIds.includes(channel.id)
@@ -147,10 +237,7 @@ export function ChannelBrowser({
                       style={{ '--ch-color': channel.color } as React.CSSProperties}
                     >
                       <div className="channel-card-header">
-                        <span
-                          className="channel-card-emoji"
-                          style={{ color: channel.color }}
-                        >
+                        <span className="channel-card-emoji" style={{ color: channel.color }}>
                           {channel.emoji}
                         </span>
                         <div className="channel-card-actions">
@@ -165,9 +252,16 @@ export function ChannelBrowser({
                               isPinned && 'channel-card-pin--active'
                             )}
                             onClick={() => onTogglePin(channel.id)}
-                            title={isPinned ? 'Unpin' : 'Pin to sidebar'}
+                            aria-label={
+                              isPinned ? `Unpin ${channel.name}` : `Pin ${channel.name} to sidebar`
+                            }
+                            aria-pressed={isPinned}
                           >
-                            {isPinned ? <PinOff size={12} /> : <Pin size={12} />}
+                            {isPinned ? (
+                              <PinOff size={12} aria-hidden="true" />
+                            ) : (
+                              <Pin size={12} aria-hidden="true" />
+                            )}
                           </button>
                         </div>
                       </div>
@@ -178,8 +272,16 @@ export function ChannelBrowser({
                       <div className="channel-card-desc">{channel.description}</div>
                       <button
                         className="channel-card-study-btn"
-                        onClick={() => { onSelect(channel.id); onClose() }}
-                        style={{ background: channel.color + '20', color: channel.color, borderColor: channel.color + '40' }}
+                        onClick={() => {
+                          onSelect(channel.id)
+                          onClose()
+                        }}
+                        style={{
+                          background: channel.color + '20',
+                          color: channel.color,
+                          borderColor: channel.color + '40',
+                        }}
+                        aria-label={`Study ${channel.name} channel`}
                       >
                         Study this channel
                       </button>
@@ -190,9 +292,11 @@ export function ChannelBrowser({
             </div>
           ))}
           {Object.keys(categorized).length === 0 && (
-            <div className="channel-browser-empty">
-              <Search size={32} />
-              <p>No channels match "<strong>{search}</strong>"</p>
+            <div className="channel-browser-empty" role="status" aria-live="polite">
+              <Search size={32} aria-hidden="true" />
+              <p>
+                No channels match "<strong>{search}</strong>"
+              </p>
             </div>
           )}
         </div>

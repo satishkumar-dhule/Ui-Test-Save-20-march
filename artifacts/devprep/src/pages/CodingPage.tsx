@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { useAnnounce, SkipLink, LiveRegion } from '@/hooks/useAnnounce'
 import {
   Code2,
   ChevronLeft,
@@ -15,6 +16,7 @@ import {
 import type { CodingChallenge, Language } from '@/data/coding'
 import type { ReactElement } from 'react'
 import { progressApi } from '@/services/progressApi'
+import { Empty, EmptyMedia, EmptyTitle, EmptyDescription } from '@/components/ui/empty'
 
 const DIFF_COLORS: Record<string, string> = {
   easy: 'hsl(var(--chart-2))',
@@ -256,13 +258,15 @@ export function CodingPage({ challenges, channelId, onCodingUpdate }: CodingPage
 
   if (challenges.length === 0) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
-        <Code2 size={48} className="text-muted-foreground mb-4" />
-        <h3 className="text-lg font-semibold mb-2">No coding challenges for this channel</h3>
-        <p className="text-muted-foreground text-sm">
-          Try JavaScript, Algorithms, or React channels.
-        </p>
-      </div>
+      <Empty>
+        <EmptyMedia variant="icon">
+          <Code2 size={24} aria-hidden="true" />
+        </EmptyMedia>
+        <EmptyTitle>No coding challenges available</EmptyTitle>
+        <EmptyDescription>
+          Switch to programming channels like JavaScript, Algorithms, or React.
+        </EmptyDescription>
+      </Empty>
     )
   }
 

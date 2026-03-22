@@ -1,10 +1,12 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { useAnnounce, SkipLink, LiveRegion } from '@/hooks/useAnnounce'
 import { Layers, RotateCcw, Shuffle, ChevronLeft, ChevronRight, Menu } from 'lucide-react'
 import type { Flashcard, CardStatus } from '@/data/flashcards'
 import { MarkdownText } from '@/components/MarkdownText'
 import { progressApi } from '@/services/progressApi'
 import { Skeleton, SkeletonGroup, SkeletonLine } from '@/components/ui/skeleton'
 import { FLASHCARD_STATUS, TIMEOUT_DURATIONS, UI_CONSTANTS } from '@/lib/constants'
+import { Empty, EmptyMedia, EmptyTitle, EmptyDescription } from '@/components/ui/empty'
 
 const STATUS_COLORS: Record<CardStatus, string> = {
   known: 'hsl(var(--chart-2))',
@@ -95,6 +97,8 @@ export function FlashcardsPage({
   const [filterCat, setFilterCat] = useState('All')
   const [order, setOrder] = useState<number[]>([])
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const mainContentRef = useRef<HTMLDivElement>(null)
+  const { announce } = useAnnounce()
 
   useEffect(() => {
     setActiveIdx(0)
@@ -137,8 +141,14 @@ export function FlashcardsPage({
         const max = displayCards.length - 1
         return Math.max(0, Math.min(max, i + dir))
       })
+      setTimeout(() => {
+        mainContentRef.current?.focus()
+        announce(
+          `Flashcard ${Math.max(0, Math.min(displayCards.length - 1, activeIdx + dir)) + 1} of ${displayCards.length}`
+        )
+      }, 100)
     },
-    [displayCards.length]
+    [displayCards.length, activeIdx, announce]
   )
 
   const mark = (status: CardStatus) => {
@@ -190,7 +200,7 @@ export function FlashcardsPage({
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [go, flipped, active])
+  }, [go, flipped, activeIdx, displayCards.length])
 
   if (isLoading) {
     return (
@@ -222,12 +232,13 @@ export function FlashcardsPage({
 
   if (flashcards.length === 0) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
-        <Layers size={48} className="text-muted-foreground mb-4" />
-        <h3 className="text-lg font-semibold text-foreground mb-2">
-          No flashcards for this channel
-        </h3>
-      </div>
+      <Empty>
+        <EmptyMedia variant="icon">
+          <Layers size={24} aria-hidden="true" />
+        </EmptyMedia>
+        <EmptyTitle>No flashcards available</EmptyTitle>
+        <EmptyDescription>Switch to a different channel to study flashcards.</EmptyDescription>
+      </Empty>
     )
   }
 
@@ -237,19 +248,23 @@ export function FlashcardsPage({
 
   return (
     <div className="flex flex-1 h-full overflow-hidden">
+      <SkipLink targetId="flashcard-main-content">Skip to main content</SkipLink>
+      <LiveRegion />
       {sidebarOpen && (
         <div
           className="fixed inset-0 z-30 bg-black/60 md:hidden"
           onClick={() => setSidebarOpen(false)}
+          role="presentation"
         />
       )}
       {/* Sidebar */}
-      <div
+      <nav
         className={`sidebar flex-shrink-0 flex-col border-r border-border overflow-hidden bg-card ${sidebarOpen ? 'fixed left-0 top-0 h-full z-40 flex w-72' : 'hidden md:flex'}`}
         style={{ width: UI_CONSTANTS.SIDEBAR_WIDTH }}
+        aria-label="Flashcard navigation"
       >
         <div className="flex items-center gap-2 px-4 py-3 border-b border-border">
-          <Layers size={14} className="text-muted-foreground" />
+          <Layers size={14} className="text-muted-foreground" aria-hidden="true" />
           <span className="text-sm font-semibold text-foreground">Flashcards</span>
           <span className="ml-auto text-[10px] font-bold bg-primary/15 text-primary px-1.5 rounded-full">
             {displayCards.length}
@@ -359,14 +374,22 @@ export function FlashcardsPage({
             )
           })}
         </div>
-      </div>
+      </nav>
 
       {/* Main */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <main
+        id="flashcard-main-content"
+        ref={mainContentRef}
+        tabIndex={-1}
+        className="flex-1 flex flex-col overflow-hidden focus:outline-none"
+        aria-label="Flashcard content"
+      >
         {/* Toolbar */}
         <div
           className="flex items-center gap-2 px-3 border-b border-border bg-card/50"
           style={{ height: UI_CONSTANTS.SECTION_TABS_HEIGHT }}
+          role="toolbar"
+          aria-label="Flashcard controls"
         >
           <button
             aria-label="Open sidebar menu"
@@ -585,7 +608,7 @@ export function FlashcardsPage({
             </p>
           </div>
         )}
-      </div>
+      </main>
     </div>
   )
 }

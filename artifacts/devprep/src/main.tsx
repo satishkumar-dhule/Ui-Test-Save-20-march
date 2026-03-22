@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App'
 import './index.css'
+import PerformanceMonitor from './components/PerformanceMonitor'
 
 const rootElement = document.getElementById('root')
 if (!rootElement) {
@@ -10,6 +11,11 @@ if (!rootElement) {
 
 createRoot(rootElement).render(
   <StrictMode>
+    <PerformanceMonitor
+      enabled={true}
+      reportToConsole={import.meta.env.DEV}
+      reportToAnalytics={import.meta.env.PROD}
+    />
     <App />
   </StrictMode>
 )

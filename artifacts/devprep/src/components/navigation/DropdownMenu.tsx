@@ -111,19 +111,27 @@ interface DropdownMenuContextValue {
 const DropdownMenuContext = React.createContext<DropdownMenuContextValue | null>(null)
 
 // Main DropdownMenu component
-export function DropdownMenu({ children, open: controlledOpen, onOpenChange, modal = true }: DropdownMenuProps) {
+export function DropdownMenu({
+  children,
+  open: controlledOpen,
+  onOpenChange,
+  modal = true,
+}: DropdownMenuProps) {
   const [internalOpen, setInternalOpen] = React.useState(false)
   const triggerRef = React.useRef<HTMLElement | null>(null)
   const contentRef = React.useRef<HTMLDivElement>(null)
 
   const isControlled = controlledOpen !== undefined
   const open = isControlled ? controlledOpen : internalOpen
-  const setOpen = React.useCallback((newOpen: boolean) => {
-    if (!isControlled) {
-      setInternalOpen(newOpen)
-    }
-    onOpenChange?.(newOpen)
-  }, [isControlled, onOpenChange])
+  const setOpen = React.useCallback(
+    (newOpen: boolean) => {
+      if (!isControlled) {
+        setInternalOpen(newOpen)
+      }
+      onOpenChange?.(newOpen)
+    },
+    [isControlled, onOpenChange]
+  )
 
   // Handle click outside
   React.useEffect(() => {
@@ -149,7 +157,7 @@ export function DropdownMenu({ children, open: controlledOpen, onOpenChange, mod
 
     document.addEventListener('mousedown', handleClickOutside)
     document.addEventListener('keydown', handleEscape)
-    
+
     return () => {
       document.removeEventListener('mousedown', handleClickOutside)
       document.removeEventListener('keydown', handleEscape)
@@ -166,18 +174,19 @@ export function DropdownMenu({ children, open: controlledOpen, onOpenChange, mod
     }
   }, [open])
 
-  const value = React.useMemo(() => ({
-    open,
-    setOpen,
-    triggerRef,
-    contentRef,
-  }), [open, setOpen])
+  const value = React.useMemo(
+    () => ({
+      open,
+      setOpen,
+      triggerRef,
+      contentRef,
+    }),
+    [open, setOpen]
+  )
 
   return (
     <DropdownMenuContext.Provider value={value}>
-      <div className="relative inline-block text-left">
-        {children}
-      </div>
+      <div className="relative inline-block text-left">{children}</div>
     </DropdownMenuContext.Provider>
   )
 }
@@ -201,14 +210,17 @@ export const DropdownMenuTrigger = React.forwardRef<HTMLElement, DropdownMenuTri
       }
     }
 
-    const combinedRef = React.useCallback((node: HTMLElement | null) => {
-      ;(triggerRef as React.MutableRefObject<HTMLElement | null>).current = node
-      if (typeof ref === 'function') {
-        ref(node)
-      } else if (ref) {
-        ;(ref as React.MutableRefObject<HTMLElement | null>).current = node
-      }
-    }, [ref, triggerRef])
+    const combinedRef = React.useCallback(
+      (node: HTMLElement | null) => {
+        ;(triggerRef as React.MutableRefObject<HTMLElement | null>).current = node
+        if (typeof ref === 'function') {
+          ref(node)
+        } else if (ref) {
+          ;(ref as React.MutableRefObject<HTMLElement | null>).current = node
+        }
+      },
+      [ref, triggerRef]
+    )
 
     if (asChild && React.isValidElement(children)) {
       return React.cloneElement(children as React.ReactElement<any>, {
@@ -249,14 +261,17 @@ export const DropdownMenuContent = React.forwardRef<HTMLDivElement, DropdownMenu
 
     if (!open) return null
 
-    const combinedRef = React.useCallback((node: HTMLDivElement | null) => {
-      ;(contentRef as React.MutableRefObject<HTMLDivElement | null>).current = node
-      if (typeof ref === 'function') {
-        ref(node)
-      } else if (ref) {
-        ;(ref as React.MutableRefObject<HTMLDivElement | null>).current = node
-      }
-    }, [ref, contentRef])
+    const combinedRef = React.useCallback(
+      (node: HTMLDivElement | null) => {
+        ;(contentRef as React.MutableRefObject<HTMLDivElement | null>).current = node
+        if (typeof ref === 'function') {
+          ref(node)
+        } else if (ref) {
+          ;(ref as React.MutableRefObject<HTMLDivElement | null>).current = node
+        }
+      },
+      [ref, contentRef]
+    )
 
     // Calculate position based on side and align
     const positionClasses = {
@@ -268,7 +283,10 @@ export const DropdownMenuContent = React.forwardRef<HTMLDivElement, DropdownMenu
 
     const alignClasses = {
       start: side === 'top' || side === 'bottom' ? 'left-0' : 'top-0',
-      center: side === 'top' || side === 'bottom' ? 'left-1/2 -translate-x-1/2' : 'top-1/2 -translate-y-1/2',
+      center:
+        side === 'top' || side === 'bottom'
+          ? 'left-1/2 -translate-x-1/2'
+          : 'top-1/2 -translate-y-1/2',
       end: side === 'top' || side === 'bottom' ? 'right-0' : 'bottom-0',
     }
 
@@ -336,11 +354,7 @@ export const DropdownMenuItem = React.forwardRef<HTMLDivElement, DropdownMenuIte
       >
         {icon}
         {children}
-        {shortcut && (
-          <span className="ml-auto text-xs tracking-widest opacity-60">
-            {shortcut}
-          </span>
-        )}
+        {shortcut && <span className="ml-auto text-xs tracking-widest opacity-60">{shortcut}</span>}
       </div>
     )
   }
@@ -351,12 +365,7 @@ DropdownMenuItem.displayName = 'DropdownMenuItem'
 export const DropdownMenuGroup = React.forwardRef<HTMLDivElement, DropdownMenuGroupProps>(
   ({ children, className, ...props }, ref) => {
     return (
-      <div
-        ref={ref}
-        role="group"
-        className={cn('', className)}
-        {...props}
-      >
+      <div ref={ref} role="group" className={cn('', className)} {...props}>
         {children}
       </div>
     )
@@ -370,11 +379,7 @@ export const DropdownMenuLabel = React.forwardRef<HTMLDivElement, DropdownMenuLa
     return (
       <div
         ref={ref}
-        className={cn(
-          'px-2 py-1.5 text-sm font-semibold',
-          inset && 'pl-8',
-          className
-        )}
+        className={cn('px-2 py-1.5 text-sm font-semibold', inset && 'pl-8', className)}
         {...props}
       >
         {children}
@@ -406,16 +411,19 @@ export const DropdownMenuSub = React.forwardRef<HTMLDivElement, DropdownMenuSubP
     const isControlled = controlledOpen !== undefined
     const open = isControlled ? controlledOpen : internalOpen
 
-    const setOpen = React.useCallback((newOpen: boolean) => {
-      if (!isControlled) {
-        setInternalOpen(newOpen)
-      }
-      onOpenChange?.(newOpen)
-    }, [isControlled, onOpenChange])
+    const setOpen = React.useCallback(
+      (newOpen: boolean) => {
+        if (!isControlled) {
+          setInternalOpen(newOpen)
+        }
+        onOpenChange?.(newOpen)
+      },
+      [isControlled, onOpenChange]
+    )
 
     return (
       <div ref={ref} className="relative">
-        {React.Children.map(children, (child) => {
+        {React.Children.map(children, child => {
           if (React.isValidElement(child)) {
             return React.cloneElement(child as React.ReactElement<any>, {
               open,
@@ -488,56 +496,52 @@ export const DropdownMenuSubContent = React.forwardRef<HTMLDivElement, DropdownM
 DropdownMenuSubContent.displayName = 'DropdownMenuSubContent'
 
 // DropdownMenuCheckboxItem
-export const DropdownMenuCheckboxItem = React.forwardRef<HTMLDivElement, DropdownMenuCheckboxItemProps>(
-  ({ children, className, checked, onCheckedChange, disabled, ...props }, ref) => {
-    const handleClick = () => {
-      if (!disabled) {
-        onCheckedChange?.(!checked)
-      }
+export const DropdownMenuCheckboxItem = React.forwardRef<
+  HTMLDivElement,
+  DropdownMenuCheckboxItemProps
+>(({ children, className, checked, onCheckedChange, disabled, ...props }, ref) => {
+  const handleClick = () => {
+    if (!disabled) {
+      onCheckedChange?.(!checked)
     }
-
-    return (
-      <div
-        ref={ref}
-        role="menuitemcheckbox"
-        aria-checked={checked}
-        tabIndex={disabled ? -1 : 0}
-        className={cn(
-          'relative flex cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none',
-          'focus:bg-accent focus:text-accent-foreground',
-          'data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
-          disabled && 'pointer-events-none opacity-50',
-          className
-        )}
-        onClick={handleClick}
-        data-disabled={disabled ? '' : undefined}
-        {...props}
-      >
-        <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
-          {checked && <Check className="h-4 w-4" />}
-        </span>
-        {children}
-      </div>
-    )
   }
-)
+
+  return (
+    <div
+      ref={ref}
+      role="menuitemcheckbox"
+      aria-checked={checked}
+      tabIndex={disabled ? -1 : 0}
+      className={cn(
+        'relative flex cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none',
+        'focus:bg-accent focus:text-accent-foreground',
+        'data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+        disabled && 'pointer-events-none opacity-50',
+        className
+      )}
+      onClick={handleClick}
+      data-disabled={disabled ? '' : undefined}
+      {...props}
+    >
+      <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+        {checked && <Check className="h-4 w-4" />}
+      </span>
+      {children}
+    </div>
+  )
+})
 DropdownMenuCheckboxItem.displayName = 'DropdownMenuCheckboxItem'
 
 // DropdownMenuRadioGroup
 export const DropdownMenuRadioGroup = React.forwardRef<HTMLDivElement, DropdownMenuRadioGroupProps>(
   ({ children, value, onValueChange, className, ...props }, ref) => {
     return (
-      <div
-        ref={ref}
-        role="radiogroup"
-        className={cn('', className)}
-        {...props}
-      >
-        {React.Children.map(children, (child) => {
+      <div ref={ref} role="radiogroup" className={cn('', className)} {...props}>
+        {React.Children.map(children, child => {
           if (React.isValidElement(child)) {
-            return React.cloneElement(child as React.ReactElement<any>, {
-              selected: child.props.value === value,
-              onSelect: () => onValueChange?.(child.props.value),
+            return React.cloneElement(child as React.ReactElement<Record<string, unknown>>, {
+              selected: (child.props as { value?: string }).value === value,
+              onSelect: () => onValueChange?.((child.props as { value?: string }).value || ''),
             })
           }
           return child
@@ -595,10 +599,7 @@ export const DropdownMenuShortcut: React.FC<DropdownMenuShortcutProps> = ({
   ...props
 }) => {
   return (
-    <span
-      className={cn('ml-auto text-xs tracking-widest opacity-60', className)}
-      {...props}
-    >
+    <span className={cn('ml-auto text-xs tracking-widest opacity-60', className)} {...props}>
       {children}
     </span>
   )
@@ -623,22 +624,3 @@ export const DropdownMenuIcon: React.FC<DropdownMenuIconProps> = ({
   )
 }
 DropdownMenuIcon.displayName = 'DropdownMenuIcon'
-
-// Export all components
-export {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuGroup,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubTrigger,
-  DropdownMenuSubContent,
-  DropdownMenuCheckboxItem,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuShortcut,
-  DropdownMenuIcon,
-}

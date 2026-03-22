@@ -101,6 +101,13 @@ const applyTheme = (theme: ThemeName): void => {
   // Set theme attribute
   document.documentElement.setAttribute('data-theme', theme)
 
+  // Also toggle .dark class for backward compatibility with CSS files using .dark selector
+  if (theme === 'dark') {
+    document.documentElement.classList.add('dark')
+  } else {
+    document.documentElement.classList.remove('dark')
+  }
+
   // Remove no-transitions class after a frame
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {

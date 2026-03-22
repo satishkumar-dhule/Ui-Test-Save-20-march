@@ -48,19 +48,27 @@ interface PopoverContextValue {
 const PopoverContext = React.createContext<PopoverContextValue | null>(null)
 
 // Main Popover component
-export function Popover({ children, open: controlledOpen, onOpenChange, modal = false }: PopoverProps) {
+export function Popover({
+  children,
+  open: controlledOpen,
+  onOpenChange,
+  modal = false,
+}: PopoverProps) {
   const [internalOpen, setInternalOpen] = React.useState(false)
   const triggerRef = React.useRef<HTMLElement | null>(null)
   const contentRef = React.useRef<HTMLDivElement>(null)
 
   const isControlled = controlledOpen !== undefined
   const open = isControlled ? controlledOpen : internalOpen
-  const setOpen = React.useCallback((newOpen: boolean) => {
-    if (!isControlled) {
-      setInternalOpen(newOpen)
-    }
-    onOpenChange?.(newOpen)
-  }, [isControlled, onOpenChange])
+  const setOpen = React.useCallback(
+    (newOpen: boolean) => {
+      if (!isControlled) {
+        setInternalOpen(newOpen)
+      }
+      onOpenChange?.(newOpen)
+    },
+    [isControlled, onOpenChange]
+  )
 
   // Handle click outside and escape
   React.useEffect(() => {
@@ -86,7 +94,7 @@ export function Popover({ children, open: controlledOpen, onOpenChange, modal = 
 
     document.addEventListener('mousedown', handleClickOutside)
     document.addEventListener('keydown', handleEscape)
-    
+
     return () => {
       document.removeEventListener('mousedown', handleClickOutside)
       document.removeEventListener('keydown', handleEscape)
@@ -103,18 +111,19 @@ export function Popover({ children, open: controlledOpen, onOpenChange, modal = 
     }
   }, [open])
 
-  const value = React.useMemo(() => ({
-    open,
-    setOpen,
-    triggerRef,
-    contentRef,
-  }), [open, setOpen])
+  const value = React.useMemo(
+    () => ({
+      open,
+      setOpen,
+      triggerRef,
+      contentRef,
+    }),
+    [open, setOpen]
+  )
 
   return (
     <PopoverContext.Provider value={value}>
-      <div className="relative inline-block">
-        {children}
-      </div>
+      <div className="relative inline-block">{children}</div>
     </PopoverContext.Provider>
   )
 }
@@ -138,14 +147,17 @@ export const PopoverTrigger = React.forwardRef<HTMLElement, PopoverTriggerProps>
       }
     }
 
-    const combinedRef = React.useCallback((node: HTMLElement | null) => {
-      ;(triggerRef as React.MutableRefObject<HTMLElement | null>).current = node
-      if (typeof ref === 'function') {
-        ref(node)
-      } else if (ref) {
-        ;(ref as React.MutableRefObject<HTMLElement | null>).current = node
-      }
-    }, [ref, triggerRef])
+    const combinedRef = React.useCallback(
+      (node: HTMLElement | null) => {
+        ;(triggerRef as React.MutableRefObject<HTMLElement | null>).current = node
+        if (typeof ref === 'function') {
+          ref(node)
+        } else if (ref) {
+          ;(ref as React.MutableRefObject<HTMLElement | null>).current = node
+        }
+      },
+      [ref, triggerRef]
+    )
 
     if (asChild && React.isValidElement(children)) {
       return React.cloneElement(children as React.ReactElement<any>, {
@@ -177,16 +189,19 @@ PopoverTrigger.displayName = 'PopoverTrigger'
 
 // PopoverContent
 export const PopoverContent = React.forwardRef<HTMLDivElement, PopoverContentProps>(
-  ({ 
-    children, 
-    className, 
-    align = 'center', 
-    side = 'bottom', 
-    sideOffset = 4, 
-    showCloseButton = false,
-    closeButtonText = 'Close',
-    ...props 
-  }, ref) => {
+  (
+    {
+      children,
+      className,
+      align = 'center',
+      side = 'bottom',
+      sideOffset = 4,
+      showCloseButton = false,
+      closeButtonText = 'Close',
+      ...props
+    },
+    ref
+  ) => {
     const context = React.useContext(PopoverContext)
     if (!context) throw new Error('PopoverContent must be used within Popover')
 
@@ -194,14 +209,17 @@ export const PopoverContent = React.forwardRef<HTMLDivElement, PopoverContentPro
 
     if (!open) return null
 
-    const combinedRef = React.useCallback((node: HTMLDivElement | null) => {
-      ;(contentRef as React.MutableRefObject<HTMLDivElement | null>).current = node
-      if (typeof ref === 'function') {
-        ref(node)
-      } else if (ref) {
-        ;(ref as React.MutableRefObject<HTMLDivElement | null>).current = node
-      }
-    }, [ref, contentRef])
+    const combinedRef = React.useCallback(
+      (node: HTMLDivElement | null) => {
+        ;(contentRef as React.MutableRefObject<HTMLDivElement | null>).current = node
+        if (typeof ref === 'function') {
+          ref(node)
+        } else if (ref) {
+          ;(ref as React.MutableRefObject<HTMLDivElement | null>).current = node
+        }
+      },
+      [ref, contentRef]
+    )
 
     // Calculate position based on side and align
     const positionClasses = {
@@ -213,7 +231,10 @@ export const PopoverContent = React.forwardRef<HTMLDivElement, PopoverContentPro
 
     const alignClasses = {
       start: side === 'top' || side === 'bottom' ? 'left-0' : 'top-0',
-      center: side === 'top' || side === 'bottom' ? 'left-1/2 -translate-x-1/2' : 'top-1/2 -translate-y-1/2',
+      center:
+        side === 'top' || side === 'bottom'
+          ? 'left-1/2 -translate-x-1/2'
+          : 'top-1/2 -translate-y-1/2',
       end: side === 'top' || side === 'bottom' ? 'right-0' : 'bottom-0',
     }
 
@@ -251,11 +272,7 @@ PopoverContent.displayName = 'PopoverContent'
 export const PopoverAnchor = React.forwardRef<HTMLDivElement, PopoverAnchorProps>(
   ({ children, className, ...props }, ref) => {
     return (
-      <div
-        ref={ref}
-        className={cn('inline-block', className)}
-        {...props}
-      >
+      <div ref={ref} className={cn('inline-block', className)} {...props}>
         {children}
       </div>
     )
@@ -316,12 +333,7 @@ export const PopoverClose = React.forwardRef<HTMLButtonElement, PopoverCloseProp
     }
 
     return (
-      <button
-        ref={ref}
-        className={cn('', className)}
-        onClick={handleClick}
-        {...props}
-      >
+      <button ref={ref} className={cn('', className)} onClick={handleClick} {...props}>
         {children || <X className="h-4 w-4" />}
       </button>
     )
@@ -335,16 +347,9 @@ export interface PopoverHeaderProps {
   className?: string
 }
 
-export const PopoverHeader: React.FC<PopoverHeaderProps> = ({
-  children,
-  className,
-  ...props
-}) => {
+export const PopoverHeader: React.FC<PopoverHeaderProps> = ({ children, className, ...props }) => {
   return (
-    <div
-      className={cn('flex flex-col space-y-1.5 text-center sm:text-left', className)}
-      {...props}
-    >
+    <div className={cn('flex flex-col space-y-1.5 text-center sm:text-left', className)} {...props}>
       {children}
     </div>
   )
@@ -381,11 +386,7 @@ export interface PopoverDescriptionProps {
 export const PopoverDescription = React.forwardRef<HTMLParagraphElement, PopoverDescriptionProps>(
   ({ children, className, ...props }, ref) => {
     return (
-      <p
-        ref={ref}
-        className={cn('text-sm text-muted-foreground', className)}
-        {...props}
-      >
+      <p ref={ref} className={cn('text-sm text-muted-foreground', className)} {...props}>
         {children}
       </p>
     )
@@ -399,11 +400,7 @@ export interface PopoverFooterProps {
   className?: string
 }
 
-export const PopoverFooter: React.FC<PopoverFooterProps> = ({
-  children,
-  className,
-  ...props
-}) => {
+export const PopoverFooter: React.FC<PopoverFooterProps> = ({ children, className, ...props }) => {
   return (
     <div
       className={cn('flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2', className)}
@@ -414,17 +411,3 @@ export const PopoverFooter: React.FC<PopoverFooterProps> = ({
   )
 }
 PopoverFooter.displayName = 'PopoverFooter'
-
-// Export all components
-export {
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-  PopoverAnchor,
-  PopoverArrow,
-  PopoverClose,
-  PopoverHeader,
-  PopoverTitle,
-  PopoverDescription,
-  PopoverFooter,
-}

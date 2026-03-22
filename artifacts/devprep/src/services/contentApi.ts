@@ -1,15 +1,9 @@
-import {
-  fetchAllContent as dbFetchAllContent,
-  fetchContentByType as dbFetchContentByType,
-  fetchContentStats as dbFetchContentStats,
-  fetchChannelContent as dbFetchChannelContent,
-  checkDbHealth,
-} from '@/services/dbApi'
-
 export interface ContentRecord {
   id: string
   channel_id: string
   content_type: string
+  difficulty?: string
+  tags?: string[]
   data: unknown
   quality_score: number
   embedding_id: string | null
@@ -62,6 +56,9 @@ async function apiFetch<T>(
   }
 
   const response = await fetch(url.toString())
+  if (!response.ok) {
+    throw new Error(`API request failed: ${response.status} ${response.statusText}`)
+  }
   return response.json() as Promise<ApiResponse<T>>
 }
 
@@ -126,65 +123,59 @@ async function httpFetchChannelContent<T>(
   return result.data.map(record => record.data as T)
 }
 
-async function tryDbFirst<T>(dbFn: () => Promise<T>, httpFn: () => Promise<T>): Promise<T> {
-  try {
-    const dbHealthy = await checkDbHealth()
-    if (dbHealthy) {
-      return await dbFn()
-    }
-  } catch {}
+async function httpFetchTaggedContent<T>(
+  tag: string,
+  options: { limit?: number; offset?: number } = {}
+): Promise<T[]> {
+  const params: Record<string, string | number> = {}
+  if (options.limit) params.limit = options.limit
+  if (options.offset) params.offset = options.offset
 
-  try {
-    return await httpFn()
-  } catch (e) {
-    throw new Error('Content unavailable from both local database and server')
+  const result = await apiFetch<ContentRecord[]>(
+    `/content/tagged/${encodeURIComponent(tag)}`,
+    params
+  )
+  if (!result.ok || !result.data) {
+    throw new Error(result.error || `Failed to fetch tagged content for ${tag}`)
   }
+  return result.data.map(record => record.data as T)
 }
 
 export async function fetchAllContent(options: ContentQueryOptions = {}): Promise<ContentRecord[]> {
-  return tryDbFirst(
-    () => dbFetchAllContent(options),
-    () => httpFetchAllContent(options)
-  )
+  return httpFetchAllContent(options)
 }
 
 export async function fetchContentByType<T>(
   type: string,
   options: Omit<ContentQueryOptions, 'contentType'> = {}
 ): Promise<T[]> {
-  return tryDbFirst(
-    () => dbFetchContentByType(type, options),
-    () => httpFetchContentByType(type, options)
-  )
+  return httpFetchContentByType(type, options)
 }
 
 export async function fetchContentStats(): Promise<ContentStats> {
-  return tryDbFirst(
-    () => dbFetchContentStats(),
-    () => httpFetchContentStats()
-  )
+  return httpFetchContentStats()
 }
 
 export async function fetchChannelContent<T>(
   channelId: string,
   options: Omit<ContentQueryOptions, 'channelId'> = {}
 ): Promise<T[]> {
-  return tryDbFirst(
-    () => dbFetchChannelContent(channelId, options),
-    () => httpFetchChannelContent(channelId, options)
-  )
+  return httpFetchChannelContent(channelId, options)
+}
+
+export async function fetchTaggedContent<T>(
+  tag: string,
+  options: { limit?: number; offset?: number } = {}
+): Promise<T[]> {
+  return httpFetchTaggedContent(tag, options)
 }
 
 export async function checkApiHealth(): Promise<boolean> {
   try {
-    const dbHealthy = await checkDbHealth()
-    if (dbHealthy) return true
-  } catch {}
-
-  try {
-    return await httpFetchAllContent()
-      .then(() => true)
-      .catch(() => false)
+    const baseUrl = API_BASE.startsWith('http') ? API_BASE : `${window.location.origin}${API_BASE}`
+    const response = await fetch(`${baseUrl}/health`)
+    const data = await response.json()
+    return data.ok === true
   } catch {
     return false
   }
