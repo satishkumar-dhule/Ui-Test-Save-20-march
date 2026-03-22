@@ -1,29 +1,8 @@
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
-import type { ContentType } from '@/types/realtime'
+import type { ContentType, ContentStatus, FilterState, FilterActions } from '@/stores/types'
 
-export interface FilterState {
-  channelId: string | null
-  contentType: ContentType | null
-  difficulty: 'beginner' | 'intermediate' | 'advanced' | null
-  status: 'pending' | 'approved' | 'rejected' | null
-  searchQuery: string
-  sortBy: 'newest' | 'oldest' | 'quality' | 'difficulty'
-  sortOrder: 'asc' | 'desc'
-}
-
-interface FilterActions {
-  setChannelId: (channelId: string | null) => void
-  setContentType: (type: ContentType | null) => void
-  setDifficulty: (difficulty: FilterState['difficulty']) => void
-  setStatus: (status: FilterState['status']) => void
-  setSearchQuery: (query: string) => void
-  setSortBy: (sortBy: FilterState['sortBy']) => void
-  setSortOrder: (order: FilterState['sortOrder']) => void
-  toggleSortOrder: () => void
-  resetFilters: () => void
-  setMultipleFilters: (filters: Partial<FilterState>) => void
-}
+export type { FilterState }
 
 const initialFilters: FilterState = {
   channelId: null,

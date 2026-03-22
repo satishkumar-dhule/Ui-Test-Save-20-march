@@ -1,9 +1,10 @@
 import { Sun, Moon, Search, Menu } from 'lucide-react'
 import type { Channel } from '@/data/channels'
+import type { Theme } from '@/hooks/useTheme'
 
 interface AppHeaderProps {
   currentChannel: Channel
-  theme: 'dark' | 'light'
+  theme: Theme
   onThemeToggle: () => void
   onSearchOpen: () => void
   onRealtimeDashboard?: () => void

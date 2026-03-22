@@ -1,0 +1,283 @@
+/* ============================================================================
+   DevPrep New Color System
+   Modern SaaS palette with high contrast and accessibility
+   ============================================================================ */
+
+/* Primary Palette - Deep Navy & Electric Blue */
+:root {
+  /* Primary Colors */
+  --color-primary-50: #eff6ff;
+  --color-primary-100: #dbeafe;
+  --color-primary-200: #bfdbfe;
+  --color-primary-300: #93c5fd;
+  --color-primary-400: #60a5fa;
+  --color-primary-500: #2563eb;
+  --color-primary-600: #1d4ed8;
+  --color-primary-700: #1e40af;
+  --color-primary-800: #1e3a8a;
+  --color-primary-900: #1e3a5f;
+  --color-primary-950: #172554;
+
+  /* Neutral Grays - Cool undertones */
+  --color-neutral-0: #ffffff;
+  --color-neutral-50: #f8fafc;
+  --color-neutral-100: #f1f5f9;
+  --color-neutral-200: #e2e8f0;
+  --color-neutral-300: #cbd5e1;
+  --color-neutral-400: #94a3b8;
+  --color-neutral-500: #64748b;
+  --color-neutral-600: #475569;
+  --color-neutral-700: #334155;
+  --color-neutral-800: #1e293b;
+  --color-neutral-900: #0f172a;
+  --color-neutral-950: #020617;
+
+  /* Semantic Colors */
+  --color-success-50: #ecfdf5;
+  --color-success-100: #d1fae5;
+  --color-success-200: #a7f3d0;
+  --color-success-300: #6ee7b7;
+  --color-success-400: #34d399;
+  --color-success-500: #10b981;
+  --color-success-600: #059669;
+  --color-success-700: #047857;
+  --color-success-800: #065f46;
+  --color-success-900: #064e3b;
+
+  --color-warning-50: #fffbeb;
+  --color-warning-100: #fef3c7;
+  --color-warning-200: #fde68a;
+  --color-warning-300: #fcd34d;
+  --color-warning-400: #fbbf24;
+  --color-warning-500: #f59e0b;
+  --color-warning-600: #d97706;
+  --color-warning-700: #b45309;
+  --color-warning-800: #92400e;
+  --color-warning-900: #78350f;
+
+  --color-error-50: #fef2f2;
+  --color-error-100: #fee2e2;
+  --color-error-200: #fecaca;
+  --color-error-300: #fca5a5;
+  --color-error-400: #f87171;
+  --color-error-500: #ef4444;
+  --color-error-600: #dc2626;
+  --color-error-700: #b91c1c;
+  --color-error-800: #991b1b;
+  --color-error-900: #7f1d1d;
+
+  --color-info-50: #f0f9ff;
+  --color-info-100: #e0f2fe;
+  --color-info-200: #bae6fd;
+  --color-info-300: #7dd3fc;
+  --color-info-400: #38bdf8;
+  --color-info-500: #0ea5e9;
+  --color-info-600: #0284c7;
+  --color-info-700: #0369a1;
+  --color-info-800: #075985;
+  --color-info-900: #0c4a6e;
+
+  /* UI Color Tokens */
+  --color-background: var(--color-neutral-0);
+  --color-surface: var(--color-neutral-50);
+  --color-surface-hover: var(--color-neutral-100);
+  --color-border: var(--color-neutral-200);
+  --color-border-hover: var(--color-neutral-300);
+  --color-text-primary: var(--color-neutral-900);
+  --color-text-secondary: var(--color-neutral-600);
+  --color-text-tertiary: var(--color-neutral-500);
+  --color-text-disabled: var(--color-neutral-400);
+  --color-text-inverse: var(--color-neutral-0);
+
+  /* Interactive States */
+  --color-focus-ring: var(--color-primary-500);
+  --color-focus-ring-offset: var(--color-neutral-0);
+  --color-active: var(--color-primary-600);
+  --color-hover: var(--color-primary-100);
+}
+
+/* Dark Mode Colors */
+[data-theme='dark'],
+.dark {
+  /* Primary Colors - Adjusted for dark backgrounds */
+  --color-primary-50: #1e3a5f;
+  --color-primary-100: #1e40af;
+  --color-primary-200: #1d4ed8;
+  --color-primary-300: #2563eb;
+  --color-primary-400: #3b82f6;
+  --color-primary-500: #60a5fa;
+  --color-primary-600: #93c5fd;
+  --color-primary-700: #bfdbfe;
+  --color-primary-800: #dbeafe;
+  --color-primary-900: #eff6ff;
+  --color-primary-950: #f8fafc;
+
+  /* Neutral Grays - Dark mode adjustments */
+  --color-neutral-0: #0f172a;
+  --color-neutral-50: #1e293b;
+  --color-neutral-100: #334155;
+  --color-neutral-200: #475569;
+  --color-neutral-300: #64748b;
+  --color-neutral-400: #94a3b8;
+  --color-neutral-500: #cbd5e1;
+  --color-neutral-600: #e2e8f0;
+  --color-neutral-700: #f1f5f9;
+  --color-neutral-800: #f8fafc;
+  --color-neutral-900: #ffffff;
+  --color-neutral-950: #ffffff;
+
+  /* UI Color Tokens - Dark mode */
+  --color-background: var(--color-neutral-900);
+  --color-surface: var(--color-neutral-800);
+  --color-surface-hover: var(--color-neutral-700);
+  --color-border: var(--color-neutral-700);
+  --color-border-hover: var(--color-neutral-600);
+  --color-text-primary: var(--color-neutral-0);
+  --color-text-secondary: var(--color-neutral-200);
+  --color-text-tertiary: var(--color-neutral-300);
+  --color-text-disabled: var(--color-neutral-400);
+  --color-text-inverse: var(--color-neutral-900);
+
+  /* Interactive States - Dark mode */
+  --color-focus-ring: var(--color-primary-400);
+  --color-focus-ring-offset: var(--color-neutral-900);
+  --color-active: var(--color-primary-500);
+  --color-hover: var(--color-primary-900);
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+  :root {
+    --color-border: var(--color-neutral-800);
+    --color-text-primary: var(--color-neutral-950);
+    --color-text-secondary: var(--color-neutral-800);
+    --color-text-tertiary: var(--color-neutral-700);
+  }
+
+  .dark {
+    --color-border: var(--color-neutral-200);
+    --color-text-primary: var(--color-neutral-0);
+    --color-text-secondary: var(--color-neutral-100);
+    --color-text-tertiary: var(--color-neutral-200);
+  }
+}
+
+/* Print Colors */
+@media print {
+  :root {
+    --color-background: #ffffff;
+    --color-surface: #ffffff;
+    --color-border: #000000;
+    --color-text-primary: #000000;
+    --color-text-secondary: #333333;
+    --color-text-tertiary: #666666;
+  }
+}
+
+/* Semantic Color Utilities */
+.color-success {
+  color: var(--color-success-500);
+}
+.color-warning {
+  color: var(--color-warning-500);
+}
+.color-error {
+  color: var(--color-error-500);
+}
+.color-info {
+  color: var(--color-info-500);
+}
+
+.bg-success {
+  background-color: var(--color-success-500);
+}
+.bg-warning {
+  background-color: var(--color-warning-500);
+}
+.bg-error {
+  background-color: var(--color-error-500);
+}
+.bg-info {
+  background-color: var(--color-info-500);
+}
+
+.border-success {
+  border-color: var(--color-success-500);
+}
+.border-warning {
+  border-color: var(--color-warning-500);
+}
+.border-error {
+  border-color: var(--color-error-500);
+}
+.border-info {
+  border-color: var(--color-info-500);
+}
+
+/* Color Contrast Utilities */
+.text-high-contrast {
+  color: var(--color-text-primary);
+}
+.text-medium-contrast {
+  color: var(--color-text-secondary);
+}
+.text-low-contrast {
+  color: var(--color-text-tertiary);
+}
+
+/* Color Blindness Safe Palette */
+.colorblind-safe {
+  --color-success: #0077bb;
+  --color-warning: #ee7733;
+  --color-error: #cc3311;
+  --color-info: #009988;
+}
+
+/* Focus State Colors */
+.focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.focus-visible:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+/* Selection Colors */
+::selection {
+  background-color: var(--color-primary-100);
+  color: var(--color-primary-900);
+}
+
+.dark ::selection {
+  background-color: var(--color-primary-900);
+  color: var(--color-primary-100);
+}
+
+/* Scrollbar Colors */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-surface);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-neutral-300);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-neutral-400);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: var(--color-neutral-600);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: var(--color-neutral-500);
+}

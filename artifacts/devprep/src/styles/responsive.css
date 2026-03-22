@@ -1,0 +1,955 @@
+/* ============================================================================
+   DevPrep Modern Responsive Design System
+   Author: Jennifer Davis (RESPONSIVE_ENGINEER)
+   Created: 2026-03-22
+   
+   A comprehensive mobile-first responsive system with:
+   1. Container Queries for component-level responsiveness
+   2. Modern Breakpoint System with fluid scaling
+   3. Enhanced Touch Targets & Mobile Interactions
+   4. Responsive Component Variants
+   5. Performance-Optimized Utilities
+   ============================================================================ */
+
+/* ============================================================================
+   1. MODERN BREAKPOINT SYSTEM
+   ============================================================================ */
+
+/* Base breakpoints (mobile-first) */
+:root {
+  /* Standard viewport breakpoints */
+  --bp-xs: 0px;
+  --bp-sm: 640px;
+  --bp-md: 768px;
+  --bp-lg: 1024px;
+  --bp-xl: 1280px;
+  --bp-2xl: 1536px;
+
+  /* Container query breakpoints */
+  --cq-xs: 0px;
+  --cq-sm: 24rem; /* 384px */
+  --cq-md: 32rem; /* 512px */
+  --cq-lg: 48rem; /* 768px */
+  --cq-xl: 64rem; /* 1024px */
+  --cq-2xl: 80rem; /* 1280px */
+
+  /* Fluid typography scale */
+  --fs-xs: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
+  --fs-sm: clamp(0.875rem, 0.8rem + 0.35vw, 1rem);
+  --fs-base: clamp(1rem, 0.9rem + 0.5vw, 1.125rem);
+  --fs-lg: clamp(1.125rem, 1rem + 0.6vw, 1.25rem);
+  --fs-xl: clamp(1.25rem, 1.1rem + 0.7vw, 1.5rem);
+  --fs-2xl: clamp(1.5rem, 1.3rem + 1vw, 2rem);
+  --fs-3xl: clamp(1.875rem, 1.6rem + 1.25vw, 2.5rem);
+  --fs-4xl: clamp(2.25rem, 1.9rem + 1.5vw, 3rem);
+  --fs-5xl: clamp(3rem, 2.5rem + 2vw, 4rem);
+
+  /* Fluid spacing scale */
+  --space-1: clamp(0.25rem, 0.2rem + 0.25vw, 0.5rem);
+  --space-2: clamp(0.5rem, 0.4rem + 0.5vw, 0.75rem);
+  --space-3: clamp(0.75rem, 0.6rem + 0.75vw, 1rem);
+  --space-4: clamp(1rem, 0.8rem + 1vw, 1.5rem);
+  --space-5: clamp(1.25rem, 1rem + 1.25vw, 2rem);
+  --space-6: clamp(1.5rem, 1.2rem + 1.5vw, 2.5rem);
+  --space-8: clamp(2rem, 1.6rem + 2vw, 3rem);
+  --space-10: clamp(2.5rem, 2rem + 2.5vw, 4rem);
+  --space-12: clamp(3rem, 2.4rem + 3vw, 5rem);
+  --space-16: clamp(4rem, 3.2rem + 4vw, 6rem);
+
+  /* Enhanced touch targets */
+  --touch-target: 44px;
+  --touch-target-sm: 40px;
+  --touch-target-lg: 48px;
+  --touch-target-xl: 56px;
+
+  /* Mobile-optimized z-index layers */
+  --z-mobile-nav: 1000;
+  --z-mobile-modal: 1100;
+  --z-mobile-toast: 1200;
+  --z-mobile-tooltip: 1300;
+}
+
+/* ============================================================================
+   2. CONTAINER QUERY UTILITIES
+   ============================================================================ */
+
+/* Container type definitions */
+.container-query {
+  container-type: inline-size;
+  container-name: main;
+}
+
+.container-query-layout {
+  container-type: inline-size;
+  container-name: layout;
+}
+
+.container-query-card {
+  container-type: inline-size;
+  container-name: card;
+}
+
+.container-query-nav {
+  container-type: inline-size;
+  container-name: nav;
+}
+
+/* Container query responsive grid */
+@container main (min-width: 24rem) {
+  .cq-grid-1 {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+  .cq-flex-row {
+    flex-direction: row;
+  }
+  .cq-text-left {
+    text-align: left;
+  }
+}
+
+@container main (min-width: 32rem) {
+  .cq-grid-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .cq-grid-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@container main (min-width: 48rem) {
+  .cq-grid-4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .cq-flex-wrap {
+    flex-wrap: wrap;
+  }
+}
+
+/* Card container queries */
+@container card (min-width: 18rem) {
+  .cq-card-compact {
+    padding: var(--space-3);
+  }
+  .cq-card-icon {
+    width: 2rem;
+    height: 2rem;
+  }
+}
+
+@container card (min-width: 24rem) {
+  .cq-card-comfortable {
+    padding: var(--space-4);
+  }
+  .cq-card-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+}
+
+@container card (min-width: 32rem) {
+  .cq-card-spacious {
+    padding: var(--space-6);
+  }
+  .cq-card-icon {
+    width: 3rem;
+    height: 3rem;
+  }
+}
+
+/* ============================================================================
+   3. MOBILE OPTIMIZATION UTILITIES
+   ============================================================================ */
+
+/* Enhanced touch targets with minimum size guarantee */
+.touch-target {
+  min-width: var(--touch-target);
+  min-height: var(--touch-target);
+  touch-action: manipulation;
+}
+
+.touch-target-sm {
+  min-width: var(--touch-target-sm);
+  min-height: var(--touch-target-sm);
+  touch-action: manipulation;
+}
+
+.touch-target-lg {
+  min-width: var(--touch-target-lg);
+  min-height: var(--touch-target-lg);
+  touch-action: manipulation;
+}
+
+.touch-target-xl {
+  min-width: var(--touch-target-xl);
+  min-height: var(--touch-target-xl);
+  touch-action: manipulation;
+}
+
+/* Touch feedback utilities */
+.touch-feedback {
+  transition:
+    transform 0.1s ease-out,
+    background-color 0.1s ease-out;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.touch-feedback:active {
+  transform: scale(0.97);
+}
+
+.touch-feedback-subtle:active {
+  transform: scale(0.99);
+}
+
+/* Mobile scrolling optimization */
+.scroll-smooth {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+.scroll-snap-x {
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+.scroll-snap-x > * {
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+.scroll-snap-y {
+  scroll-snap-type: y mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Mobile safe area utilities */
+.safe-area-inset {
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+}
+
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.safe-area-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.safe-area-left {
+  padding-left: env(safe-area-inset-left, 0px);
+}
+
+.safe-area-right {
+  padding-right: env(safe-area-inset-right, 0px);
+}
+
+/* Mobile viewport units */
+.vh-mobile {
+  height: 100vh;
+  height: 100dvh; /* Dynamic viewport height */
+}
+
+.vh-mobile-fill {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+/* ============================================================================
+   4. RESPONSIVE COMPONENT VARIANTS
+   ============================================================================ */
+
+/* Responsive container variants */
+.container-responsive {
+  width: 100%;
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--space-4);
+  padding-right: var(--space-4);
+}
+
+@media (min-width: 640px) {
+  .container-responsive {
+    max-width: 640px;
+    padding-left: var(--space-6);
+    padding-right: var(--space-6);
+  }
+}
+
+@media (min-width: 768px) {
+  .container-responsive {
+    max-width: 768px;
+    padding-left: var(--space-8);
+    padding-right: var(--space-8);
+  }
+}
+
+@media (min-width: 1024px) {
+  .container-responsive {
+    max-width: 1024px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .container-responsive {
+    max-width: 1280px;
+    padding-left: var(--space-10);
+    padding-right: var(--space-10);
+  }
+}
+
+/* Responsive card component */
+.card-responsive {
+  background-color: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.75rem;
+  padding: var(--space-4);
+  transition: all 0.2s ease;
+}
+
+.card-responsive:hover {
+  box-shadow: var(--shadow-md);
+}
+
+@media (min-width: 640px) {
+  .card-responsive {
+    padding: var(--space-5);
+  }
+}
+
+@media (min-width: 768px) {
+  .card-responsive {
+    padding: var(--space-6);
+  }
+}
+
+/* Responsive grid layouts */
+.grid-responsive-1 {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+.grid-responsive-2 {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+@media (min-width: 640px) {
+  .grid-responsive-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-5);
+  }
+}
+
+.grid-responsive-3 {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+@media (min-width: 640px) {
+  .grid-responsive-3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .grid-responsive-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-6);
+  }
+}
+
+.grid-responsive-auto {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+@media (min-width: 768px) {
+  .grid-responsive-auto {
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: var(--space-5);
+  }
+}
+
+/* Responsive typography */
+.text-responsive-xs {
+  font-size: var(--fs-xs);
+  line-height: 1.4;
+}
+
+.text-responsive-sm {
+  font-size: var(--fs-sm);
+  line-height: 1.5;
+}
+
+.text-responsive-base {
+  font-size: var(--fs-base);
+  line-height: 1.6;
+}
+
+.text-responsive-lg {
+  font-size: var(--fs-lg);
+  line-height: 1.7;
+}
+
+.text-responsive-xl {
+  font-size: var(--fs-xl);
+  line-height: 1.75;
+}
+
+.text-responsive-2xl {
+  font-size: var(--fs-2xl);
+  line-height: 1.3;
+  letter-spacing: -0.025em;
+}
+
+.text-responsive-3xl {
+  font-size: var(--fs-3xl);
+  line-height: 1.25;
+  letter-spacing: -0.025em;
+}
+
+.text-responsive-4xl {
+  font-size: var(--fs-4xl);
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+}
+
+.text-responsive-5xl {
+  font-size: var(--fs-5xl);
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+}
+
+/* ============================================================================
+   5. PERFORMANCE-OPTIMIZED UTILITIES
+   ============================================================================ */
+
+/* Content visibility for off-screen content */
+.content-visibility-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 500px;
+}
+
+.content-visibility-hidden {
+  content-visibility: hidden;
+  contain: strict;
+}
+
+/* Will-change optimization */
+.will-change-transform {
+  will-change: transform;
+}
+
+.will-change-opacity {
+  will-change: opacity;
+}
+
+.will-change-auto {
+  will-change: auto;
+}
+
+/* GPU acceleration */
+.gpu-accelerated {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* Responsive images */
+img-responsive {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+img-responsive-cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+img-responsive-contain {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Lazy loading utilities */
+.lazy-load {
+  loading: lazy;
+  decoding: async;
+}
+
+/* Responsive aspect ratios */
+.aspect-responsive {
+  aspect-ratio: 16 / 9;
+}
+
+@media (min-width: 768px) {
+  .aspect-responsive {
+    aspect-ratio: 21 / 9;
+  }
+}
+
+/* ============================================================================
+   6. ENHANCED MOBILE INTERACTIONS
+   ============================================================================ */
+
+/* Mobile navigation enhancements */
+.mobile-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  min-height: var(--touch-target);
+  min-width: var(--touch-target);
+  padding: var(--space-2);
+  border-radius: 0.75rem;
+  transition: all 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mobile-nav-item:hover {
+  background-color: hsl(var(--accent) / 0.1);
+}
+
+.mobile-nav-item:active {
+  transform: scale(0.95);
+}
+
+/* Mobile button enhancements */
+.btn-mobile {
+  min-height: var(--touch-target);
+  min-width: var(--touch-target);
+  padding: var(--space-3) var(--space-4);
+  border-radius: 0.75rem;
+  font-weight: 500;
+  transition: all 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-mobile:active {
+  transform: scale(0.97);
+}
+
+.btn-mobile-primary {
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+
+.btn-mobile-secondary {
+  background-color: hsl(var(--secondary));
+  color: hsl(var(--secondary-foreground));
+}
+
+/* Mobile input enhancements */
+.input-mobile {
+  min-height: var(--touch-target);
+  padding: var(--space-3) var(--space-4);
+  border-radius: 0.75rem;
+  border: 1px solid hsl(var(--border));
+  background-color: hsl(var(--background));
+  font-size: 1rem; /* Prevent zoom on iOS */
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.input-mobile:focus {
+  outline: none;
+  border-color: hsl(var(--ring));
+  box-shadow: 0 0 0 3px hsl(var(--ring) / 0.1);
+}
+
+/* Mobile modal enhancements */
+.modal-mobile {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-mobile-modal);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+}
+
+@media (min-width: 768px) {
+  .modal-mobile {
+    align-items: center;
+  }
+}
+
+.modal-mobile-content {
+  width: 100%;
+  max-height: 90vh;
+  background-color: hsl(var(--background));
+  border-radius: 1.5rem 1.5rem 0 0;
+  padding: var(--space-6);
+  animation: slide-up 0.3s ease-out;
+}
+
+@media (min-width: 768px) {
+  .modal-mobile-content {
+    max-width: 32rem;
+    border-radius: 1rem;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Mobile toast notifications */
+.toast-mobile {
+  position: fixed;
+  bottom: var(--space-6);
+  left: var(--space-4);
+  right: var(--space-4);
+  z-index: var(--z-mobile-toast);
+  padding: var(--space-4);
+  border-radius: 1rem;
+  background-color: hsl(var(--background));
+  border: 1px solid hsl(var(--border));
+  box-shadow: var(--shadow-lg);
+  animation: toast-slide-in 0.3s ease-out;
+}
+
+@media (min-width: 640px) {
+  .toast-mobile {
+    left: auto;
+    right: var(--space-6);
+    max-width: 24rem;
+  }
+}
+
+@keyframes toast-slide-in {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* ============================================================================
+   7. RESPONSIVE ACCESSIBILITY UTILITIES
+   ============================================================================ */
+
+/* Focus visible for keyboard navigation */
+.focus-visible-mobile:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+  border-radius: 0.25rem;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .card-responsive {
+    border-width: 2px;
+  }
+
+  .btn-mobile {
+    border: 2px solid currentColor;
+  }
+
+  .input-mobile {
+    border-width: 2px;
+  }
+}
+
+/* ============================================================================
+   8. RESPONSIVE UTILITY CLASSES
+   ============================================================================ */
+
+/* Spacing utilities with fluid scaling */
+.gap-responsive {
+  gap: var(--space-4);
+}
+
+@media (min-width: 640px) {
+  .gap-responsive {
+    gap: var(--space-5);
+  }
+}
+
+@media (min-width: 1024px) {
+  .gap-responsive {
+    gap: var(--space-6);
+  }
+}
+
+/* Padding utilities */
+.p-responsive {
+  padding: var(--space-4);
+}
+
+@media (min-width: 640px) {
+  .p-responsive {
+    padding: var(--space-5);
+  }
+}
+
+@media (min-width: 1024px) {
+  .p-responsive {
+    padding: var(--space-6);
+  }
+}
+
+/* Margin utilities */
+.mx-responsive {
+  margin-left: var(--space-4);
+  margin-right: var(--space-4);
+}
+
+@media (min-width: 640px) {
+  .mx-responsive {
+    margin-left: var(--space-6);
+    margin-right: var(--space-6);
+  }
+}
+
+/* Visibility utilities */
+.hide-mobile {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .hide-mobile {
+    display: block;
+  }
+}
+
+.hide-desktop {
+  display: block;
+}
+
+@media (min-width: 768px) {
+  .hide-desktop {
+    display: none;
+  }
+}
+
+/* Order utilities for mobile-first layouts */
+.order-first-mobile {
+  order: -1;
+}
+
+@media (min-width: 768px) {
+  .order-first-mobile {
+    order: 0;
+  }
+}
+
+/* Flex utilities */
+.flex-mobile-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+@media (min-width: 640px) {
+  .flex-mobile-col {
+    flex-direction: row;
+    gap: var(--space-6);
+  }
+}
+
+/* ============================================================================
+   9. PERFORMANCE MONITORING UTILITIES
+   ============================================================================ */
+
+/* Layout shift prevention */
+.layout-stable {
+  contain: layout style paint;
+}
+
+/* Size containment for lists */
+.contain-size {
+  contain: size;
+}
+
+/* Style containment */
+.contain-style {
+  contain: style;
+}
+
+/* Paint containment */
+.contain-paint {
+  contain: paint;
+}
+
+/* Full containment */
+.contain-strict {
+  contain: strict;
+}
+
+/* ============================================================================
+   10. RESPONSIVE ANIMATION UTILITIES
+   ============================================================================ */
+
+/* Reduced motion animations */
+@media (prefers-reduced-motion: no-preference) {
+  .animate-fade-in {
+    animation: fade-in 0.3s ease-out;
+  }
+
+  .animate-slide-up {
+    animation: slide-up 0.3s ease-out;
+  }
+
+  .animate-scale-in {
+    animation: scale-in 0.2s ease-out;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scale-in {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Mobile-optimized transitions */
+.transition-mobile {
+  transition:
+    transform 0.15s ease-out,
+    opacity 0.15s ease-out,
+    background-color 0.15s ease-out;
+}
+
+.transition-mobile-slow {
+  transition:
+    transform 0.3s ease-out,
+    opacity 0.3s ease-out,
+    background-color 0.3s ease-out;
+}
+
+/* ============================================================================
+   11. RESPONSIVE COMPONENT STATES
+   ============================================================================ */
+
+/* Loading states */
+.skeleton-mobile {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--muted)) 0%,
+    hsl(var(--muted-foreground) / 0.1) 50%,
+    hsl(var(--muted)) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+  border-radius: 0.5rem;
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Empty states */
+.empty-state-mobile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-12) var(--space-6);
+  text-align: center;
+  gap: var(--space-4);
+}
+
+/* Error states */
+.error-state-mobile {
+  padding: var(--space-4);
+  border-radius: 0.75rem;
+  background-color: hsl(var(--destructive) / 0.1);
+  border: 1px solid hsl(var(--destructive) / 0.2);
+  color: hsl(var(--destructive));
+}
+
+/* ============================================================================
+   EXPORTS FOR TAILWIND INTEGRATION
+   ============================================================================ */
+
+@theme inline {
+  /* Export custom properties to Tailwind */
+  --touch-target-min: var(--touch-target);
+  --mobile-padding: var(--space-4);
+  --mobile-gap: var(--space-3);
+
+  /* Container query breakpoints */
+  --container-breakpoint-xs: var(--cq-xs);
+  --container-breakpoint-sm: var(--cq-sm);
+  --container-breakpoint-md: var(--cq-md);
+  --container-breakpoint-lg: var(--cq-lg);
+  --container-breakpoint-xl: var(--cq-xl);
+
+  /* Fluid typography */
+  --text-responsive-xs: var(--fs-xs);
+  --text-responsive-sm: var(--fs-sm);
+  --text-responsive-base: var(--fs-base);
+  --text-responsive-lg: var(--fs-lg);
+  --text-responsive-xl: var(--fs-xl);
+  --text-responsive-2xl: var(--fs-2xl);
+  --text-responsive-3xl: var(--fs-3xl);
+  --text-responsive-4xl: var(--fs-4xl);
+  --text-responsive-5xl: var(--fs-5xl);
+
+  /* Fluid spacing */
+  --space-responsive-1: var(--space-1);
+  --space-responsive-2: var(--space-2);
+  --space-responsive-3: var(--space-3);
+  --space-responsive-4: var(--space-4);
+  --space-responsive-5: var(--space-5);
+  --space-responsive-6: var(--space-6);
+  --space-responsive-8: var(--space-8);
+  --space-responsive-10: var(--space-10);
+  --space-responsive-12: var(--space-12);
+  --space-responsive-16: var(--space-16);
+}

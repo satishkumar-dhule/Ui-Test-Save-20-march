@@ -1,38 +1,10 @@
 import { create } from 'zustand'
 import { cn } from '@/lib/utils'
+import type { AgentStatus, AgentLog, Agent, AgentStoreState, AgentStoreActions } from './types'
 
-export type AgentStatus = 'idle' | 'working' | 'completed' | 'failed'
+export type { AgentStatus, AgentLog, Agent }
 
-export interface AgentLog {
-  id: string
-  agentId: string
-  message: string
-  timestamp: number
-}
-
-export interface Agent {
-  id: string
-  name: string
-  status: AgentStatus
-  progress: number
-  currentTask: string
-  logs: AgentLog[]
-  startTime: number | null
-  endTime: number | null
-}
-
-interface AgentStore {
-  agents: Record<string, Agent>
-  logs: AgentLog[]
-  addAgent: (agent: Omit<Agent, 'logs' | 'startTime' | 'endTime'>) => void
-  updateAgent: (id: string, updates: Partial<Agent>) => void
-  completeAgent: (id: string, finalLog?: string) => void
-  failAgent: (id: string, error: string) => void
-  addLog: (agentId: string, message: string) => void
-  getAgentTimeSpent: (id: string) => number
-  getOverallProgress: () => number
-  reset: () => void
-}
+interface AgentStore extends AgentStoreState, AgentStoreActions {}
 
 const initialAgents: Record<string, Agent> = {
   frontend: {

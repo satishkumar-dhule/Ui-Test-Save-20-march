@@ -1,0 +1,581 @@
+/* ============================================================================
+   Theme Architecture for DevPrep Application
+   Version: 3.0.0
+   Author: THEMING_ENGINEER (Chris Taylor)
+   
+   Theme System Features:
+   1. Theme Tokens - Centralized theme definitions
+   2. Theme Switching - Seamless dark/light mode
+   3. Theme Customization - Extensible theme architecture
+   4. Theme Persistence - localStorage integration
+   
+   Theme Architecture:
+   - Core Theme Tokens (base theme definitions)
+   - Semantic Theme Mapping (purpose-based tokens)
+   - Theme Variants (light, dark, high-contrast, etc.)
+   - Custom Theme Extensions (user-defined themes)
+   ============================================================================ */
+
+/* ============================================================================
+   CORE THEME TOKENS - Base theme definitions
+   ============================================================================ */
+
+/* Light Theme Core Tokens */
+:root[data-theme='light'],
+:root:not([data-theme]) {
+  /* Primary Brand Colors */
+  --theme-primary-hue: 241;
+  --theme-primary-saturation: 100%;
+  --theme-primary-lightness: 72%;
+  --theme-primary-color: hsl(
+    var(--theme-primary-hue) var(--theme-primary-saturation) var(--theme-primary-lightness)
+  );
+  --theme-primary-contrast: hsl(0 0% 100%);
+
+  /* Secondary Brand Colors */
+  --theme-secondary-hue: 240;
+  --theme-secondary-saturation: 10%;
+  --theme-secondary-lightness: 92%;
+  --theme-secondary-color: hsl(
+    var(--theme-secondary-hue) var(--theme-secondary-saturation) var(--theme-secondary-lightness)
+  );
+  --theme-secondary-contrast: hsl(240 33% 14%);
+
+  /* Accent Colors */
+  --theme-accent-hue: 210;
+  --theme-accent-saturation: 100%;
+  --theme-accent-lightness: 52%;
+  --theme-accent-color: hsl(
+    var(--theme-accent-hue) var(--theme-accent-saturation) var(--theme-accent-lightness)
+  );
+
+  /* Background Colors */
+  --theme-bg-base: hsl(240 10% 96%);
+  --theme-bg-subtle: hsl(240 10% 94%);
+  --theme-bg-muted: hsl(240 10% 92%);
+  --theme-bg-inverted: hsl(240 33% 14%);
+
+  /* Foreground/Text Colors */
+  --theme-fg-base: hsl(240 33% 14%);
+  --theme-fg-subtle: hsl(240 9% 50%);
+  --theme-fg-muted: hsl(240 9% 40%);
+  --theme-fg-inverted: hsl(0 0% 100%);
+
+  /* Border Colors */
+  --theme-border-base: hsl(240 10% 85%);
+  --theme-border-subtle: hsl(240 10% 90%);
+  --theme-border-muted: hsl(240 10% 80%);
+  --theme-border-strong: hsl(240 10% 70%);
+
+  /* Surface Colors */
+  --theme-surface-base: hsl(0 0% 100%);
+  --theme-surface-subtle: hsl(240 10% 98%);
+  --theme-surface-muted: hsl(240 10% 96%);
+  --theme-surface-inset: hsl(240 10% 94%);
+
+  /* Status Colors */
+  --theme-success: hsl(142 76% 36%);
+  --theme-success-subtle: hsl(142 76% 95%);
+  --theme-warning: hsl(38 92% 50%);
+  --theme-warning-subtle: hsl(38 92% 95%);
+  --theme-destructive: hsl(5 60% 50%);
+  --theme-destructive-subtle: hsl(5 60% 95%);
+
+  /* Glass Morphism Tokens */
+  --theme-glass-bg: rgba(255, 255, 255, 0.72);
+  --theme-glass-bg-hover: rgba(255, 255, 255, 0.8);
+  --theme-glass-border: rgba(255, 255, 255, 0.2);
+  --theme-glass-border-hover: rgba(255, 255, 255, 0.3);
+  --theme-glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  --theme-glass-shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.12);
+  --theme-glass-blur: 20px;
+  --theme-glass-luminous-edge: rgba(124, 120, 232, 0.3);
+
+  /* Typography */
+  --theme-font-family-sans:
+    -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif;
+  --theme-font-family-serif: Georgia, serif;
+  --theme-font-family-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* Shadows */
+  --theme-shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+  --theme-shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.07), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+  --theme-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.08), 0 1px 2px -1px rgba(0, 0, 0, 0.06);
+  --theme-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  --theme-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+  --theme-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+  --theme-shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.12);
+
+  /* Border Radius */
+  --theme-radius-sm: 2px;
+  --theme-radius-md: 6px;
+  --theme-radius-lg: 8px;
+  --theme-radius-xl: 12px;
+  --theme-radius-2xl: 16px;
+  --theme-radius-3xl: 24px;
+  --theme-radius-full: 9999px;
+
+  /* Focus Ring */
+  --theme-ring-color: hsl(241 100% 72%);
+  --theme-ring-width: 2px;
+  --theme-ring-offset: 2px;
+}
+
+/* Dark Theme Core Tokens */
+:root[data-theme='dark'] {
+  /* Primary Brand Colors */
+  --theme-primary-hue: 210;
+  --theme-primary-saturation: 100%;
+  --theme-primary-lightness: 52%;
+  --theme-primary-color: hsl(
+    var(--theme-primary-hue) var(--theme-primary-saturation) var(--theme-primary-lightness)
+  );
+  --theme-primary-contrast: hsl(0 0% 100%);
+
+  /* Secondary Brand Colors */
+  --theme-secondary-hue: 240;
+  --theme-secondary-saturation: 3%;
+  --theme-secondary-lightness: 11%;
+  --theme-secondary-color: hsl(
+    var(--theme-secondary-hue) var(--theme-secondary-saturation) var(--theme-secondary-lightness)
+  );
+  --theme-secondary-contrast: hsl(0 0% 100%);
+
+  /* Accent Colors */
+  --theme-accent-hue: 280;
+  --theme-accent-saturation: 85%;
+  --theme-accent-lightness: 65%;
+  --theme-accent-color: hsl(
+    var(--theme-accent-hue) var(--theme-accent-saturation) var(--theme-accent-lightness)
+  );
+
+  /* Background Colors */
+  --theme-bg-base: hsl(0 0% 0%);
+  --theme-bg-subtle: hsl(240 3% 8%);
+  --theme-bg-muted: hsl(240 3% 11%);
+  --theme-bg-inverted: hsl(0 0% 100%);
+
+  /* Foreground/Text Colors */
+  --theme-fg-base: hsl(0 0% 100%);
+  --theme-fg-subtle: hsl(240 2% 65%);
+  --theme-fg-muted: hsl(240 2% 45%);
+  --theme-fg-inverted: hsl(240 33% 14%);
+
+  /* Border Colors */
+  --theme-border-base: hsl(0 0% 10%);
+  --theme-border-subtle: hsl(0 0% 7%);
+  --theme-border-muted: hsl(0 0% 15%);
+  --theme-border-strong: hsl(0 0% 25%);
+
+  /* Surface Colors */
+  --theme-surface-base: hsl(240 3% 11%);
+  --theme-surface-subtle: hsl(240 3% 9%);
+  --theme-surface-muted: hsl(240 3% 7%);
+  --theme-surface-inset: hsl(240 3% 5%);
+
+  /* Status Colors */
+  --theme-success: hsl(142 76% 36%);
+  --theme-success-subtle: hsla(142 76% 36% 0.15);
+  --theme-warning: hsl(38 100% 50%);
+  --theme-warning-subtle: hsla(38 100% 50% 0.15);
+  --theme-destructive: hsl(2 100% 62%);
+  --theme-destructive-subtle: hsla(2 100% 62% 0.15);
+
+  /* Glass Morphism Tokens */
+  --theme-glass-bg: rgba(28, 28, 30, 0.72);
+  --theme-glass-bg-hover: rgba(44, 44, 46, 0.8);
+  --theme-glass-border: rgba(255, 255, 255, 0.1);
+  --theme-glass-border-hover: rgba(255, 255, 255, 0.2);
+  --theme-glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --theme-glass-shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.5);
+  --theme-glass-blur: 24px;
+  --theme-glass-luminous-edge: rgba(10, 132, 255, 0.4);
+
+  /* Typography */
+  --theme-font-family-sans:
+    -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif;
+  --theme-font-family-serif: Georgia, serif;
+  --theme-font-family-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* Shadows */
+  --theme-shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
+  --theme-shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.6), 0 1px 2px -1px rgba(0, 0, 0, 0.5);
+  --theme-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.7), 0 1px 2px -1px rgba(0, 0, 0, 0.5);
+  --theme-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.7), 0 2px 4px -2px rgba(0, 0, 0, 0.5);
+  --theme-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.8), 0 4px 6px -4px rgba(0, 0, 0, 0.5);
+  --theme-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.8), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+  --theme-shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.9);
+
+  /* Border Radius */
+  --theme-radius-sm: 2px;
+  --theme-radius-md: 6px;
+  --theme-radius-lg: 8px;
+  --theme-radius-xl: 12px;
+  --theme-radius-2xl: 16px;
+  --theme-radius-3xl: 24px;
+  --theme-radius-full: 9999px;
+
+  /* Focus Ring */
+  --theme-ring-color: hsl(210 100% 52%);
+  --theme-ring-width: 2px;
+  --theme-ring-offset: 2px;
+}
+
+/* ============================================================================
+   SEMANTIC THEME MAPPING - Purpose-based token mapping
+   ============================================================================ */
+
+:root {
+  /* Map theme tokens to semantic tokens used by components */
+  --color-bg-base: var(--theme-bg-base);
+  --color-bg-subtle: var(--theme-bg-subtle);
+  --color-bg-muted: var(--theme-bg-muted);
+  --color-bg-inverted: var(--theme-bg-inverted);
+
+  --color-bg-primary: var(--theme-primary-color);
+  --color-bg-primary-subtle: color-mix(in hsl, var(--theme-primary-color) 15%, transparent);
+  --color-bg-secondary: var(--theme-secondary-color);
+  --color-bg-accent: var(--theme-secondary-color);
+  --color-bg-destructive: var(--theme-destructive);
+  --color-bg-destructive-subtle: var(--theme-destructive-subtle);
+  --color-bg-success: var(--theme-success);
+  --color-bg-success-subtle: var(--theme-success-subtle);
+  --color-bg-warning: var(--theme-warning);
+  --color-bg-warning-subtle: var(--theme-warning-subtle);
+
+  --color-fg-base: var(--theme-fg-base);
+  --color-fg-subtle: var(--theme-fg-subtle);
+  --color-fg-muted: var(--theme-fg-muted);
+  --color-fg-inverted: var(--theme-fg-inverted);
+
+  --color-fg-primary: var(--theme-primary-color);
+  --color-fg-secondary: var(--theme-fg-base);
+  --color-fg-accent: var(--theme-accent-color);
+  --color-fg-destructive: var(--theme-destructive);
+  --color-fg-success: var(--theme-success);
+  --color-fg-warning: var(--theme-warning);
+
+  --color-border-base: var(--theme-border-base);
+  --color-border-subtle: var(--theme-border-subtle);
+  --color-border-muted: var(--theme-border-muted);
+  --color-border-strong: var(--theme-border-strong);
+
+  --color-border-primary: var(--theme-primary-color);
+  --color-border-secondary: var(--theme-border-base);
+  --color-border-accent: var(--theme-accent-color);
+  --color-border-destructive: var(--theme-destructive);
+  --color-border-success: var(--theme-success);
+  --color-border-warning: var(--theme-warning);
+
+  --color-ring-base: var(--theme-ring-color);
+  --color-ring-subtle: color-mix(in hsl, var(--theme-ring-color) 50%, transparent);
+
+  --color-surface-base: var(--theme-surface-base);
+  --color-surface-subtle: var(--theme-surface-subtle);
+  --color-surface-muted: var(--theme-surface-muted);
+  --color-surface-inset: var(--theme-surface-inset);
+
+  --color-surface-overlay: var(--theme-surface-base);
+  --color-surface-backdrop: color-mix(in hsl, var(--theme-bg-base) 80%, transparent);
+
+  /* Map glass tokens */
+  --glass-bg-light: var(--theme-glass-bg);
+  --glass-bg-medium: var(--theme-glass-bg-hover);
+  --glass-bg-dark: color-mix(in srgb, var(--theme-glass-bg) 50%, transparent);
+  --glass-bg-subtle: color-mix(in srgb, var(--theme-glass-bg) 25%, transparent);
+  --glass-bg-ultra: color-mix(in srgb, var(--theme-glass-bg) 10%, transparent);
+
+  --glass-border-light: var(--theme-glass-border);
+  --glass-border-medium: var(--theme-glass-border-hover);
+  --glass-border-subtle: color-mix(in srgb, var(--theme-glass-border) 50%, transparent);
+  --glass-border-ultra: color-mix(in srgb, var(--theme-glass-border) 25%, transparent);
+
+  --glass-shadow-light: var(--theme-glass-shadow);
+  --glass-shadow-medium: var(--theme-glass-shadow-hover);
+  --glass-shadow-heavy: color-mix(in srgb, var(--theme-glass-shadow) 150%, transparent);
+
+  --glass-blur-sm: calc(var(--theme-glass-blur) * 0.3);
+  --glass-blur-md: var(--theme-glass-blur);
+  --glass-blur-lg: calc(var(--theme-glass-blur) * 1.5);
+  --glass-blur-xl: calc(var(--theme-glass-blur) * 2);
+
+  --glass-accent-primary: color-mix(in srgb, var(--theme-primary-color) 30%, transparent);
+  --glass-accent-primary-subtle: color-mix(in srgb, var(--theme-primary-color) 15%, transparent);
+  --glass-accent-secondary: color-mix(in srgb, var(--theme-accent-color) 30%, transparent);
+  --glass-accent-secondary-subtle: color-mix(in srgb, var(--theme-accent-color) 15%, transparent);
+  --glass-accent-success: color-mix(in srgb, var(--theme-success) 30%, transparent);
+  --glass-accent-warning: color-mix(in srgb, var(--theme-warning) 30%, transparent);
+  --glass-accent-destructive: color-mix(in srgb, var(--theme-destructive) 30%, transparent);
+
+  --glass-luminous-primary: var(--theme-glass-luminous-edge);
+  --glass-luminous-secondary: color-mix(
+    in srgb,
+    var(--theme-glass-luminous-edge) 120%,
+    transparent
+  );
+
+  /* Map typography tokens */
+  --font-family-sans: var(--theme-font-family-sans);
+  --font-family-serif: var(--theme-font-family-serif);
+  --font-family-mono: var(--theme-font-family-mono);
+
+  /* Map shadow tokens */
+  --shadow-xs: var(--theme-shadow-xs);
+  --shadow-sm: var(--theme-shadow-sm);
+  --shadow-base: var(--theme-shadow);
+  --shadow-md: var(--theme-shadow-md);
+  --shadow-lg: var(--theme-shadow-lg);
+  --shadow-xl: var(--theme-shadow-xl);
+  --shadow-2xl: var(--theme-shadow-2xl);
+
+  /* Map radius tokens */
+  --radius-sm: var(--theme-radius-sm);
+  --radius-md: var(--theme-radius-md);
+  --radius-lg: var(--theme-radius-lg);
+  --radius-xl: var(--theme-radius-xl);
+  --radius-2xl: var(--theme-radius-2xl);
+  --radius-3xl: var(--theme-radius-3xl);
+  --radius-full: var(--theme-radius-full);
+}
+
+/* ============================================================================
+   THEME VARIANTS - Alternative theme implementations
+   ============================================================================ */
+
+/* High Contrast Theme */
+:root[data-theme='high-contrast'] {
+  --theme-primary-hue: 240;
+  --theme-primary-saturation: 100%;
+  --theme-primary-lightness: 50%;
+  --theme-primary-color: hsl(
+    var(--theme-primary-hue) var(--theme-primary-saturation) var(--theme-primary-lightness)
+  );
+
+  --theme-bg-base: hsl(0 0% 100%);
+  --theme-bg-subtle: hsl(0 0% 95%);
+  --theme-fg-base: hsl(0 0% 0%);
+  --theme-border-base: hsl(0 0% 0%);
+  --theme-border-strong: hsl(0 0% 0%);
+
+  --theme-glass-bg: rgba(255, 255, 255, 0.95);
+  --theme-glass-border: rgba(0, 0, 0, 0.5);
+  --theme-glass-blur: 10px;
+}
+
+/* Blue Light Theme */
+:root[data-theme='blue-light'] {
+  --theme-primary-hue: 30;
+  --theme-primary-saturation: 100%;
+  --theme-primary-lightness: 50%;
+  --theme-primary-color: hsl(
+    var(--theme-primary-hue) var(--theme-primary-saturation) var(--theme-primary-lightness)
+  );
+
+  --theme-bg-base: hsl(30 30% 96%);
+  --theme-bg-subtle: hsl(30 20% 94%);
+  --theme-fg-base: hsl(30 30% 14%);
+  --theme-border-base: hsl(30 20% 85%);
+
+  --theme-glass-bg: rgba(255, 250, 240, 0.72);
+  --theme-glass-border: rgba(255, 255, 255, 0.2);
+}
+
+/* Ocean Theme */
+:root[data-theme='ocean'] {
+  --theme-primary-hue: 197;
+  --theme-primary-saturation: 100%;
+  --theme-primary-lightness: 50%;
+  --theme-primary-color: hsl(
+    var(--theme-primary-hue) var(--theme-primary-saturation) var(--theme-primary-lightness)
+  );
+
+  --theme-bg-base: hsl(197 30% 96%);
+  --theme-bg-subtle: hsl(197 20% 94%);
+  --theme-fg-base: hsl(197 30% 14%);
+  --theme-border-base: hsl(197 20% 85%);
+
+  --theme-glass-bg: rgba(240, 250, 255, 0.72);
+  --theme-glass-border: rgba(255, 255, 255, 0.2);
+  --theme-glass-luminous-edge: rgba(100, 210, 255, 0.4);
+}
+
+/* Forest Theme */
+:root[data-theme='forest'] {
+  --theme-primary-hue: 142;
+  --theme-primary-saturation: 76%;
+  --theme-primary-lightness: 36%;
+  --theme-primary-color: hsl(
+    var(--theme-primary-hue) var(--theme-primary-saturation) var(--theme-primary-lightness)
+  );
+
+  --theme-bg-base: hsl(142 30% 96%);
+  --theme-bg-subtle: hsl(142 20% 94%);
+  --theme-fg-base: hsl(142 30% 14%);
+  --theme-border-base: hsl(142 20% 85%);
+
+  --theme-glass-bg: rgba(240, 255, 245, 0.72);
+  --theme-glass-border: rgba(255, 255, 255, 0.2);
+  --theme-glass-luminous-edge: rgba(48, 209, 88, 0.4);
+}
+
+/* ============================================================================
+   THEME TRANSITIONS - Smooth theme switching
+   ============================================================================ */
+
+:root {
+  /* Theme transition timing */
+  --theme-transition-duration: 200ms;
+  --theme-transition-easing: ease-in-out;
+}
+
+/* Apply theme transitions */
+*,
+*::before,
+*::after {
+  transition:
+    background-color var(--theme-transition-duration) var(--theme-transition-easing),
+    border-color var(--theme-transition-duration) var(--theme-transition-easing),
+    color var(--theme-transition-duration) var(--theme-transition-easing),
+    fill var(--theme-transition-duration) var(--theme-transition-easing),
+    stroke var(--theme-transition-duration) var(--theme-transition-easing),
+    box-shadow var(--theme-transition-duration) var(--theme-transition-easing);
+}
+
+/* Disable transitions during theme switch for performance */
+.theme-switching *,
+.theme-switching *::before,
+.theme-switching *::after {
+  transition-duration: 0ms !important;
+}
+
+/* ============================================================================
+   THEME CUSTOMIZATION API - JavaScript integration
+   ============================================================================ */
+
+/* Theme customization variables */
+:root {
+  /* Custom accent colors */
+  --custom-primary-hue: var(--theme-primary-hue);
+  --custom-primary-saturation: var(--theme-primary-saturation);
+  --custom-primary-lightness: var(--theme-primary-lightness);
+
+  /* Custom spacing scale */
+  --custom-spacing-multiplier: 1;
+
+  /* Custom font size scale */
+  --custom-font-size-multiplier: 1;
+
+  /* Custom border radius scale */
+  --custom-radius-multiplier: 1;
+}
+
+/* Apply customizations */
+:root[data-customization='enabled'] {
+  --theme-primary-hue: var(--custom-primary-hue);
+  --theme-primary-saturation: var(--custom-primary-saturation);
+  --theme-primary-lightness: var(--custom-primary-lightness);
+  --theme-primary-color: hsl(
+    var(--theme-primary-hue) var(--theme-primary-saturation) var(--theme-primary-lightness)
+  );
+
+  /* Apply spacing multiplier */
+  --space-1: calc(4px * var(--custom-spacing-multiplier));
+  --space-2: calc(8px * var(--custom-spacing-multiplier));
+  --space-3: calc(12px * var(--custom-spacing-multiplier));
+  --space-4: calc(16px * var(--custom-spacing-multiplier));
+  --space-5: calc(20px * var(--custom-spacing-multiplier));
+  --space-6: calc(24px * var(--custom-spacing-multiplier));
+  --space-8: calc(32px * var(--custom-spacing-multiplier));
+
+  /* Apply font size multiplier */
+  --font-size-xs: calc(12px * var(--custom-font-size-multiplier));
+  --font-size-sm: calc(14px * var(--custom-font-size-multiplier));
+  --font-size-base: calc(16px * var(--custom-font-size-multiplier));
+  --font-size-lg: calc(18px * var(--custom-font-size-multiplier));
+  --font-size-xl: calc(20px * var(--custom-font-size-multiplier));
+
+  /* Apply border radius multiplier */
+  --radius-sm: calc(2px * var(--custom-radius-multiplier));
+  --radius-md: calc(6px * var(--custom-radius-multiplier));
+  --radius-lg: calc(8px * var(--custom-radius-multiplier));
+  --radius-xl: calc(12px * var(--custom-radius-multiplier));
+  --radius-2xl: calc(16px * var(--custom-radius-multiplier));
+}
+
+/* ============================================================================
+   ACCESSIBILITY ENHANCEMENTS
+   ============================================================================ */
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --theme-transition-duration: 0ms;
+  }
+
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0ms !important;
+    animation-duration: 0ms !important;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  :root:not([data-theme]) {
+    --theme-border-base: currentColor;
+    --theme-border-strong: currentColor;
+    --theme-fg-base: CanvasText;
+    --theme-bg-base: Canvas;
+  }
+}
+
+/* Print styles */
+@media print {
+  :root {
+    --theme-bg-base: white;
+    --theme-fg-base: black;
+    --theme-border-base: black;
+    --theme-glass-bg: transparent;
+    --theme-glass-border: transparent;
+  }
+}
+
+/* ============================================================================
+   THEME STORAGE & PERSISTENCE CSS HOOKS
+   ============================================================================ */
+
+/* Theme loading state */
+.theme-loading {
+  opacity: 0.8;
+}
+
+/* Theme ready state */
+.theme-ready {
+  opacity: 1;
+}
+
+/* Theme error state */
+.theme-error {
+  opacity: 0.5;
+  filter: saturate(0.5);
+}
+
+/* Theme preview state */
+[data-preview-theme] {
+  outline: 2px dashed var(--theme-primary-color);
+  outline-offset: 2px;
+}
+
+/* Theme custom indicator */
+[data-custom-theme]::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 8px;
+  height: 8px;
+  background-color: var(--theme-primary-color);
+  border-radius: 50%;
+  transform: translate(50%, -50%);
+}

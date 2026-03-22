@@ -1,6 +1,7 @@
 import { X } from 'lucide-react'
 import type { Channel } from '@/data/channels'
 import type { Section } from '@/hooks/app'
+import type { Theme } from '@/hooks/useTheme'
 
 interface NavigationDrawerProps {
   isOpen: boolean
@@ -18,7 +19,7 @@ interface NavigationDrawerProps {
   onSectionChange: (section: Section) => void
   onSearchOpen: () => void
   onThemeToggle: () => void
-  theme: 'dark' | 'light'
+  theme: Theme
 }
 
 const TABS: { id: Section; label: string; icon: string }[] = [

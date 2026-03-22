@@ -1,29 +1,8 @@
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
-import type { ConnectionStatus } from '@/types/realtime'
+import type { ConnectionStatus, RealtimeState, RealtimeActions } from '@/stores/types'
 
-interface RealtimeState {
-  connectionStatus: ConnectionStatus
-  retryCount: number
-  nextRetryIn: number | null
-  lastConnectedAt: number | null
-  lastDisconnectedAt: number | null
-  messageQueue: unknown[]
-  isQueueProcessing: boolean
-}
-
-interface RealtimeActions {
-  setConnectionStatus: (status: ConnectionStatus) => void
-  incrementRetryCount: () => void
-  resetRetryCount: () => void
-  setNextRetryIn: (ms: number | null) => void
-  setLastConnectedAt: (timestamp: number) => void
-  setLastDisconnectedAt: (timestamp: number) => void
-  addToQueue: (message: unknown) => void
-  clearQueue: () => void
-  setIsQueueProcessing: (processing: boolean) => void
-  processQueue: () => unknown[]
-}
+export type { RealtimeState, RealtimeActions }
 
 export const useRealtimeStore = create<RealtimeState & RealtimeActions>()(
   devtools(

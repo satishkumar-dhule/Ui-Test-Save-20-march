@@ -1,12 +1,13 @@
 import type { Channel } from '@/data/channels'
 import { useState, useEffect } from 'react'
+import type { Theme } from '@/hooks/useTheme'
 
 interface ChannelSelectorProps {
   channelId: string
   channelTypeFilter: 'tech' | 'cert'
   selectedTechChannels: Channel[]
   selectedCertChannels: Channel[]
-  theme: 'dark' | 'light'
+  theme: Theme
   onChannelSwitch: (id: string) => void
   onChannelTypeFilterChange: (filter: 'tech' | 'cert') => void
   onEditChannels: () => void

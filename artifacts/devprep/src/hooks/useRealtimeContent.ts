@@ -231,14 +231,14 @@ export function useRealtimeQuestions(options: UseRealtimeQuestionsOptions = {}):
   }
 }
 
-interface UseContentTypeOptions<T> {
+interface UseContentTypeOptions {
   type: ContentType
   channelId?: string
   limit?: number
   enabled?: boolean
 }
 
-export function useContentType<T>(options: UseContentTypeOptions<T>): {
+export function useContentType<T>(options: UseContentTypeOptions): {
   data: T[]
   isLoading: boolean
   isFetching: boolean

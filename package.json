@@ -32,8 +32,15 @@
     "wrangler": "^4.0.0"
   },
   "dependencies": {
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
     "bash-language-server": "^5.6.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "opencode-ai": "^1.2.27",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "tailwind-merge": "^3.5.0",
     "yaml-language-server": ""
   },
   "workspaces": {

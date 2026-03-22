@@ -1,0 +1,298 @@
+/* ============================================================================
+   New Animation System v2
+   CSS-based animations for 60fps performance
+   ============================================================================ */
+
+/* Animation Design Tokens */
+:root {
+  /* Timing functions */
+  --anim-ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --anim-ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --anim-ease-in-out-quart: cubic-bezier(0.76, 0, 0.24, 1);
+  --anim-ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  --anim-ease-linear: linear;
+
+  /* Durations */
+  --anim-duration-fast: 150ms;
+  --anim-duration-normal: 300ms;
+  --anim-duration-slow: 500ms;
+
+  /* Delays */
+  --anim-delay-instant: 0ms;
+  --anim-delay-short: 50ms;
+  --anim-delay-normal: 100ms;
+  --anim-delay-long: 200ms;
+
+  /* Stagger increments */
+  --anim-stagger-increment: 50ms;
+}
+
+/* ============================================================================
+   Utility Classes - Apply animations to elements
+   ============================================================================ */
+
+/* Base animation class - set initial state */
+.anim-initial {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+/* Fade animations */
+.anim-fade-in {
+  animation: anim-fade-in var(--anim-duration-normal) var(--anim-ease-out-expo) forwards;
+}
+
+.anim-fade-in-slow {
+  animation: anim-fade-in var(--anim-duration-slow) var(--anim-ease-out-expo) forwards;
+}
+
+.anim-fade-in-fast {
+  animation: anim-fade-in var(--anim-duration-fast) var(--anim-ease-out-expo) forwards;
+}
+
+@keyframes anim-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Slide animations */
+.anim-slide-in-up {
+  animation: anim-slide-in-up var(--anim-duration-normal) var(--anim-ease-out-expo) forwards;
+}
+
+.anim-slide-in-down {
+  animation: anim-slide-in-down var(--anim-duration-normal) var(--anim-ease-out-expo) forwards;
+}
+
+.anim-slide-in-left {
+  animation: anim-slide-in-left var(--anim-duration-normal) var(--anim-ease-out-expo) forwards;
+}
+
+.anim-slide-in-right {
+  animation: anim-slide-in-right var(--anim-duration-normal) var(--anim-ease-out-expo) forwards;
+}
+
+@keyframes anim-slide-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes anim-slide-in-down {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes anim-slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes anim-slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Scale animations */
+.anim-scale-in {
+  animation: anim-scale-in var(--anim-duration-normal) var(--anim-ease-out-expo) forwards;
+}
+
+.anim-scale-in-slow {
+  animation: anim-scale-in var(--anim-duration-slow) var(--anim-ease-out-expo) forwards;
+}
+
+@keyframes anim-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Stagger container */
+.anim-stagger > * {
+  opacity: 0;
+  animation: anim-slide-in-up var(--anim-duration-normal) var(--anim-ease-out-expo) forwards;
+}
+
+/* Stagger delays up to 10 children */
+.anim-stagger > *:nth-child(1) { animation-delay: 0ms; }
+.anim-stagger > *:nth-child(2) { animation-delay: var(--anim-stagger-increment); }
+.anim-stagger > *:nth-child(3) { animation-delay: calc(var(--anim-stagger-increment) * 2); }
+.anim-stagger > *:nth-child(4) { animation-delay: calc(var(--anim-stagger-increment) * 3); }
+.anim-stagger > *:nth-child(5) { animation-delay: calc(var(--anim-stagger-increment) * 4); }
+.anim-stagger > *:nth-child(6) { animation-delay: calc(var(--anim-stagger-increment) * 5); }
+.anim-stagger > *:nth-child(7) { animation-delay: calc(var(--anim-stagger-increment) * 6); }
+.anim-stagger > *:nth-child(8) { animation-delay: calc(var(--anim-stagger-increment) * 7); }
+.anim-stagger > *:nth-child(9) { animation-delay: calc(var(--anim-stagger-increment) * 8); }
+.anim-stagger > *:nth-child(10) { animation-delay: calc(var(--anim-stagger-increment) * 9); }
+
+/* ============================================================================
+   Micro-interactions
+   ============================================================================ */
+
+/* Button hover scale */
+.anim-button-hover {
+  transition: transform var(--anim-duration-fast) var(--anim-ease-out-expo);
+}
+
+.anim-button-hover:hover {
+  transform: scale(1.02);
+}
+
+.anim-button-hover:active {
+  transform: scale(0.98);
+}
+
+/* Card hover lift */
+.anim-card-hover {
+  transition: transform var(--anim-duration-normal) var(--anim-ease-out-expo),
+              box-shadow var(--anim-duration-normal) ease;
+}
+
+.anim-card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+/* Modal backdrop fade */
+.anim-modal-backdrop {
+  animation: anim-fade-in var(--anim-duration-normal) var(--anim-ease-out-expo) forwards;
+}
+
+/* Modal content scale + fade */
+.anim-modal-content {
+  animation: anim-modal-enter var(--anim-duration-normal) var(--anim-ease-out-expo) forwards;
+}
+
+@keyframes anim-modal-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Loading pulse */
+.anim-loading-pulse {
+  animation: anim-loading-pulse 2s ease-in-out infinite;
+}
+
+@keyframes anim-loading-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Spinner rotation */
+.anim-spin {
+  animation: anim-spin 1s linear infinite;
+}
+
+@keyframes anim-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ============================================================================
+   Transition Classes (for state changes)
+   ============================================================================ */
+
+/* Generic transition */
+.anim-transition {
+  transition: all var(--anim-duration-normal) var(--anim-ease-out-expo);
+}
+
+/* Transform only */
+.anim-transition-transform {
+  transition: transform var(--anim-duration-normal) var(--anim-ease-out-expo);
+}
+
+/* Opacity only */
+.anim-transition-opacity {
+  transition: opacity var(--anim-duration-normal) ease;
+}
+
+/* ============================================================================
+   Reduced Motion Support
+   ============================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .anim-stagger > * {
+    opacity: 1;
+    animation: none;
+  }
+
+  .anim-button-hover:hover,
+  .anim-card-hover:hover {
+    transform: none;
+  }
+
+  .anim-initial {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ============================================================================
+   Performance Optimizations
+   ============================================================================ */
+
+/* GPU acceleration */
+.anim-gpu {
+  transform: translateZ(0);
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
+/* Smooth scrolling */
+.anim-smooth-scroll {
+  scroll-behavior: smooth;
+}
+
+/* Containment for performance */
+.anim-contain {
+  contain: layout style paint;
+}

@@ -32,7 +32,7 @@ export function ChannelCard({
   const cardRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
-    const handleKeyDown = (e: React.KeyboardEvent) => {
+    const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Enter' || e.key === ' ') {
         if (document.activeElement === cardRef.current) {
           e.preventDefault()
@@ -42,8 +42,8 @@ export function ChannelCard({
     }
 
     const card = cardRef.current
-    card?.addEventListener('keydown', handleKeyDown as any)
-    return () => card?.removeEventListener('keydown', handleKeyDown as any)
+    card?.addEventListener('keydown', handleKeyDown as EventListener)
+    return () => card?.removeEventListener('keydown', handleKeyDown as EventListener)
   }, [onToggle])
 
   return (
@@ -122,7 +122,9 @@ function loadDraft(): Set<string> | null {
     if (!raw) return null
     const arr = JSON.parse(raw)
     if (Array.isArray(arr) && arr.length > 0) return new Set(arr)
-  } catch {}
+  } catch {
+    /* ignore */
+  }
   return null
 }
 
@@ -158,7 +160,9 @@ export function OnboardingModal({ onDone, initialSelected }: OnboardingModalProp
   useEffect(() => {
     try {
       localStorage.setItem(DRAFT_KEY, JSON.stringify([...selected]))
-    } catch {}
+    } catch {
+      /* ignore */
+    }
   }, [selected])
 
   const toggle = (id: string) => {
@@ -176,7 +180,9 @@ export function OnboardingModal({ onDone, initialSelected }: OnboardingModalProp
   const handleDone = () => {
     try {
       localStorage.removeItem(DRAFT_KEY)
-    } catch {}
+    } catch {
+      /* ignore */
+    }
     onDone(new Set(selected))
   }
 
@@ -194,9 +200,9 @@ export function OnboardingModal({ onDone, initialSelected }: OnboardingModalProp
       <div
         ref={modalRef}
         className="glass-card-lg w-full max-w-2xl max-h-[88vh] flex flex-col rounded-2xl overflow-hidden"
-        style={{
-          boxShadow: '0 24px 60px rgba(0,0,0,0.6)',
-        }}
+
+        style={{ boxShadow: '0 24px 60px rgba(0,0,0,0.6)' }}
+
         data-testid="onboarding-modal"
       >
         {/* Hero header */}

@@ -151,6 +151,7 @@ let reporterInstance: ErrorReporter | null = null
 
 export function useErrorReporting(options: UseErrorReportingOptions = {}): UseErrorReportingReturn {
   if (!reporterInstance) {
+    // eslint-disable-next-line react-hooks/globals
     reporterInstance = new ErrorReporter(options)
   }
 

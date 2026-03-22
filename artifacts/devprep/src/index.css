@@ -1,100 +1,121 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
+@import './styles/themes.css';
+@import './styles/tokens.css';
 @import './styles/typography.css';
 @import './styles/glass.css';
 @import './styles/animations.css';
+@import './styles/new-animations.css';
 @import './styles/layout.css';
+@import './styles/responsive.css';
 @plugin "@tailwindcss/typography";
 
 @custom-variant dark (&:is(.dark *));
 
+/* ============================================================================
+   Tailwind Theme Integration
+   Maps design tokens to Tailwind CSS theme
+   ============================================================================ */
+
 @theme inline {
-  --color-background: hsl(var(--background));
-  --color-foreground: hsl(var(--foreground));
-  --color-border: hsl(var(--border));
-  --color-input: hsl(var(--input));
-  --color-ring: hsl(var(--ring));
+  /* Background colors */
+  --color-background: var(--color-bg-base);
+  --color-foreground: var(--color-fg-base);
+  --color-border: var(--color-border-base);
+  --color-input: var(--color-border-base);
+  --color-ring: var(--color-ring-base);
 
-  --color-card: hsl(var(--card));
-  --color-card-foreground: hsl(var(--card-foreground));
-  --color-card-border: hsl(var(--card-border));
+  /* Card colors */
+  --color-card: var(--color-surface-base);
+  --color-card-foreground: var(--color-fg-base);
+  --color-card-border: var(--color-border-base);
 
-  --color-popover: hsl(var(--popover));
-  --color-popover-foreground: hsl(var(--popover-foreground));
-  --color-popover-border: hsl(var(--popover-border));
+  /* Popover colors */
+  --color-popover: var(--color-surface-overlay);
+  --color-popover-foreground: var(--color-fg-base);
+  --color-popover-border: var(--color-border-base);
 
-  --color-primary: hsl(var(--primary));
-  --color-primary-foreground: hsl(var(--primary-foreground));
-  --color-primary-border: var(--primary-border);
+  /* Primary colors */
+  --color-primary: var(--color-bg-primary);
+  --color-primary-foreground: var(--color-fg-inverted);
+  --color-primary-border: var(--color-border-primary);
 
-  --color-secondary: hsl(var(--secondary));
-  --color-secondary-foreground: hsl(var(--secondary-foreground));
-  --color-secondary-border: var(--secondary-border);
+  /* Secondary colors */
+  --color-secondary: var(--color-bg-secondary);
+  --color-secondary-foreground: var(--color-fg-secondary);
+  --color-secondary-border: var(--color-border-secondary);
 
-  --color-muted: hsl(var(--muted));
-  --color-muted-foreground: hsl(var(--muted-foreground));
-  --color-muted-border: var(--muted-border);
+  /* Muted colors */
+  --color-muted: var(--color-bg-muted);
+  --color-muted-foreground: var(--color-fg-muted);
+  --color-muted-border: var(--color-border-muted);
 
-  --color-accent: hsl(var(--accent));
-  --color-accent-foreground: hsl(var(--accent-foreground));
-  --color-accent-border: var(--accent-border);
+  /* Accent colors */
+  --color-accent: var(--color-bg-accent);
+  --color-accent-foreground: var(--color-fg-accent);
+  --color-accent-border: var(--color-border-accent);
 
-  --color-destructive: hsl(var(--destructive));
-  --color-destructive-foreground: hsl(var(--destructive-foreground));
-  --color-destructive-border: var(--destructive-border);
+  /* Destructive colors */
+  --color-destructive: var(--color-bg-destructive);
+  --color-destructive-foreground: var(--color-fg-inverted);
+  --color-destructive-border: var(--color-border-destructive);
 
-  --color-chart-1: hsl(var(--chart-1));
-  --color-chart-2: hsl(var(--chart-2));
-  --color-chart-3: hsl(var(--chart-3));
-  --color-chart-4: hsl(var(--chart-4));
-  --color-chart-5: hsl(var(--chart-5));
+  /* Chart colors */
+  --color-chart-1: var(--color-bg-primary);
+  --color-chart-2: var(--color-bg-success);
+  --color-chart-3: var(--color-bg-warning);
+  --color-chart-4: var(--glass-accent-primary);
+  --color-chart-5: var(--glass-accent-secondary);
 
-  --color-sidebar: hsl(var(--sidebar));
-  --color-sidebar-foreground: hsl(var(--sidebar-foreground));
-  --color-sidebar-border: hsl(var(--sidebar-border));
-  --color-sidebar-primary: hsl(var(--sidebar-primary));
-  --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
-  --color-sidebar-primary-border: var(--sidebar-primary-border);
-  --color-sidebar-accent: hsl(var(--sidebar-accent));
-  --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
-  --color-sidebar-accent-border: var(--sidebar-accent-border);
-  --color-sidebar-ring: hsl(var(--sidebar-ring));
+  /* Sidebar colors */
+  --color-sidebar: var(--color-surface-base);
+  --color-sidebar-foreground: var(--color-fg-base);
+  --color-sidebar-border: var(--color-border-base);
+  --color-sidebar-primary: var(--color-bg-primary);
+  --color-sidebar-primary-foreground: var(--color-fg-inverted);
+  --color-sidebar-primary-border: var(--color-border-primary);
+  --color-sidebar-accent: var(--color-bg-accent);
+  --color-sidebar-accent-foreground: var(--color-fg-accent);
+  --color-sidebar-accent-border: var(--color-border-accent);
+  --color-sidebar-ring: var(--color-ring-base);
 
-  /* Apple Vision Pro Glass Theme Colors */
-  --color-glass-bg: var(--glass-bg);
-  --color-glass-bg-hover: var(--glass-bg-hover);
-  --color-glass-border: var(--glass-border);
-  --color-glass-border-hover: var(--glass-border-hover);
-  --color-luminous-edge: var(--luminous-edge);
+  /* Glass theme colors */
+  --color-glass-bg: var(--glass-bg-light);
+  --color-glass-bg-hover: var(--glass-bg-medium);
+  --color-glass-border: var(--glass-border-light);
+  --color-glass-border-hover: var(--glass-border-medium);
+  --color-luminous-edge: var(--glass-luminous-primary);
 
-  --font-sans: var(--app-font-sans);
-  --font-headline: var(--app-font-headline);
-  --font-serif: var(--app-font-serif);
-  --font-mono: var(--app-font-mono);
+  /* Font families */
+  --font-sans: var(--font-family-sans);
+  --font-headline: var(--font-family-sans);
+  --font-serif: var(--font-family-serif);
+  --font-mono: var(--font-family-mono);
 
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  /* Border radius */
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
 
   /* Mobile-first design tokens */
   --touch-target-min: 44px;
-  --mobile-padding: 1rem;
-  --mobile-gap: 0.75rem;
-  --mobile-font-size-base: 16px;
-  --mobile-font-size-sm: 14px;
-  --mobile-font-size-lg: 18px;
-  --mobile-line-height: 1.5;
-  --mobile-breakpoint-sm: 640px;
-  --mobile-breakpoint-md: 768px;
-  --mobile-breakpoint-lg: 1024px;
-  --mobile-breakpoint-xl: 1280px;
+  --mobile-padding: var(--space-4);
+  --mobile-gap: var(--space-3);
+  --mobile-font-size-base: var(--font-size-base);
+  --mobile-font-size-sm: var(--font-size-sm);
+  --mobile-font-size-lg: var(--font-size-lg);
+  --mobile-line-height: var(--line-height-normal);
+  --mobile-breakpoint-sm: var(--breakpoint-sm);
+  --mobile-breakpoint-md: var(--breakpoint-md);
+  --mobile-breakpoint-lg: var(--breakpoint-lg);
+  --mobile-breakpoint-xl: var(--breakpoint-xl);
 
   /* Container query breakpoints */
-  --container-breakpoint-sm: 640px;
-  --container-breakpoint-md: 768px;
-  --container-breakpoint-lg: 1024px;
-  --container-breakpoint-xl: 1280px;
+  --container-breakpoint-sm: var(--breakpoint-sm);
+  --container-breakpoint-md: var(--breakpoint-md);
+  --container-breakpoint-lg: var(--breakpoint-lg);
+  --container-breakpoint-xl: var(--breakpoint-xl);
 }
 
 /* ============================================================================
@@ -411,6 +432,17 @@
   }
 }
 
+/* Apple Vision Pro Glass Utilities */
+@utility glass {
+  @apply bg-glass-bg backdrop-blur-lg border-glass-border;
+  box-shadow: var(--glass-shadow);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  &:hover {
+    @apply bg-glass-bg-hover border-glass-border-hover;
+    box-shadow: var(--glass-shadow-hover);
+  }
+}
+
 @layer utilities {
   input[type='search']::-webkit-search-cancel-button {
     @apply hidden;
@@ -475,11 +507,6 @@
     inset: -1px;
   }
 
-  /* Mobile-first responsive container utilities */
-  .container-mobile {
-    @apply w-full px-4 mx-auto;
-    max-width: 100%;
-  }
   @media (min-width: 640px) {
     .container-mobile {
       @apply px-6;
@@ -1327,17 +1354,6 @@
     .grid-cards {
       grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     }
-  }
-
-  /* Apple Vision Pro Glass Utilities */
-  .glass {
-    @apply bg-glass-bg backdrop-blur-lg border-glass-border;
-    box-shadow: var(--glass-shadow);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  .glass:hover {
-    @apply bg-glass-bg-hover border-glass-border-hover;
-    box-shadow: var(--glass-shadow-hover);
   }
 
   /* Elevated layers with depth */

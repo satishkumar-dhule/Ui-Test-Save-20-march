@@ -2,13 +2,13 @@ import { useCallback } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { QUERY_KEYS } from '@/lib/queryClient'
 import { useContentStore, type ContentItem, type ContentStats } from '@/lib/contentStore'
-import type { ContentType } from '@/types/realtime'
+import type { ContentType, ContentStatus } from '@/stores/types'
 import { fetchAllContent, fetchContentStats } from '@/services/contentApi'
 
 interface UseContentOptions {
   channelId?: string
   type?: ContentType
-  status?: 'pending' | 'approved' | 'rejected'
+  status?: ContentStatus
   minQuality?: number
   limit?: number
   enabled?: boolean

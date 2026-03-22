@@ -1,0 +1,92 @@
+[
+  {
+    "id": "QA-01",
+    "title": "Define E2E test plan for Apple Glass migration",
+    "body": "Establish the end-to-end testing strategy for the Apple Glass theme migration; include scope, success criteria, risk mitigation, and alignment with the END2END_PLAN.md.",
+    "labels": ["QA", "E2E", "AppleGlass"],
+    "assignee": "QAL",
+    "status": "Open",
+    "link": "qa/END2END_PLAN.md"
+  },
+  {
+    "id": "QA-02",
+    "title": "Set up Playwright framework and CI integration",
+    "body": "Initialize Playwright config, install dependencies, and wire tests to CI.",
+    "labels": ["QA", "E2E", "CI"],
+    "assignee": "AUE",
+    "status": "Open",
+    "link": "tests/e2e/playwright.config.ts"
+  },
+  {
+    "id": "QA-03",
+    "title": "Create test scripts for agent groups 1-3",
+    "body": "Write automated tests for onboarding and work-item creation for engineers 1-3.",
+    "labels": ["QA", "E2E"],
+    "assignee": "SQA1",
+    "status": "Open",
+    "link": "tests/e2e/devprep.qa.spec.ts"
+  },
+  {
+    "id": "QA-04",
+    "title": "Create test scripts for agent groups 4-6",
+    "body": "Write automated tests for onboarding and work-item creation for engineers 4-6.",
+    "labels": ["QA", "E2E"],
+    "assignee": "SQA2",
+    "status": "Open",
+    "link": "tests/e2e/devprep.qa.spec.ts"
+  },
+  {
+    "id": "QA-05",
+    "title": "Create test scripts for agent groups 7-9",
+    "body": "Write automated tests for onboarding and work-item creation for engineers 7-9.",
+    "labels": ["QA", "E2E"],
+    "assignee": "JQA1",
+    "status": "Open",
+    "link": "tests/e2e/devprep.qa.spec.ts"
+  },
+  {
+    "id": "QA-06",
+    "title": "Create test scripts for agent group 10 + coordinator",
+    "body": "Write automated tests for onboarding and work-item creation for engineer 10 and coordinator.",
+    "labels": ["QA", "E2E"],
+    "assignee": "JQA2",
+    "status": "Open",
+    "link": "tests/e2e/devprep.qa.spec.ts"
+  },
+  {
+    "id": "QA-07",
+    "title": "Integrate E2E tests into CI (GitHub Actions)",
+    "body": "Add CI workflow steps to run Playwright tests on PRs and push results.",
+    "labels": ["CI", "QA", "E2E"],
+    "assignee": "AUE",
+    "status": "Open",
+    "link": ".github/workflows/e2e.yml"
+  },
+  {
+    "id": "QA-08",
+    "title": "Run full E2E suite and publish results",
+    "body": "Execute the full set of E2E tests and publish pass/fail metrics.",
+    "labels": ["QA", "E2E"],
+    "assignee": "QAL",
+    "status": "Open",
+    "link": "QA_TRACKER.md"
+  },
+  {
+    "id": "QA-09",
+    "title": "Track defects and assign to agents",
+    "body": "Create defects for any failures, assign to responsible agent owners, and track status.",
+    "labels": ["QA", "Defects"],
+    "assignee": "JQA5",
+    "status": "Open",
+    "link": "QA_TRACKER.md"
+  },
+  {
+    "id": "QA-10",
+    "title": "Documentation and evidence collection",
+    "body": "Document test results, evidence, and reusability considerations.",
+    "labels": ["QA", "Docs"],
+    "assignee": "JQA6",
+    "status": "Open",
+    "link": "QA_TRACKER.md"
+  }
+]

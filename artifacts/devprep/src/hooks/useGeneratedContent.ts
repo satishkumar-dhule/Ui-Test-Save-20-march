@@ -43,7 +43,9 @@ function saveCache(data: GeneratedContentMap) {
   try {
     const entry: CacheEntry = { ts: Date.now(), data }
     localStorage.setItem(CACHE_KEY, JSON.stringify(entry))
-  } catch {}
+  } catch {
+    /* ignore cache write errors */
+  }
 }
 
 interface UseGeneratedContentResult {

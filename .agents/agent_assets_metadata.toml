@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "EeABgvgvid9S9kkpQK5or"
+uri = "file://CONTENT_STANDARDS.md"
+type = "text"
+title = "DevPrep Content Standards (revised)"
