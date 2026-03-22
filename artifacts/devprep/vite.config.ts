@@ -171,6 +171,19 @@ export default defineConfig({
       ? path.resolve(import.meta.dirname, 'dist')
       : path.resolve(import.meta.dirname, 'dist/public'),
     emptyOutDir: true,
+    sourcemap: false, // Disable sourcemaps in production for smaller bundle
+    minify: 'terser', // Use terser for better minification
+    terserOptions: {
+      compress: {
+        drop_console: true, // Remove console.log in production
+        drop_debugger: true,
+        pure_funcs: ['console.log', 'console.info', 'console.debug'], // Remove specific console methods
+        passes: 2, // Run terser twice for better compression
+      },
+      mangle: {
+        safari10: true, // Fix Safari 10 bugs
+      },
+    },
     rollupOptions: {
       output: {
         manualChunks: id => {

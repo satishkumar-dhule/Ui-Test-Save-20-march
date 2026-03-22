@@ -1,4 +1,5 @@
-import { motion, type Variants } from 'framer-motion'
+import { useEffect, useRef, useState } from 'react'
+import { useReducedMotion } from '@/hooks/animation/useReducedMotion'
 import { cn } from '@/lib/utils'
 
 export interface FadeInProps {
@@ -12,88 +13,98 @@ export interface FadeInProps {
   triggerOnView?: boolean
 }
 
-const directionVariants: Record<
-  string,
-  {
-    initial: { opacity: number; x?: number; y?: number }
-    animate: { opacity: number; x?: number; y?: number }
-  }
-> = {
-  up: {
-    initial: { opacity: 0, y: 20 },
-    animate: { opacity: 1, y: 0 },
-  },
-  down: {
-    initial: { opacity: 0, y: -20 },
-    animate: { opacity: 1, y: 0 },
-  },
-  left: {
-    initial: { opacity: 0, x: 20 },
-    animate: { opacity: 1, x: 0 },
-  },
-  right: {
-    initial: { opacity: 0, x: -20 },
-    animate: { opacity: 1, x: 0 },
-  },
-  none: {
-    initial: { opacity: 0 },
-    animate: { opacity: 1 },
-  },
-}
-
 export function FadeIn({
   children,
   className,
   delay = 0,
-  duration = 0.5,
+  duration = 300,
   direction = 'up',
   distance = 20,
   once = true,
   triggerOnView = true,
 }: FadeInProps) {
-  const variant = directionVariants[direction]
+  const reducedMotion = useReducedMotion()
+  const [isVisible, setIsVisible] = useState(false)
+  const elementRef = useRef<HTMLDivElement>(null)
 
-  const initial = { ...variant.initial }
-  const animate = { ...variant.animate }
+  useEffect(() => {
+    if (reducedMotion) {
+      setIsVisible(true)
+      return
+    }
 
-  // Apply custom distance
-  if (direction === 'up' || direction === 'down') {
-    initial.y = direction === 'up' ? distance : -distance
-    animate.y = 0
-  } else if (direction === 'left' || direction === 'right') {
-    initial.x = direction === 'left' ? distance : -distance
-    animate.x = 0
-  }
+    if (!triggerOnView) {
+      setIsVisible(true)
+      return
+    }
 
-  const variants: Variants = {
-    initial,
-    animate,
-  }
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true)
+          if (once && elementRef.current) {
+            observer.unobserve(elementRef.current)
+          }
+        }
+      },
+      { threshold: 0.1 }
+    )
+
+    if (elementRef.current) {
+      observer.observe(elementRef.current)
+    }
+
+    return () => observer.disconnect()
+  }, [reducedMotion, triggerOnView, once])
+
+  const animationClass = getAnimationClass(direction, duration, delay)
 
   return (
-    <motion.div
-      initial="initial"
-      whileInView={triggerOnView ? 'animate' : undefined}
-      animate={!triggerOnView ? 'animate' : undefined}
-      viewport={{ once }}
-      variants={variants}
-      transition={{
-        duration,
-        delay,
-        ease: [0.16, 1, 0.3, 1], // easeOutExpo
-      }}
-      className={cn('will-change-transform', className)}
+    <div
+      ref={elementRef}
+      className={cn(
+        'anim-initial',
+        isVisible && !reducedMotion && animationClass,
+        isVisible && reducedMotion && 'anim-fade-in-fast',
+        className
+      )}
+      style={{
+        '--anim-distance': `${distance}px`,
+        '--anim-duration': `${duration}ms`,
+        '--anim-delay': `${delay}ms`,
+      } as React.CSSProperties}
     >
       {children}
-    </motion.div>
+    </div>
   )
 }
 
+function getAnimationClass(
+  direction: FadeInProps['direction'],
+  duration: number,
+  delay: number
+): string {
+  // For custom durations/delays, we could use CSS variables
+  // For now, return base class
+  switch (direction) {
+    case 'up':
+      return 'anim-slide-in-up'
+    case 'down':
+      return 'anim-slide-in-down'
+    case 'left':
+      return 'anim-slide-in-left'
+    case 'right':
+      return 'anim-slide-in-right'
+    case 'none':
+    default:
+      return 'anim-fade-in'
+  }
+}
+
 // Preset variants for common use cases
-// eslint-disable-next-line react-refresh/only-export-components
 export const fadeInPresets = {
-  subtle: { duration: 0.3, distance: 10 },
-  default: { duration: 0.5, distance: 20 },
-  slow: { duration: 0.8, distance: 30 },
-  spring: { duration: 0.5, distance: 20 },
+  subtle: { duration: 200, distance: 10 },
+  default: { duration: 300, distance: 20 },
+  slow: { duration: 500, distance: 30 },
+  spring: { duration: 300, distance: 20 },
 } as const

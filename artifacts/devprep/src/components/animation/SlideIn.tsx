@@ -1,4 +1,5 @@
-import { motion, type Variants } from 'framer-motion'
+import { useEffect, useRef, useState } from 'react'
+import { useReducedMotion } from '@/hooks/animation/useReducedMotion'
 import { cn } from '@/lib/utils'
 
 export interface SlideInProps {
@@ -12,70 +13,83 @@ export interface SlideInProps {
   triggerOnView?: boolean
 }
 
-const slideVariants: Record<
-  string,
-  { initial: { x?: number; y?: number }; animate: { x?: number; y?: number } }
-> = {
-  left: {
-    initial: { x: -100 },
-    animate: { x: 0 },
-  },
-  right: {
-    initial: { x: 100 },
-    animate: { x: 0 },
-  },
-  up: {
-    initial: { y: -100 },
-    animate: { y: 0 },
-  },
-  down: {
-    initial: { y: 100 },
-    animate: { y: 0 },
-  },
-}
-
 export function SlideIn({
   children,
   className,
   delay = 0,
-  duration = 0.6,
+  duration = 300,
   direction = 'left',
   distance = 100,
   once = true,
   triggerOnView = true,
 }: SlideInProps) {
-  const variant = slideVariants[direction]
+  const reducedMotion = useReducedMotion()
+  const [isVisible, setIsVisible] = useState(false)
+  const elementRef = useRef<HTMLDivElement>(null)
 
-  const initial = { ...variant.initial }
-  const animate = { ...variant.animate }
+  useEffect(() => {
+    if (reducedMotion) {
+      setIsVisible(true)
+      return
+    }
 
-  // Apply custom distance
-  if (direction === 'left' || direction === 'right') {
-    initial.x = direction === 'left' ? -distance : distance
-  } else {
-    initial.y = direction === 'up' ? -distance : distance
-  }
+    if (!triggerOnView) {
+      setIsVisible(true)
+      return
+    }
 
-  const variants: Variants = {
-    initial,
-    animate,
-  }
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true)
+          if (once && elementRef.current) {
+            observer.unobserve(elementRef.current)
+          }
+        }
+      },
+      { threshold: 0.1 }
+    )
+
+    if (elementRef.current) {
+      observer.observe(elementRef.current)
+    }
+
+    return () => observer.disconnect()
+  }, [reducedMotion, triggerOnView, once])
+
+  const animationClass = getSlideAnimationClass(direction)
 
   return (
-    <motion.div
-      initial="initial"
-      whileInView={triggerOnView ? 'animate' : undefined}
-      animate={!triggerOnView ? 'animate' : undefined}
-      viewport={{ once }}
-      variants={variants}
-      transition={{
-        duration,
-        delay,
-        ease: [0.16, 1, 0.3, 1], // easeOutExpo
-      }}
-      className={cn('will-change-transform', className)}
+    <div
+      ref={elementRef}
+      className={cn(
+        'anim-initial',
+        isVisible && !reducedMotion && animationClass,
+        isVisible && reducedMotion && 'anim-fade-in-fast',
+        className
+      )}
+      style={{
+        '--anim-distance': `${distance}px`,
+        '--anim-duration': `${duration}ms`,
+        '--anim-delay': `${delay}ms`,
+      } as React.CSSProperties}
     >
       {children}
-    </motion.div>
+    </div>
   )
+}
+
+function getSlideAnimationClass(direction: SlideInProps['direction']): string {
+  switch (direction) {
+    case 'left':
+      return 'anim-slide-in-left'
+    case 'right':
+      return 'anim-slide-in-right'
+    case 'up':
+      return 'anim-slide-in-up'
+    case 'down':
+      return 'anim-slide-in-down'
+    default:
+      return 'anim-slide-in-left'
+  }
 }

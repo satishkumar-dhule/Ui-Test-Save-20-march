@@ -1,8 +1,8 @@
-// Animation primitives
+// Animation primitives - CSS-based implementations
 export { FadeIn, fadeInPresets } from './FadeIn'
 export { SlideIn } from './SlideIn'
-export { Scale } from './Scale'
-export { Stagger } from './Stagger'
+export { Scale, ScaleIn } from './ScaleIn'
+export { Stagger, StaggerChildren } from './StaggerChildren'
 export {
   Transition,
   FadeIn as FadeInTransition,
@@ -17,7 +17,7 @@ export { PageTransition, AnimatePresence } from './PageTransition'
 // Types
 export type { FadeInProps } from './FadeIn'
 export type { SlideInProps } from './SlideIn'
-export type { ScaleProps } from './Scale'
-export type { StaggerProps } from './Stagger'
+export type { ScaleProps } from './ScaleIn'
+export type { StaggerProps } from './StaggerChildren'
 export type { TransitionProps } from './Transition'
 export type { PageTransitionProps } from './PageTransition'

@@ -1,9 +1,8 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { ContentLayout } from '@/components/layouts/ContentLayout'
-import { Button } from '@/components/atoms/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/molecules/Card'
-import { Badge } from '@/components/atoms/Badge'
+import { Badge } from '@/components/atoms'
 import { contentApi } from '@/lib/api/endpoints'
 
 type ContentType = 'question' | 'flashcard' | 'exam' | 'voice' | 'coding'
@@ -51,15 +50,18 @@ export function ContentPage() {
             <h3 className="font-medium mb-3">Content Type</h3>
             <div className="space-y-1">
               {contentTypes.map((item) => (
-                <Button
+                <button
                   key={item.type}
-                  variant={activeType === item.type ? 'secondary' : 'ghost'}
-                  className="w-full justify-start"
+                  className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
+                    activeType === item.type
+                      ? 'bg-secondary text-secondary-foreground'
+                      : 'hover:bg-accent hover:text-accent-foreground'
+                  }`}
                   onClick={() => setActiveType(item.type)}
                 >
                   <span className="mr-2">{item.icon}</span>
                   {item.label}
-                </Button>
+                </button>
               ))}
             </div>
           </div>
@@ -69,14 +71,17 @@ export function ContentPage() {
             <h3 className="font-medium mb-3">Channel</h3>
             <div className="space-y-1">
               {channels.map((channel) => (
-                <Button
+                <button
                   key={channel.id}
-                  variant={selectedChannel === channel.id ? 'secondary' : 'ghost'}
-                  className="w-full justify-start"
+                  className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
+                    selectedChannel === channel.id
+                      ? 'bg-secondary text-secondary-foreground'
+                      : 'hover:bg-accent hover:text-accent-foreground'
+                  }`}
                   onClick={() => setSelectedChannel(channel.id)}
                 >
                   {channel.name}
-                </Button>
+                </button>
               ))}
             </div>
           </div>
@@ -127,7 +132,7 @@ export function ContentPage() {
                   <CardTitle className="text-lg line-clamp-2">
                     {item.title || item.question || 'Untitled'}
                   </CardTitle>
-                  <Badge variant="outline" className="ml-2 shrink-0">
+                  <Badge variant="secondary" className="ml-2 shrink-0">
                     {item.difficulty || 'Medium'}
                   </Badge>
                 </div>
@@ -139,14 +144,14 @@ export function ContentPage() {
                 <div className="flex items-center justify-between">
                   <div className="flex gap-1">
                     {item.tags?.slice(0, 3).map((tag: string, index: number) => (
-                      <Badge key={index} variant="secondary" className="text-xs">
+                      <Badge key={index} variant="outline" className="text-xs">
                         {tag}
                       </Badge>
                     ))}
                   </div>
-                  <Button variant="ghost" size="sm">
+                  <button className="text-sm text-primary hover:underline">
                     Study →
-                  </Button>
+                  </button>
                 </div>
               </CardContent>
             </Card>

@@ -2,11 +2,11 @@ import { ReactNode } from 'react'
 import { Layout } from './Layout'
 
 interface DashboardLayoutProps {
-  children: ReactNode
   title?: string
   description?: string
   sidebar?: ReactNode
   actions?: ReactNode
+  children: ReactNode
 }
 
 export function DashboardLayout({
@@ -24,7 +24,9 @@ export function DashboardLayout({
       sidebarContent={sidebar}
       headerActions={actions}
     >
-      <div className="space-y-6">{children}</div>
+      <div className="space-y-6">
+        {children}
+      </div>
     </Layout>
   )
 }

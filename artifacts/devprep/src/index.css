@@ -5,6 +5,7 @@
 @import './styles/typography.css';
 @import './styles/glass.css';
 @import './styles/animations.css';
+@import './styles/new-animations.css';
 @import './styles/layout.css';
 @import './styles/responsive.css';
 @plugin "@tailwindcss/typography";
