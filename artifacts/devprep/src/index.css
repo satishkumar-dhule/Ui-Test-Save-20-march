@@ -471,11 +471,6 @@
     inset: -1px;
   }
 
-  /* Mobile-first responsive container utilities */
-  .container-mobile {
-    @apply w-full px-4 mx-auto;
-    max-width: 100%;
-  }
   @media (min-width: 640px) {
     .container-mobile {
       @apply px-6;
