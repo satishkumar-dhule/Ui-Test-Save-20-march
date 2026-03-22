@@ -42,25 +42,49 @@ These rules apply to every entity across every channel.
 
 ## 2. Difficulty Calibration
 
-### Technical Channels (JavaScript, TypeScript, React, Algorithms, System Design, etc.)
+DevPrep uses **two parallel difficulty taxonomies** depending on channel type. Each entity's TypeScript interface declares which taxonomy applies. The taxonomies are intentionally kept separate — do not mix terms across channel types (e.g. do not label an AWS-SAA Q&A as "intermediate").
 
-| Level | Definition | Example signals |
-|---|---|---|
-| **Beginner** | Covered in any intro tutorial; expected from a junior (0–1 yr) | `typeof`, `var` vs `let`, what is a Promise, `useState` basics |
-| **Intermediate** | Requires applied understanding; mid-level (2–4 yr) | Event loop microtask ordering, closure-based module pattern, memoization trade-offs, React reconciliation |
-| **Advanced** | Deep internals or senior-level design knowledge (5+ yr) | V8 hidden classes, custom scheduler, concurrent rendering, distributed consensus |
+### Taxonomy A — Tech Channels
+Applies to: Q&A, Flashcards, Voice Practice on **JavaScript, TypeScript, React, Algorithms, System Design, DevOps, Networking**
 
-### Certification Channels (AWS-SAA, CKA, Terraform, etc.)
+```typescript
+type DifficultyTech = 'beginner' | 'intermediate' | 'advanced'
+```
 
-| Level | Definition | Exam alignment |
-|---|---|---|
-| **Easy** | Single-service, single-concept; directly stated in official docs | What is an Internet Gateway? RDS Multi-AZ vs Read Replica |
-| **Medium** | Requires combining two or more concepts or selecting among similar services | S3 lifecycle rules vs Intelligent-Tiering; ALB vs NLB for specific traffic pattern |
-| **Hard** | Scenario-based; requires eliminating plausible wrong answers | RPO/RTO trade-offs between DR strategies; VPC peering vs Transit Gateway at scale |
+| Level | Definition | Experience signal | Example |
+|---|---|---|---|
+| `beginner` | Covered in any intro tutorial | 0–1 yr | `typeof`, `var` vs `let`, what is a Promise, `useState` basics |
+| `intermediate` | Requires applied understanding | 2–4 yr | Event loop microtask ordering, closure-based module pattern, React reconciliation |
+| `advanced` | Deep internals or senior-level design | 5+ yr | V8 hidden classes, custom scheduler, concurrent rendering, distributed consensus |
 
-**Mix targets per channel per content type:**
+### Taxonomy B — Certification Channels
+Applies to: Q&A, Flashcards, Mock Exam, Voice Practice on **AWS-SAA, AWS-DEV, CKA, Terraform**
 
-| Content Type | Beginner / Easy | Intermediate / Medium | Advanced / Hard |
+```typescript
+type DifficultyExam = 'easy' | 'medium' | 'hard'
+```
+
+| Level | Definition | Exam alignment | Example |
+|---|---|---|---|
+| `easy` | Single-service, single-concept; directly stated in official docs | Direct recall | What is an Internet Gateway? RDS Multi-AZ vs Read Replica |
+| `medium` | Combines two or more concepts; selects among similar services | Applied knowledge | S3 lifecycle vs Intelligent-Tiering; ALB vs NLB for a specific traffic pattern |
+| `hard` | Multi-constraint scenario; requires eliminating plausible distractors | Scenario analysis | RPO/RTO trade-offs between DR strategies; VPC peering vs Transit Gateway at scale |
+
+### Exception — Coding Challenges use Taxonomy B universally
+Coding challenges follow the **LeetCode/InterviewBit standard** of Easy / Medium / Hard on **all channels**, including tech channels. This is an intentional override: the problem-solving difficulty of an algorithm is not the same dimension as the career-seniority of a conceptual question.
+
+```typescript
+// Coding challenges always use DifficultyExam, regardless of channel type
+type CodingDifficulty = 'easy' | 'medium' | 'hard'
+```
+
+This means a JavaScript channel contains both:
+- Q&A / Flashcards using `DifficultyTech` (`beginner` / `intermediate` / `advanced`)
+- Coding Challenges using `CodingDifficulty` (`easy` / `medium` / `hard`)
+
+### Mix targets per channel per content type
+
+| Content Type | First level (Beginner / Easy) | Second level (Intermediate / Medium) | Third level (Advanced / Hard) |
 |---|---|---|---|
 | Q&A | 25% | 50% | 25% |
 | Flashcards | 35% | 45% | 20% |
@@ -85,9 +109,19 @@ Tags are used for filtering, search, and coverage tracking.
 
 **JavaScript:** `closures`, `event-loop`, `promises`, `async-await`, `prototypes`, `hoisting`, `this-binding`, `generators`, `modules`, `destructuring`, `types`, `scope`
 
+**TypeScript:** `types`, `generics`, `interfaces`, `enums`, `utility-types`, `type-guards`, `decorators`, `inference`, `mapped-types`, `narrowing`, `modules`, `strict-mode`
+
 **React:** `hooks`, `state`, `context`, `reconciliation`, `performance`, `lifecycle`, `refs`, `suspense`, `server-components`, `patterns`
 
 **Algorithms:** `arrays`, `strings`, `trees`, `graphs`, `dynamic-programming`, `sorting`, `binary-search`, `heaps`, `sliding-window`, `two-pointers`, `recursion`
+
+**System Design:** `scalability`, `availability`, `consistency`, `caching`, `load-balancing`, `databases`, `message-queues`, `cdn`, `rate-limiting`, `sharding`, `replication`, `api-design`, `microservices`, `cap-theorem`
+
+**DevOps:** `ci-cd`, `containers`, `docker`, `kubernetes`, `monitoring`, `logging`, `infrastructure-as-code`, `git`, `pipelines`, `secrets-management`, `blue-green`, `canary`, `sre`
+
+**Terraform:** `providers`, `resources`, `modules`, `state`, `workspaces`, `variables`, `outputs`, `data-sources`, `lifecycle`, `remote-backend`, `plan-apply`, `import`, `drift`
+
+**Networking:** `tcp-ip`, `dns`, `http`, `tls`, `load-balancing`, `firewalls`, `osi-model`, `subnets`, `routing`, `nat`, `vpn`, `cdn`
 
 **AWS-SAA:** `iam`, `ec2`, `s3`, `rds`, `vpc`, `lambda`, `cloudfront`, `elb`, `auto-scaling`, `route53`, `dynamodb`, `efs`, `sqs-sns`, `disaster-recovery`, `security`
 
@@ -100,17 +134,36 @@ Tags are used for filtering, search, and coverage tracking.
 ### TypeScript Interface
 
 ```typescript
+// AnswerSection is a discriminated union — each `type` value unlocks different fields.
+// The `short` section is the only required section; all others are optional but ordered.
+type AnswerSection =
+  | { type: 'short'; content: string }
+  // content: Markdown string, 80–250 words
+  | { type: 'code'; language: string; content: string; filename?: string }
+  // language: must match channel primary language; content: ≤ 35 lines runnable code
+  | { type: 'diagram'; title: string; description: string; svgContent: string }
+  // svgContent: inline SVG string, dark-mode palette, viewBox 500×300 / 500×400 / 700×300
+  | { type: 'eli5'; content: string }
+  // content: plain-English analogy only, 30–80 words, no technical terms
+  | { type: 'related'; topics: { title: string; description: string; tag: string }[] }
+  // topics: 2–4 items; title 2–5 words, description ≤ 25 words, tag valid concept tag
+  | { type: 'video'; title: string; url: string; description: string }
+  // Rarely used — only for official vendor conference talks or canonical explainers
+
 interface Question {
   id: string                  // Format: "q{n}" — sequential, never reused
   number: number              // Display number, 1-indexed per channel
   title: string               // The question, written as a full sentence
   tags: string[]              // 2–5 tags per tagging standards
-  difficulty: 'beginner' | 'intermediate' | 'advanced'
-  votes: number               // Seed value: beginner 50–150, intermediate 150–350, advanced 200–500
+  difficulty: DifficultyTech  // Tech channels: 'beginner' | 'intermediate' | 'advanced'
+                              // Cert channels:  use DifficultyExam — 'easy' | 'medium' | 'hard'
+                              // (The interface field accepts string; the value must match channel taxonomy)
+  votes: number               // Seed value: beginner/easy 50–150, intermediate/medium 150–350, advanced/hard 200–500
   views: string               // Seed value formatted "Xk" — proportional to votes × 50
   askedBy: string             // Realistic lowercase username, no real names
   askedAt: string             // ISO date string, within last 18 months
-  sections: AnswerSection[]   // See section rules below
+  sections: AnswerSection[]   // Ordered: short → code → diagram → eli5 → related
+  channelId?: string          // Set at runtime — do not hardcode in static data files
 }
 ```
 
@@ -239,13 +292,17 @@ interface Flashcard {
   back: string                // The answer
   hint?: string               // Optional retrieval cue
   tags: string[]              // 2–4 tags
-  difficulty: 'beginner' | 'intermediate' | 'advanced'
+  difficulty: DifficultyTech | DifficultyExam
+  // Tech channels  → DifficultyTech: 'beginner' | 'intermediate' | 'advanced'
+  // Cert channels  → DifficultyExam: 'easy' | 'medium' | 'hard'
+  // Rule: match the taxonomy of the channel the card belongs to (see §2)
   category: string            // Human-readable category, Title Case
   codeExample?: {             // Optional — only for code-heavy concepts
-    language: string
-    code: string              // Max 12 lines
+    language: Language        // Must be one of: 'javascript' | 'typescript' | 'python'
+    code: string              // Max 12 lines; syntactically correct; no solution walkthroughs
   }
-  mnemonic?: string           // Optional memory device
+  mnemonic?: string           // Optional memory device, max 20 words
+  channelId?: string          // Set at runtime — do not hardcode in static data files
 }
 ```
 
@@ -322,12 +379,16 @@ Coding challenges train **structured problem-solving** under time pressure, mode
 ### TypeScript Interface
 
 ```typescript
+// Language controls which starter code and solution entries are required.
+// All three values are mandatory on every challenge regardless of channel.
+type Language = 'javascript' | 'typescript' | 'python'
+
 interface CodingChallenge {
   id: string                  // Format: "cc{n}"
   channelId: string           // Channel slug
   title: string               // Title case, noun phrase describing the task
   slug: string                // kebab-case version of title
-  difficulty: 'easy' | 'medium' | 'hard'
+  difficulty: CodingDifficulty // Always 'easy' | 'medium' | 'hard' — see Section 2 Exception
   tags: string[]              // 2–5 concept tags
   category: string            // e.g. "Arrays", "Trees", "Strings", "Dynamic Programming"
   timeEstimate: number        // Expected minutes for target level: easy 10–20, medium 20–40, hard 35–60
@@ -633,13 +694,17 @@ Voice practice prompts train **verbal communication** of technical knowledge —
 interface VoicePrompt {
   id: string                  // Format: "vp{n}"
   channelId: string
-  prompt: string              // What the interviewer says
+  prompt: string              // What the interviewer says — 10–30 words of natural spoken speech
   type: 'technical' | 'behavioral' | 'scenario' | 'explain'
-  timeLimit: number           // Seconds — calibrated by type and difficulty
-  difficulty: 'beginner' | 'intermediate' | 'advanced'
-  domain: string              // Sub-topic, Title Case, 2–5 words
-  keyPoints: string[]         // 4–8 key points a strong answer must cover
-  followUp?: string           // A natural interviewer follow-up question
+  timeLimit: number           // Seconds — see timeLimit table below; calibrated by type × difficulty
+  difficulty: DifficultyTech | DifficultyExam
+  // Tech channels  → DifficultyTech: 'beginner' | 'intermediate' | 'advanced'
+  // Cert channels  → DifficultyExam: 'easy' | 'medium' | 'hard'
+  // The timeLimit table in this section uses Taxonomy A labels;
+  // for cert channels map: easy→beginner, medium→intermediate, hard→advanced
+  domain: string              // Sub-topic within the channel, Title Case, 2–5 words
+  keyPoints: string[]         // 4–8 concrete sub-topics in answer order (see keyPoints rules)
+  followUp?: string           // Required for advanced / hard — 8–20 words natural follow-up
 }
 ```
 
@@ -736,17 +801,47 @@ interface VoicePrompt {
 
 ## 9. Channel Coverage Targets
 
-Every channel must have all five content types populated above their minimum. The recommended balanced set is:
+Every channel must have all five content types populated at or above their per-entity minimums (defined in each section above). Targets differ by channel type because certification channels simulate full-length timed exams while tech channels supplement interview coaching.
 
-| Content Type | Target count per channel |
-|---|---|
-| Q&A Questions | 20–40 |
-| Flashcards | 25–50 |
-| Coding Challenges | 8–20 (where applicable) |
-| Mock Exam Questions | 20–50 |
-| Voice Practice Prompts | 8–20 |
+### Tech Channels
+Applies to: JavaScript, TypeScript, React, Algorithms, System Design, DevOps, Networking
 
-Channels where coding challenges are not applicable (e.g. AWS-SAA, CKA, Terraform): target 0, but keep coding challenges for any channel where scripting is exam-relevant (e.g. DevOps for bash/YAML, Terraform for HCL).
+| Content Type | Minimum | Target |
+|---|---|---|
+| Q&A Questions | Per §4 table | 20–40 |
+| Flashcards | Per §5 table | 25–50 |
+| Coding Challenges | Per §6 table | 8–20 |
+| Mock Exam Questions | 8 (per §7) | 10–20 |
+| Voice Practice Prompts | Per §8 table | 8–15 |
+
+Mock Exam for tech channels is intentionally smaller — its purpose is spot-checking conceptual accuracy, not simulating a full certification exam. 10–20 questions is the correct target; do not inflate to certification levels.
+
+### Certification Channels
+Applies to: AWS-SAA, AWS-DEV, CKA, Terraform
+
+| Content Type | Minimum | Target |
+|---|---|---|
+| Q&A Questions | Per §4 table | 20–35 |
+| Flashcards | Per §5 table | 30–60 |
+| Coding Challenges | 0 (see note) | 0–8 |
+| Mock Exam Questions | 30 (per §7) | 40–65 |
+| Voice Practice Prompts | Per §8 table | 6–15 |
+
+Mock Exam is the primary assessment vehicle for certification channels — 40–65 questions approaches the length of real practice exams (AWS-SAA: 65 q, CKA: 17–25 performance tasks, Terraform: 57 q).
+
+### Coding Challenge applicability
+
+Coding challenges are **not applicable** on pure certification channels (AWS-SAA, CKA) unless the exam explicitly tests scripting or configuration writing. Exceptions:
+
+| Channel | Coding applicable? | Reasoning |
+|---|---|---|
+| JavaScript, TypeScript, Algorithms | Yes — required | Core competency |
+| React | Yes — recommended | JSX/hook patterns are code problems |
+| DevOps | Yes — recommended | Bash scripting, Dockerfile, YAML authoring |
+| Terraform | Yes — recommended | HCL resource authoring is the exam format |
+| AWS-SAA, AWS-DEV | Optional | Boto3 / SDK snippets only if exam-weighted |
+| CKA | Optional | kubectl YAML manifests only |
+| System Design | No | System design is diagrammatic, not code |
 
 ---
 
