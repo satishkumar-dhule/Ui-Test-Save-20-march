@@ -277,9 +277,9 @@ FUNCTION selectAgent(task):
 ### Before Marking Task Complete
 
 - [ ] All code changes made
-- [ ] TypeScript compiles (`pnpm run typecheck` from workspace root)
-- [ ] Linting passes or pre-existing warnings are not worsened (`pnpm run lint`)
-- [ ] Tests pass (`pnpm run test`)
+- [ ] TypeScript compiles (`bun run typecheck` from workspace root)
+- [ ] Linting passes or pre-existing warnings are not worsened (`bun run --filter @workspace/devprep lint`)
+- [ ] Tests pass (`bun run --filter @workspace/devprep test`)
 - [ ] Checkpoint logged in `AGENT_TEAM.md`
 - [ ] Agent progress updated
 - [ ] Agent status set appropriately

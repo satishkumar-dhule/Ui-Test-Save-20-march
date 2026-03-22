@@ -16,13 +16,13 @@
 
 ## Overview
 
-pnpm workspace monorepo using TypeScript. Each package manages its own dependencies.
+Bun workspace monorepo using TypeScript. Each package manages its own dependencies.
 
 ## Stack
 
-- **Monorepo tool**: pnpm workspaces
-- **Node.js version**: 24
-- **Package manager**: pnpm
+- **Monorepo tool**: Bun workspaces (defined in `package.json#workspaces`)
+- **Package manager**: Bun (not pnpm — all scripts use `bun run`)
+- **Runtime**: Bun v1.x
 - **TypeScript version**: 5.9
 - **Frontend**: React 19, Vite, Tailwind CSS v4 (runs standalone — no backend needed)
 - **Database**: SQLite via sql.js (loaded in-browser from `/devprep.db`; seeds if unavailable)
@@ -54,8 +54,8 @@ artifacts-monorepo/
 │   ├── api-zod/            # Generated Zod schemas from OpenAPI
 │   └── db/                 # Drizzle ORM schema + DB connection
 ├── scripts/                # Utility scripts (single workspace package)
-│   └── src/                # Individual .ts scripts, run via `pnpm --filter @workspace/scripts run <script>`
-├── pnpm-workspace.yaml     # pnpm workspace (artifacts/*, lib/*, lib/integrations/*, scripts)
+│   └── src/                # Individual .ts scripts, run via `bun run --filter @workspace/scripts <script>`
+├── pnpm-workspace.yaml     # Legacy pnpm config (kept for reference; Bun reads workspaces from package.json)
 ├── tsconfig.base.json      # Shared TS options (composite, bundler resolution, es2022)
 ├── tsconfig.json           # Root TS project references
 └── package.json            # Root package with hoisted devDeps
@@ -65,14 +65,14 @@ artifacts-monorepo/
 
 Every package extends `tsconfig.base.json` which sets `composite: true`. The root `tsconfig.json` lists all packages as project references. This means:
 
-- **Always typecheck from the root** — run `pnpm run typecheck` (which runs `tsc --build --emitDeclarationOnly`). This builds the full dependency graph so that cross-package imports resolve correctly. Running `tsc` inside a single package will fail if its dependencies haven't been built yet.
+- **Always typecheck from the root** — run `bun run typecheck` (which runs `tsc --build --emitDeclarationOnly`). This builds the full dependency graph so that cross-package imports resolve correctly. Running `tsc` inside a single package will fail if its dependencies haven't been built yet.
 - **`emitDeclarationOnly`** — we only emit `.d.ts` files during typecheck; actual JS bundling is handled by esbuild/tsx/vite...etc, not `tsc`.
 - **Project references** — when package A depends on package B, A's `tsconfig.json` must list B in its `references` array. `tsc --build` uses this to determine build order and skip up-to-date packages.
 
 ## Root Scripts
 
-- `pnpm run build` — runs `typecheck` first, then recursively runs `build` in all packages that define it
-- `pnpm run typecheck` — runs `tsc --build --emitDeclarationOnly` using project references
+- `bun run build` — runs `typecheck` first, then recursively runs `build` in all packages that define it
+- `bun run typecheck` — runs `tsc --build --emitDeclarationOnly` using project references
 
 ## Packages
 
@@ -84,8 +84,8 @@ Express 5 API server. Routes live in `src/routes/` and use `@workspace/api-zod` 
 - App setup: `src/app.ts` — mounts CORS, JSON/urlencoded parsing, routes at `/api`
 - Routes: `src/routes/index.ts` mounts sub-routers; `src/routes/health.ts` exposes `GET /health` (full path: `/api/health`)
 - Depends on: `@workspace/db`, `@workspace/api-zod`
-- `pnpm --filter @workspace/api-server run dev` — run the dev server
-- `pnpm --filter @workspace/api-server run build` — production esbuild bundle (`dist/index.cjs`)
+- `bun run --filter @workspace/api-server dev` — run the dev server
+- `bun run --filter @workspace/api-server build` — production esbuild bundle (`dist/index.cjs`)
 - Build bundles an allowlist of deps (express, cors, pg, drizzle-orm, zod, etc.) and externalizes the rest
 
 ### `lib/db` (`@workspace/db`)
@@ -98,7 +98,7 @@ Database layer using Drizzle ORM with PostgreSQL. Exports a Drizzle client insta
 - `drizzle.config.ts` — Drizzle Kit config (requires `DATABASE_URL`, automatically provided by Replit)
 - Exports: `.` (pool, db, schema), `./schema` (schema only)
 
-Production migrations are handled by Replit when publishing. In development, we just use `pnpm --filter @workspace/db run push`, and we fallback to `pnpm --filter @workspace/db run push-force`.
+Production migrations are handled by Replit when publishing. In development, we just use `bun run --filter @workspace/db push`, and we fallback to `bun run --filter @workspace/db push-force`.
 
 ### `lib/api-spec` (`@workspace/api-spec`)
 
@@ -107,7 +107,7 @@ Owns the OpenAPI 3.1 spec (`openapi.yaml`) and the Orval config (`orval.config.t
 1. `lib/api-client-react/src/generated/` — React Query hooks + fetch client
 2. `lib/api-zod/src/generated/` — Zod schemas
 
-Run codegen: `pnpm --filter @workspace/api-spec run codegen`
+Run codegen: `bun run --filter @workspace/api-spec codegen`
 
 ### `lib/api-zod` (`@workspace/api-zod`)
 
@@ -124,7 +124,7 @@ Single-page React + Vite app showcasing all UI controls: text/email/password inp
 - Entry: `src/main.tsx`
 - Page: `src/pages/ControlsPage.tsx` — all controls with `data-testid` attributes
 - UI Components: shadcn/ui (Radix UI + Tailwind)
-- `pnpm --filter @workspace/controls-demo run dev` — dev server
+- `bun run --filter @workspace/controls-demo dev` — dev server
 
 ### `artifacts/devprep` (`@workspace/devprep`)
 
@@ -133,13 +133,14 @@ DevPrep - Tech Interview Preparation Web App
 - Entry: `src/main.tsx`
 - Pages: QAPage, FlashcardsPage, CodingPage, MockExamPage, VoicePracticePage
 - UI Components: shadcn/ui component library
-- State: TanStack Query v5
-- Routing: React Router (wouter)
+- State: TanStack Query v5 (wraps in-browser sql.js DB — no HTTP server)
+- Routing: Wouter
 - Styling: Tailwind CSS v4
-- `pnpm --filter @workspace/devprep run dev` — run the dev server
-- `pnpm --filter @workspace/devprep run build` — production Vite build
-- `pnpm --filter @workspace/devprep run test` — run Vitest unit tests
-- `pnpm --filter @workspace/devprep run lint` — run ESLint
+- **DB**: sql.js (SQLite WASM) reading `devprep.db` — source of truth for all content and channels
+- `bun run --filter @workspace/devprep dev` — run the dev server
+- `bun run --filter @workspace/devprep build` — production Vite build
+- `bun run --filter @workspace/devprep test` — run Vitest unit tests
+- `bun run --filter @workspace/devprep lint` — run ESLint
 
 ### `e2e` (`@workspace/e2e`)
 
@@ -149,53 +150,78 @@ Playwright end-to-end test suite for the UI controls demo.
 - Tests: `tests/controls.spec.ts` — 21 tests covering every control
 - Screenshots saved to: `e2e/screenshots/`
 - Test results (HTML + JSON) saved to: `e2e/test-results/`
-- Run from workspace root: `pnpm test` or `pnpm --filter @workspace/e2e run test`
-- Run from e2e dir: `pnpm test` (or `npm test` — but `pnpm` is recommended)
+- Run from workspace root: `bun run e2e` or `bun run --filter @workspace/e2e test`
 
 ### `scripts` (`@workspace/scripts`)
 
-Utility scripts package. Each script is a `.ts` file in `src/` with a corresponding npm script in `package.json`. Run scripts via `pnpm --filter @workspace/scripts run <script>`. Scripts can import any workspace package (e.g., `@workspace/db`) by adding it as a dependency in `scripts/package.json`.
+Utility scripts package. Each script is a `.ts` file in `src/` with a corresponding npm script in `package.json`. Run scripts via `bun run --filter @workspace/scripts <script>`. Scripts can import any workspace package (e.g., `@workspace/db`) by adding it as a dependency in `scripts/package.json`.
 
-## Replit Workflows
+## Bun Commands
 
-### Running Multiple Packages
+> All commands use `bun run`. There is no pnpm in this project.
 
-To run multiple packages concurrently during development:
+### Dev / Build
 
 ```bash
-# Run API server and devprep concurrently
-pnpm --filter @workspace/api-server run dev & pnpm --filter @workspace/devprep run dev
+# Run devprep dev server
+bun run --filter @workspace/devprep dev
+
+# Build devprep for production
+bun run --filter @workspace/devprep build
+
+# Build everything (typecheck + all packages)
+bun run build
+
+# Typecheck all packages
+bun run typecheck
 ```
 
-### Database Migrations
+### Content Generation
 
 ```bash
-# Push schema changes to development database
-pnpm --filter @workspace/db run push
+# Seed channels into devprep.db (source of truth)
+bun run scripts/seed-channels.mjs
 
-# Force push (drops and recreates tables - use with caution)
-pnpm --filter @workspace/db run push-force
+# Generate content (all types)
+bun run generate:all
+
+# Generate specific content type
+bun run generate:question
+bun run generate:flashcard
+bun run generate:coding
+bun run generate:exam
+bun run generate:voice
+
+# Generate in parallel (faster)
+bun run generate:parallel
+```
+
+### Database (devprep.db — source of truth)
+
+```bash
+# Seed channels table
+bun scripts/seed-channels.mjs
+
+# Inspect DB content count
+bun -e "import { Database } from 'bun:sqlite'; const db = new Database('./data/devprep.db', { readonly: true }); console.log(db.query('SELECT content_type, COUNT(*) as cnt FROM generated_content GROUP BY content_type').all()); db.close();"
 ```
 
 ### Testing
 
 ```bash
 # Run all tests from root
-pnpm test
+bun run test
 
 # Run tests for specific package
-pnpm --filter @workspace/devprep run test
+bun run --filter @workspace/devprep test
 
 # Run tests with coverage
-pnpm --filter @workspace/devprep run test:coverage
+bun run --filter @workspace/devprep test:coverage
 ```
 
 ### Linting
 
 ```bash
-# Lint all packages
-pnpm run lint
-
-# Lint specific package
-pnpm --filter @workspace/devprep run lint
+# Lint devprep
+bun run --filter @workspace/devprep lint
 ```
