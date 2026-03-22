@@ -1,6 +1,7 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 @import './styles/themes.css';
+@import './styles/devprep-ui.css';
 @import './styles/tokens.css';
 @import './styles/typography.css';
 @import './styles/glass.css';
