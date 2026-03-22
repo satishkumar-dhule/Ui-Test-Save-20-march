@@ -1,7 +1,7 @@
 # OpenCode Agent Framework
 
-> **Version:** 1.0.0
-> **Last Updated:** 2026-03-19
+> **Version:** 1.1.0
+> **Last Updated:** 2026-03-22
 > **Purpose:** Standardized agent workflow for all development tasks
 
 ---
@@ -11,10 +11,38 @@
 **ALL agents MUST:**
 
 1. Read this framework before starting any task
-2. Spawn from agent team defined in `AGENT_TEAM.md`
-3. Track all work in `AGENT_TEAM.md`
-4. Create checkpoints for every logical milestone
-5. Check for outstanding tasks before starting new work
+2. Read the **Mandatory Spec Reading** section below and load all required specs for the task type
+3. Spawn from agent team defined in `AGENT_TEAM.md`
+4. Track all work in `AGENT_TEAM.md`
+5. Create checkpoints for every logical milestone
+6. Check for outstanding tasks before starting new work
+7. Validate all output against the relevant spec before marking COMPLETE
+
+---
+
+## Mandatory Spec Reading
+
+Agents MUST read the following specs **before starting any work**. The list is role-specific — read every file in your role's row.
+
+| Agent Role | Required Reading (in order) |
+| ---------- | --------------------------- |
+| **All agents** | `AGENT_FRAMEWORK.md` (this file), `AGENT_TEAM.md` |
+| **Content agents** (CONTENT_ORCHESTRATOR, PROMPT_ENGINEER, QUALITY_AGENT) | + `CONTENT_STANDARDS.md` (all sections), `ARCHITECTURE_OVERVIEW.md` §4 |
+| **Frontend agents** (FRONTEND_ENGINEER, UI_UX_AGENT, all frontend redesign team) | + `ARCHITECTURE_OVERVIEW.md` (all sections), `replit.md` |
+| **Backend / DB agents** (BACKEND_ENGINEER, DATABASE_AGENT, TECH_ARCH_AGENT) | + `ARCHITECTURE_OVERVIEW.md` §4, `replit.md` |
+| **QA agents** (QA_ENGINEER, TESTING_LEAD) | + `CONTENT_STANDARDS.md` §11, `ARCHITECTURE_OVERVIEW.md` |
+| **DevOps / CI agents** (DEVOPS_ENGINEER, CI_CD_AGENT, STRUCTURAL_AGENT) | + `replit.md`, `BUN_WORKFLOW.md` |
+| **Docs agents** (DOCS_AGENT, DOCUMENTATION_LEAD) | + `ARCHITECTURE_OVERVIEW.md`, `CONTENT_STANDARDS.md` |
+
+### Non-Negotiable Architecture Rules (Read Before Writing Any Code)
+
+These rules apply to **all agents** and cannot be overridden by any task description:
+
+1. **No Express/API server in DevPrep** — The `artifacts/devprep` frontend uses **sql.js (SQLite in WASM)** directly in the browser. There is no backend API server for DevPrep. Do NOT add Express routes, Redis calls, or HTTP fetches to a local server.
+2. **sql.js is the DB** — All data reads/writes in DevPrep go through `src/services/dbClient.ts` → `src/services/dbApi.ts`. The static DB file is `/devprep.db` served by Vite.
+3. **Fallback chain** — If the DB is unavailable, fall back to seed data in `src/data/`. Never hard-fail if the DB hasn't loaded yet.
+4. **Strict TypeScript** — Zero `any` types. All content data shapes must match the TypeScript interfaces in `CONTENT_STANDARDS.md`.
+5. **Content status at generation** — Content is saved with `status: 'approved'` only if `qualityScore >= 0.5`. Otherwise it is saved as `status: 'pending'` and will not appear in the app.
 
 ---
 
@@ -249,11 +277,34 @@ FUNCTION selectAgent(task):
 ### Before Marking Task Complete
 
 - [ ] All code changes made
-- [ ] TypeScript compiles (pnpm run typecheck)
-- [ ] Tests pass (pnpm run test)
-- [ ] Checkpoint logged in AGENT_TEAM.md
+- [ ] TypeScript compiles (`pnpm run typecheck` from workspace root)
+- [ ] Linting passes or pre-existing warnings are not worsened (`pnpm run lint`)
+- [ ] Tests pass (`pnpm run test`)
+- [ ] Checkpoint logged in `AGENT_TEAM.md`
 - [ ] Agent progress updated
 - [ ] Agent status set appropriately
+
+### Content Quality Gate (Content Agents Only)
+
+Every piece of generated content must pass **all** checks in `CONTENT_STANDARDS.md` §11 (Revision Checklist) before being committed to the database or any data file. Specifically:
+
+- [ ] TypeScript interface matches exactly — field names, types, and optionality
+- [ ] `id` format matches the spec: `q{n}`, `fc{n}`, `cc{n}`, `ex-{slug}{n}`, `vp{n}`
+- [ ] Difficulty value matches the correct taxonomy for the channel type (§2)
+- [ ] Tags follow kebab-case; first tag is the channel slug; max 5 tags (§3)
+- [ ] Minimums per channel are met (see each content-type section)
+- [ ] Anti-patterns from §10 are absent
+- [ ] `status` is set to `'approved'` only when `qualityScore >= 0.5`
+- [ ] Content is stored in `generated_content` table as valid JSON in the `data` column
+
+### Frontend Quality Gate (Frontend Agents Only)
+
+- [ ] No `any` types introduced
+- [ ] No Express, Redis, or direct HTTP fetch to `localhost:3001` — use `dbApi.ts` instead
+- [ ] New components placed in correct atomic layer (`ui/` → `molecules/` → `organisms/` → `layouts/`)
+- [ ] New pages registered in `src/routes-v2/index.tsx`
+- [ ] All new hooks in `hooks/` or `hooks-v2/`; stores in `stores-v2/`
+- [ ] Accessibility: interactive elements have `aria-label` or visible text; keyboard navigation works
 
 ---
 
@@ -261,12 +312,15 @@ FUNCTION selectAgent(task):
 
 ### Agent Checklist (Must Complete)
 
-- [ ] Read AGENT_TEAM.md before starting
-- [ ] Update AGENT_TEAM.md with task assignment
+- [ ] Read `AGENT_FRAMEWORK.md` (this file) before starting
+- [ ] Read all mandatory specs listed in **Mandatory Spec Reading** for your role
+- [ ] Read `AGENT_TEAM.md` and check current assignments
+- [ ] Update `AGENT_TEAM.md` with task assignment
 - [ ] Create START checkpoint
 - [ ] Execute task
 - [ ] Create checkpoints at milestones
-- [ ] Update progress in AGENT_TEAM.md
+- [ ] Run quality gate checklist for your role
+- [ ] Update progress in `AGENT_TEAM.md`
 - [ ] Create COMPLETE checkpoint
 - [ ] Set final status
 
@@ -274,9 +328,10 @@ FUNCTION selectAgent(task):
 
 Any agent not following this framework:
 
-1. Will be flagged in next checkpoint
-2. Must fix violations before new tasks
-3. Supervisor (INNOVATION_LEAD) will audit
+1. Will be flagged in the next checkpoint review
+2. Must fix all violations before receiving new tasks
+3. Supervisor (INNOVATION_LEAD / ORCHESTRATION_LEAD) will audit and re-assign if needed
+4. Content that fails `CONTENT_STANDARDS.md` §11 will be rejected — it is NOT marked `approved` in the DB
 
 ---
 
@@ -335,9 +390,10 @@ For orchestrating multiple agents:
 
 ## Revision History
 
-| Version | Date       | Changes           |
-| ------- | ---------- | ----------------- |
-| 1.0.0   | 2026-03-19 | Initial framework |
+| Version | Date       | Changes                                                                                   |
+| ------- | ---------- | ----------------------------------------------------------------------------------------- |
+| 1.0.0   | 2026-03-19 | Initial framework                                                                         |
+| 1.1.0   | 2026-03-22 | Added Mandatory Spec Reading, Non-Negotiable Architecture Rules, Content & Frontend Quality Gates, updated Agent Checklist and Violations |
 
 ---
 

@@ -1,8 +1,27 @@
 # DevPrep — Content Standards
 
+> **Version:** 1.1.0 | **Last Updated:** 2026-03-22
+>
 > Authoritative reference for every content entity in the platform.
 > All contributors and AI-generated content must conform to these standards.
 > Modelled on the editorial bar of LeetCode, Educative, ByteByteGo, Tutorials Dojo, Exponent, and KillerCoda.
+
+## Agent Enforcement
+
+**ALL content-generating agents MUST:**
+
+1. Read this entire document before generating or modifying any content
+2. Validate every generated item against the §11 Revision Checklist before saving it to the database
+3. Use the exact TypeScript interfaces defined in each section — field names, types, and optionality are binding
+4. Set `status: 'approved'` only when `qualityScore >= 0.5`; otherwise use `status: 'pending'`
+5. Store content as valid JSON in the `data` column of the `generated_content` table
+6. Use `id` formats exactly: `q{n}` (questions), `fc{n}` (flashcards), `cc{n}` (coding), `ex-{slug}{n}` (exam), `vp{n}` (voice)
+7. Apply the correct difficulty taxonomy per channel type (§2) — never mix taxonomies
+8. Meet or exceed the per-channel minimums listed in each content-type section
+9. Reject any content that matches an anti-pattern from §10 — do not save it; regenerate instead
+10. Report content failures as ISSUE checkpoints in `AGENT_TEAM.md`
+
+> **This document is enforced by `AGENT_FRAMEWORK.md`.** Any agent that generates content not conforming to these standards is in violation and the content must be deleted or corrected before it can be marked `approved`.
 
 ---
 

@@ -1,5 +1,19 @@
 # Workspace
 
+## Key Spec Files (Read Before Any Work)
+
+| File | Purpose |
+| ---- | ------- |
+| `AGENT_FRAMEWORK.md` | Agent workflow, mandatory spec reading, quality gates |
+| `CONTENT_STANDARDS.md` | All content type interfaces, rules, and per-channel minimums |
+| `ARCHITECTURE_OVERVIEW.md` | Frontend architecture, data layer (sql.js), component structure |
+| `AGENT_TEAM.md` | Agent assignments, checkpoints, team tracking |
+
+> **Content agents** must read `CONTENT_STANDARDS.md` completely before generating any content.
+> **Frontend agents** must read `ARCHITECTURE_OVERVIEW.md` — DevPrep is client-only (sql.js), no backend API server.
+
+---
+
 ## Overview
 
 pnpm workspace monorepo using TypeScript. Each package manages its own dependencies.
