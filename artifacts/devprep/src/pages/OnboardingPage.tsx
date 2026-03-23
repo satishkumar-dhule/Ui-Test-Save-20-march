@@ -183,7 +183,10 @@ export function OnboardingPage({ onDone, initialSelected }: OnboardingPageProps)
   }
 
   return (
-    <div className="fixed inset-0 z-[100] bg-background overflow-y-auto">
+    <div
+      className="fixed inset-0 z-[100] bg-background overflow-y-auto"
+      data-testid="onboarding-modal"
+    >
       {/* Hero Section */}
       <div className="border-b border-border" style={{ background: 'hsl(var(--sidebar))' }}>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12 sm:py-16 text-center">
@@ -209,7 +212,11 @@ export function OnboardingPage({ onDone, initialSelected }: OnboardingPageProps)
             </div>
           </div>
 
-          <h1 id="onboarding-title" className="text-3xl sm:text-4xl font-bold text-foreground mb-3">
+          <h1
+            id="onboarding-title"
+            className="text-3xl sm:text-4xl font-bold text-foreground mb-3"
+            data-testid="onboarding-title"
+          >
             Welcome to DevPrep
           </h1>
           <p

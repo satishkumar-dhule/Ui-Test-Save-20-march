@@ -133,6 +133,19 @@ jobs:
           echo "Bundle breakdown:"
           find dist/public/assets -name "*.js" -o -name "*.css" | xargs ls -lh | sort -k5 -hr
 
+      - name: Check bundle size budgets
+        run: |
+          TOTAL_SIZE=$(du -sb dist/public/ | cut -f1)
+          MAX_SIZE=$((200 * 1024 * 1024))
+          echo "Total build size: $((TOTAL_SIZE / 1024))KB"
+
+          if [ $TOTAL_SIZE -gt $MAX_SIZE ]; then
+            echo "ERROR: Bundle size ($((TOTAL_SIZE / 1024))KB) exceeds budget ($((MAX_SIZE / 1024))KB)"
+            exit 1
+          fi
+
+          echo "Bundle size check passed"
+
   # ============================================
   # Performance Testing
   # ============================================
@@ -164,6 +177,14 @@ jobs:
           name: build-staging
           path: dist/public/
 
+      - name: Run preview server
+        run: pnpm run serve:v2 &
+        env:
+          PORT: 3000
+
+      - name: Wait for server
+        run: npx wait-on http://localhost:3000 --timeout 30000
+
       - name: Run Lighthouse CI
         uses: treosh/lighthouse-ci-action@v10
         with:
@@ -176,6 +197,7 @@ jobs:
           echo "## Performance Report" >> $GITHUB_STEP_SUMMARY
           echo "Build completed successfully" >> $GITHUB_STEP_SUMMARY
           echo "Bundle size: $(du -sh dist/public/ | cut -f1)" >> $GITHUB_STEP_SUMMARY
+          echo "Lighthouse CI completed - see artifacts for full report" >> $GITHUB_STEP_SUMMARY
 
   # ============================================
   # Docker Build and Push
@@ -356,7 +378,7 @@ jobs:
           script: |
             const prNumber = context.payload.pull_request.number;
             const previewUrl = `https://${context.repo.owner}.github.io/${context.repo.repository.name}/preview/pr-${prNumber}`;
-            
+
             await github.rest.issues.createComment({
               issue_number: prNumber,
               owner: context.repo.owner,

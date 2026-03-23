@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express'
 import cors from 'cors'
 import { createServer } from 'http'
 import { WebSocketServer, WebSocket } from 'ws'
+import { z } from 'zod'
 import path from 'path'
 import fs from 'fs'
 import { Database } from 'bun:sqlite'
@@ -27,6 +28,17 @@ import {
   searchRateLimit,
   generateRateLimit,
 } from './services/redis/rate-limit.js'
+
+const generateSchema = z.object({
+  channelId: z.string().min(1, 'channelId is required'),
+  contentType: z.enum(['question', 'flashcard', 'exam', 'voice', 'coding'], {
+    errorMap: () => ({
+      message: 'contentType must be one of: question, flashcard, exam, voice, coding',
+    }),
+  }),
+  difficulty: z.enum(['beginner', 'intermediate', 'advanced']).optional().default('beginner'),
+  count: z.number().int().min(1).max(10).optional().default(1),
+})
 
 const PORT = process.env.API_PORT || 3001
 const DB_PATH =
@@ -76,6 +88,18 @@ app.use((req, res, next) => {
   next()
 })
 app.use(apiRateLimit)
+
+const AUTH_API_KEY = process.env.AUTH_API_KEY
+
+const apiAuthMiddleware = (req: Request, res: Response, next: () => void) => {
+  const publicEndpoints = ['/api/health', '/api/channels', '/api/content', '/api/content/stats']
+  if (publicEndpoints.some(p => req.path.startsWith(p))) {
+    return next()
+  }
+  next()
+}
+
+app.use(apiAuthMiddleware)
 
 let db: Database
 
@@ -704,7 +728,7 @@ app.get('/api/content/tagged/:tag', async (req: Request, res: Response) => {
         LIMIT ? OFFSET ?
       `
         )
-        .all(lim + off) as any[]
+        .all(lim, off) as any[]
       rows = rows
         .filter((r: any) => {
           try {
@@ -785,24 +809,17 @@ app.get('/api/channels', (_req: Request, res: Response) => {
 
 app.post('/api/generate', generateRateLimit, async (req: Request, res: Response) => {
   try {
-    const { channel, type, count = 1, difficulty } = req.body
-
-    if (!channel || !type) {
+    const result = generateSchema.safeParse(req.body)
+    if (!result.success) {
+      const errors = result.error.errors.map(e => `${e.path.join('.')}: ${e.message}`)
       return res.status(400).json({
         ok: false,
-        error: 'Missing required fields: channel and type',
+        error: 'Validation failed',
+        details: errors,
       })
     }
 
-    const validTypes = ['question', 'flashcard', 'exam', 'voice', 'coding']
-    if (!validTypes.includes(type)) {
-      return res.status(400).json({
-        ok: false,
-        error: `Invalid content type. Must be one of: ${validTypes.join(', ')}`,
-      })
-    }
-
-    const numCount = Math.min(Math.max(1, parseInt(count, 10) || 1), 10)
+    const { channelId, contentType, difficulty, count } = result.data
     const startTime = Date.now()
 
     const insertStmt = db.prepare(`
@@ -814,11 +831,11 @@ app.post('/api/generate', generateRateLimit, async (req: Request, res: Response)
     const generationTimeMs = Date.now() - startTime
 
     const transaction = db.transaction(() => {
-      for (let i = 0; i < numCount; i++) {
-        const id = `${type.slice(0, 3)}-api-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
+      for (let i = 0; i < count; i++) {
+        const id = `${contentType.slice(0, 3)}-api-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
         const now = Math.floor(Date.now() / 1000)
-        insertStmt.run(id, channel, type, difficulty || 'intermediate', now, now, generationTimeMs)
-        results.push({ id, channel_id: channel, content_type: type })
+        insertStmt.run(id, channelId, contentType, difficulty, now, now, generationTimeMs)
+        results.push({ id, channel_id: channelId, content_type: contentType })
       }
     })
 
@@ -830,7 +847,7 @@ app.post('/api/generate', generateRateLimit, async (req: Request, res: Response)
 
     res.status(201).json({
       ok: true,
-      message: `Generated ${results.length} ${type} content(s) for channel ${channel}`,
+      message: `Generated ${results.length} ${contentType} content(s) for channel ${channelId}`,
       data: results,
       generation_time_ms: generationTimeMs,
     })
