@@ -13,7 +13,7 @@ export default defineConfig({
   ],
   outputDir: "test-results/artifacts",
   use: {
-    baseURL: process.env.BASE_URL || "http://localhost:3000",
+    baseURL: process.env.BASE_URL || "http://localhost:5173",
     trace: "on-first-retry",
     screenshot: "on",
     video: "off",

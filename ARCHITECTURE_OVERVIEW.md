@@ -1,12 +1,16 @@
 # DevPrep Frontend Architecture Overview
 
-> **Version:** 2.0.0  
-> **Last Updated:** 2026-03-22  
+> **Version:** 2.1.0
+> **Last Updated:** 2026-03-22
 > **Author:** FRONTEND_ARCHITECT_LEAD
 
 ## Executive Summary
 
-DevPrep is a React 19 + TypeScript application for developer interview preparation. The architecture follows **Atomic Design** principles with **Zustand** for global state, **React Query** for server state, and **Wouter** for routing.
+DevPrep is a **fully client-side** React 19 + TypeScript application for developer interview preparation. There is no backend API server — the database (SQLite) runs entirely in the browser via **sql.js (WASM)**, and all data access is through `src/services/dbApi.ts`.
+
+The UI architecture follows **Atomic Design** principles with **Zustand** for global state, **React Query** (wrapping in-browser DB calls, not HTTP) for async data, and **Wouter** for routing.
+
+> **Agent notice:** Do NOT add Express routes, Redis, or any server-side API calls to the DevPrep artifact. See §4 for the complete data layer specification.
 
 ## Tech Stack
 
@@ -206,37 +210,90 @@ export const routes = [
 
 ---
 
-## 4. API Integration
+## 4. Data Layer (sql.js — Browser-Native SQLite)
 
-### API Endpoints
+> **IMPORTANT FOR ALL AGENTS:** DevPrep is a **fully client-side application** with **no backend API server**. The database runs entirely in the browser via WebAssembly (sql.js). Do NOT introduce Express routes, API server calls, or Redis references — they do not exist in this architecture.
 
-| Endpoint                    | Method | Purpose                  |
-| --------------------------- | ------ | ------------------------ |
-| `/api/content`              | GET    | Fetch all content        |
-| `/api/content/:type`        | GET    | Filter by type           |
-| `/api/channels`             | GET    | Fetch channels           |
-| `/api/channels/:id/content` | GET    | Channel-specific content |
-| `/api/generate`             | POST   | Generate new content     |
+### Architecture
 
-### API Client (`src/lib/api/client.ts`)
+```
+Browser
+  └── sql.js (SQLite compiled to WASM)
+        └── /devprep.db (served as a static file by Vite)
+              ├── generated_content table
+              └── channels table
+```
+
+### Data Layer Files
+
+| File | Purpose |
+| ---- | ------- |
+| `src/services/dbClient.ts` | Initialises sql.js, fetches `/devprep.db`, falls back to seed data |
+| `src/services/dbApi.ts` | SQL query functions against the in-browser DB |
+| `src/services/dbLoader.ts` | Lazy WASM loader with progress tracking |
+| `src/services/dbClientOptimized.ts` | Optimised query cache layer over dbClient |
+| `src/contentApi.ts` | High-level content API using `tryDbFirst` — DB → static fallback |
+
+### Client-Side Query Pattern
 
 ```typescript
-const apiClient = {
-  get: <T>(endpoint, params?) => Promise<ApiResponse<T>>,
-  post: <T>(endpoint, data) => Promise<ApiResponse<T>>,
-  put: <T>(endpoint, data) => Promise<ApiResponse<T>>,
-  delete: (endpoint) => Promise<void>,
-};
+// src/services/dbApi.ts
+export async function getContent(filters?: ContentFilters): Promise<ContentItem[]> {
+  const db = await getDb()           // sql.js DB instance
+  const rows = db.exec(sql, params)  // synchronous SQL execution in WASM
+  return transformRows(rows)
+}
 ```
 
 ### Data Flow
 
 ```
-User Action → React Query Hook → API Client → Server
-                                          ↓
-                                    SQLite/Redis
-                                          ↓
+User Action → React Query Hook → contentApi.ts → dbApi.ts → sql.js (WASM)
+                                                                  ↓
+                                                         /devprep.db (static)
+                                                                  ↓
 Response → React Query Cache → Component Re-render
+```
+
+### Fallback Chain
+
+```
+1. sql.js loads /devprep.db from Vite static assets
+2. If DB unavailable → seed data from src/data/ (static TypeScript files)
+3. Channels: useChannels() hook → DB → data/channels.ts fallback
+```
+
+### Channels Table Schema
+
+```sql
+CREATE TABLE channels (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  short_name TEXT,
+  emoji TEXT,
+  color TEXT,
+  type TEXT CHECK(type IN ('tech', 'cert')),
+  cert_code TEXT,
+  description TEXT,
+  tag_filter TEXT,   -- JSON array of tags
+  is_active INTEGER DEFAULT 1,
+  sort_order INTEGER DEFAULT 0
+)
+```
+
+### Content Table Schema
+
+```sql
+CREATE TABLE generated_content (
+  id TEXT PRIMARY KEY,
+  channel_id TEXT NOT NULL,
+  content_type TEXT NOT NULL,  -- 'question' | 'flashcard' | 'exam' | 'voice' | 'coding'
+  data TEXT NOT NULL,          -- JSON payload matching CONTENT_STANDARDS.md interfaces
+  quality_score REAL,
+  status TEXT DEFAULT 'pending',  -- 'pending' | 'approved' | 'rejected'
+  created_at INTEGER,
+  updated_at INTEGER
+)
 ```
 
 ---
@@ -329,31 +386,52 @@ const LazySearchModal = lazy(() =>
 
 ## 9. Data Models
 
-### Content Item
+> **Source of truth for content data shapes:** `CONTENT_STANDARDS.md`
+>
+> The interfaces here are the **database row** shapes (what sql.js returns). The `data` column contains a JSON-serialised payload whose shape is defined per `contentType` in `CONTENT_STANDARDS.md`. Always refer to that document for the authoritative field-level specification.
+
+### Content Row (database row from `generated_content` table)
 
 ```typescript
-interface ContentItem {
-  id: string;
-  channelId: string;
-  contentType: "question" | "flashcard" | "exam" | "voice" | "coding";
-  data: Record<string, unknown>; // Type-specific payload
-  qualityScore: number; // 0-100
+interface ContentRow {
+  id: string;                    // See CONTENT_STANDARDS.md for format per type
+  channel_id: string;            // Channel slug, e.g. "javascript", "aws-saa"
+  content_type: "question" | "flashcard" | "exam" | "voice" | "coding";
+  data: string;                  // JSON string — parse to get the typed payload below
+  quality_score: number;         // 0.0–1.0 (threshold for approval: >= 0.5)
   status: "pending" | "approved" | "rejected";
-  createdAt: number;
-  updatedAt: number;
-  tags?: string[];
+  created_at: number;            // Unix timestamp ms
+  updated_at: number;
 }
 ```
 
-### Channel
+### Parsed Content Payloads (from `data` column)
+
+The JSON inside `data` is one of the following, depending on `content_type`:
+
+| `content_type` | TypeScript interface | Defined in |
+| -------------- | -------------------- | ---------- |
+| `question`     | `Question`           | `CONTENT_STANDARDS.md` §4 |
+| `flashcard`    | `Flashcard`          | `CONTENT_STANDARDS.md` §5 |
+| `coding`       | `CodingChallenge`    | `CONTENT_STANDARDS.md` §6 |
+| `exam`         | `ExamQuestion`       | `CONTENT_STANDARDS.md` §7 |
+| `voice`        | `VoicePrompt`        | `CONTENT_STANDARDS.md` §8 |
+
+### Channel (database row from `channels` table)
 
 ```typescript
-interface Channel {
-  id: string;
-  name: string;
+interface ChannelRow {
+  id: string;          // Channel slug, e.g. "javascript", "aws-saa"
+  name: string;        // Display name, e.g. "JavaScript"
+  short_name: string;  // Abbreviated name
+  emoji: string;       // UI emoji
+  color: string;       // Hex colour for UI theming
   type: "tech" | "cert";
-  tags: string[];
-  tagFilter?: string[];
+  cert_code: string | null;    // e.g. "AWS-SAA-C03" — null for tech channels
+  description: string;
+  tag_filter: string;  // JSON array of concept tags for this channel
+  is_active: number;   // 0 or 1
+  sort_order: number;
 }
 ```
 
@@ -370,7 +448,7 @@ interface Channel {
 
 ### State Patterns
 
-1. **Server State** → React Query (API data)
+1. **DB State** → React Query (data from sql.js via `dbApi.ts` / `contentApi.ts`)
 2. **Global UI State** → Zustand (theme, filters)
 3. **Local State** → `useState` (form inputs)
 4. **URL State** → Wouter params (current route)

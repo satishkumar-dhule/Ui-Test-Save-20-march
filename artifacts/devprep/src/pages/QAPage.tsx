@@ -11,7 +11,6 @@ import {
   MessageSquare,
 } from 'lucide-react'
 import type { Question, AnswerSection } from '@/data/questions'
-import { channels } from '@/data/channels'
 import type { ReactElement } from 'react'
 import { Skeleton } from '@/components/ui/skeleton'
 import { sanitizeSVG } from '@/lib/security'

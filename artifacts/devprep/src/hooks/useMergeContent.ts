@@ -1,30 +1,27 @@
-import { useMemo, useRef } from 'react'
+import { useMemo } from 'react'
 
 /**
- * Merges static content with generated content, deduplicating by ID.
- * Uses a ref to cache the Set for O(1) lookups, avoiding Set recreation.
- * Returns static content reference if no generated content exists.
+ * DB-first content selector.
+ *
+ * Rule: the database (devprep.db via sql.js) is the single source of truth for
+ * all content. Static data files are a fallback used only when the DB has not
+ * yet loaded or is genuinely empty for this content type.
+ *
+ * - If generatedContent (DB) has items → return DB content exclusively.
+ * - If generatedContent is empty / undefined → return staticContent (fallback).
+ *
+ * This replaces the previous "static + DB unique items" merge strategy to
+ * prevent stale or reduced static data from appearing alongside richer DB content.
  */
 export function useMergeContent<T extends { id: string }>(
   staticContent: T[],
   generatedContent: T[] | undefined
 ): T[] {
-  const cacheRef = useRef<Map<string, T>>(new Map(staticContent.map(item => [item.id, item])))
-
-  if (staticContent.length > 0) {
-    cacheRef.current = new Map(staticContent.map(item => [item.id, item]))
-  }
-
   return useMemo(() => {
-    if (!generatedContent || generatedContent.length === 0) {
-      return staticContent
+    if (generatedContent && generatedContent.length > 0) {
+      return generatedContent
     }
-    const newItems = generatedContent.filter(item => !cacheRef.current.has(item.id))
-    if (newItems.length === 0) {
-      return staticContent
-    }
-    newItems.forEach(item => cacheRef.current.set(item.id, item))
-    return [...staticContent, ...newItems]
+    return staticContent
   }, [staticContent, generatedContent])
 }
 

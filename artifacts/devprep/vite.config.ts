@@ -238,10 +238,10 @@ export default defineConfig({
     target: 'es2020',
     manifest: true,
     reportCompressedSize: true,
-    chunkSizeWarningLimit: 50, // Warn if chunk > 50KB (before gzip)
+    chunkSizeWarningLimit: 100,
     rollupOptions: {
       output: {
-        manualChunks: (id) => {
+        manualChunks: id => {
           if (!id.includes('node_modules')) {
             if (id.includes('/pages/')) {
               if (id.includes('QAPage')) return 'page-qa'
@@ -283,7 +283,11 @@ export default defineConfig({
             return 'vendor-motion'
           }
 
-          if (id.includes('@tanstack/react-query') || id.includes('query-core') || id.includes('query-options')) {
+          if (
+            id.includes('@tanstack/react-query') ||
+            id.includes('query-core') ||
+            id.includes('query-options')
+          ) {
             return 'vendor-query'
           }
 
@@ -299,7 +303,12 @@ export default defineConfig({
             return 'vendor-radix'
           }
 
-          if (id.includes('sonner') || id.includes('vaul') || id.includes('cmdk') || id.includes('input-otp')) {
+          if (
+            id.includes('sonner') ||
+            id.includes('vaul') ||
+            id.includes('cmdk') ||
+            id.includes('input-otp')
+          ) {
             return 'vendor-overlay'
           }
 
@@ -307,11 +316,16 @@ export default defineConfig({
             return 'vendor-validation'
           }
 
-          if (id.includes('lucide-react') || id.includes('react-icons')) {
+          if (id.includes('lucide-react')) {
             return 'vendor-icons'
           }
 
-          if (id.includes('react-markdown') || id.includes('remark-') || id.includes('rehype-') || id.includes('unified')) {
+          if (
+            id.includes('react-markdown') ||
+            id.includes('remark-') ||
+            id.includes('rehype-') ||
+            id.includes('unified')
+          ) {
             return 'vendor-markdown'
           }
 
@@ -335,7 +349,12 @@ export default defineConfig({
             return 'vendor-date'
           }
 
-          if (id.includes('tailwindcss') || id.includes('tailwind-merge') || id.includes('clsx') || id.includes('cva')) {
+          if (
+            id.includes('tailwindcss') ||
+            id.includes('tailwind-merge') ||
+            id.includes('clsx') ||
+            id.includes('cva')
+          ) {
             return 'vendor-tailwind'
           }
 

@@ -1,6 +1,0 @@
-export { HomePage } from './HomePage'
-export { ContentPage } from './ContentPage'
-export { OnboardingPage } from './OnboardingPage'
-export { ExamPage } from './ExamPage'
-export { CodingPage } from './CodingPage'
-export { VoicePage } from './VoicePage'

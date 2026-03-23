@@ -248,11 +248,8 @@ export default defineConfig({
             if (id.includes('web-vitals') || id.includes('workbox')) {
               return 'vendor-pwa'
             }
-            if (id.includes('react-icons')) {
-              return 'vendor-icons'
-            }
             if (id.includes('lucide-react')) {
-              return 'vendor-icons-lucide'
+              return 'vendor-icons'
             }
             if (id.includes('sonner') || id.includes('@sonner')) {
               return 'vendor-toast'
