@@ -1,4 +1,5 @@
 import express, { Request, Response } from 'express'
+import cors from 'cors'
 import { createServer } from 'http'
 import { WebSocketServer, WebSocket } from 'ws'
 import path from 'path'
@@ -61,7 +62,19 @@ const app = express()
 const server = createServer(app)
 const wss = new WebSocketServer({ server })
 
-app.use(express.json())
+app.use(express.json({ limit: '1mb' }))
+app.use(
+  cors({
+    origin: process.env.ALLOWED_ORIGIN || 'http://localhost:5173',
+    credentials: true,
+  })
+)
+app.use((req, res, next) => {
+  res.setHeader('X-Frame-Options', 'DENY')
+  res.setHeader('X-Content-Type-Options', 'nosniff')
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin')
+  next()
+})
 app.use(apiRateLimit)
 
 let db: Database

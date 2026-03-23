@@ -7,7 +7,7 @@ import type {
   ContentDeletedMessage,
 } from '@/types/realtime'
 import { useRealtimeStore } from '@/lib/realtimeStore'
-import { useContentStore } from '@/lib/contentStore'
+import { useContentStore } from '@/stores/contentStore'
 import { queryClient } from '@/lib/queryClient'
 import { QUERY_KEYS } from '@/lib/queryClient'
 

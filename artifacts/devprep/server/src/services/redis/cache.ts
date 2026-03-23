@@ -14,6 +14,26 @@ function buildCacheKey(prefix: string, params: Record<string, string | undefined
   return `${CACHE_PREFIX}${prefix}:${paramStr || 'all'}`
 }
 
+async function scanAndDelete(
+  client: ReturnType<typeof getRedisInstance>,
+  pattern: string
+): Promise<number> {
+  let cursor = '0'
+  let deletedCount = 0
+
+  do {
+    const [nextCursor, keys] = await client.scan(cursor, 'MATCH', pattern, 'COUNT', 100)
+    cursor = nextCursor
+
+    if (keys.length > 0) {
+      await client.del(...keys)
+      deletedCount += keys.length
+    }
+  } while (cursor !== '0')
+
+  return deletedCount
+}
+
 export async function getCachedContent<T extends CacheData>(
   params: Record<string, string | undefined>
 ): Promise<T | null> {
@@ -150,10 +170,9 @@ export async function invalidateContentCache(): Promise<void> {
   const client = getRedisInstance()
 
   try {
-    const keys = await client.keys(`${CACHE_PREFIX}content:*`)
-    if (keys.length > 0) {
-      await client.del(...keys)
-      console.log(`[Cache] Invalidated ${keys.length} content cache entries`)
+    const deletedCount = await scanAndDelete(client, `${CACHE_PREFIX}content:*`)
+    if (deletedCount > 0) {
+      console.log(`[Cache] Invalidated ${deletedCount} content cache entries`)
     }
   } catch (error) {
     console.warn('[Cache] Error invalidating content cache:', (error as Error).message)
@@ -165,10 +184,9 @@ export async function invalidateChannelCache(): Promise<void> {
   const client = getRedisInstance()
 
   try {
-    const keys = await client.keys(`${CACHE_PREFIX}channel:*`)
-    if (keys.length > 0) {
-      await client.del(...keys)
-      console.log(`[Cache] Invalidated ${keys.length} channel cache entries`)
+    const deletedCount = await scanAndDelete(client, `${CACHE_PREFIX}channel:*`)
+    if (deletedCount > 0) {
+      console.log(`[Cache] Invalidated ${deletedCount} channel cache entries`)
     }
   } catch (error) {
     console.warn('[Cache] Error invalidating channel cache:', (error as Error).message)
@@ -180,10 +198,9 @@ export async function invalidateTaggedCache(): Promise<void> {
   const client = getRedisInstance()
 
   try {
-    const keys = await client.keys(`${CACHE_PREFIX}tagged:*`)
-    if (keys.length > 0) {
-      await client.del(...keys)
-      console.log(`[Cache] Invalidated ${keys.length} tagged cache entries`)
+    const deletedCount = await scanAndDelete(client, `${CACHE_PREFIX}tagged:*`)
+    if (deletedCount > 0) {
+      console.log(`[Cache] Invalidated ${deletedCount} tagged cache entries`)
     }
   } catch (error) {
     console.warn('[Cache] Error invalidating tagged cache:', (error as Error).message)
@@ -195,10 +212,9 @@ export async function invalidateAllCache(): Promise<void> {
   const client = getRedisInstance()
 
   try {
-    const keys = await client.keys(`${CACHE_PREFIX}*`)
-    if (keys.length > 0) {
-      await client.del(...keys)
-      console.log(`[Cache] Invalidated ${keys.length} total cache entries`)
+    const deletedCount = await scanAndDelete(client, `${CACHE_PREFIX}*`)
+    if (deletedCount > 0) {
+      console.log(`[Cache] Invalidated ${deletedCount} total cache entries`)
     }
   } catch (error) {
     console.warn('[Cache] Error invalidating all cache:', (error as Error).message)

@@ -138,20 +138,24 @@ describe('API Integration Tests', () => {
 
 describe('State Management Integration', () => {
   it('filters content by channel', async () => {
-    const { useFilterStore } = await import('@/stores-v2/filterStore')
-    const mockSetChannel = vi.fn()
+    const { useFilterStore } = await import('@/lib/filterStore')
+    const mockSetChannelId = vi.fn()
 
     ;(useFilterStore as any).mockReturnValue({
-      channel: null,
-      setChannel: mockSetChannel,
-      clearTags: vi.fn(),
+      channelId: 'javascript',
+      contentType: null,
+      difficulty: null,
+      status: null,
+      searchQuery: '',
+      sortBy: 'newest',
+      sortOrder: 'desc',
+      setChannelId: mockSetChannelId,
     })
 
-    // Test filter action
-    const { setChannel } = useFilterStore()
-    setChannel('javascript')
+    const { setChannelId } = useFilterStore()
+    setChannelId('javascript')
 
-    expect(mockSetChannel).toHaveBeenCalledWith('javascript')
+    expect(mockSetChannelId).toHaveBeenCalledWith('javascript')
   })
 
   it('updates theme in store', async () => {

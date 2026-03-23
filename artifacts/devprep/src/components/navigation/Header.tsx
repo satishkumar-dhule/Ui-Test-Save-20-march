@@ -5,7 +5,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { useTheme } from '@/hooks/useTheme'
-import { useAuth } from '@/hooks-v2/useUser'
 import { UserMenu } from './UserMenu'
 import { QuickActions } from './QuickActions'
 
@@ -20,16 +19,12 @@ interface HeaderProps {
   }
 }
 
-export function Header({
-  onSearchOpen,
-  onCreateNew,
-  notificationCount = 0,
-  user,
-}: HeaderProps) {
+export function Header({ onSearchOpen, onCreateNew, notificationCount = 0, user }: HeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const { theme, toggleTheme } = useTheme()
-  const { isAuthenticated, logout } = useAuth()
+  const isAuthenticated = !!user
+  const logout = () => {}
 
   // Handle scroll for sticky header effect
   useEffect(() => {
@@ -67,7 +62,7 @@ export function Header({
   }, [])
 
   const toggleMobileMenu = useCallback(() => {
-    setIsMobileMenuOpen((prev) => !prev)
+    setIsMobileMenuOpen(prev => !prev)
   }, [])
 
   return (
@@ -100,16 +95,10 @@ export function Header({
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-6 ml-6">
-            <a
-              href="/"
-              className="text-sm font-medium hover:text-primary transition-colors"
-            >
+            <a href="/" className="text-sm font-medium hover:text-primary transition-colors">
               Home
             </a>
-            <a
-              href="/content"
-              className="text-sm font-medium hover:text-primary transition-colors"
-            >
+            <a href="/content" className="text-sm font-medium hover:text-primary transition-colors">
               Content
             </a>
             <a
@@ -152,12 +141,7 @@ export function Header({
           </Button>
 
           {/* Theme Toggle */}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleTheme}
-            aria-label="Toggle theme"
-          >
+          <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle theme">
             {theme === 'dark' ? (
               <span className="h-5 w-5">☀️</span>
             ) : (

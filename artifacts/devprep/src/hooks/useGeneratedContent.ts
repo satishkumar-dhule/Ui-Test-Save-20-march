@@ -1,10 +1,10 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import type { Question } from '@/data/questions'
 import type { Flashcard } from '@/data/flashcards'
 import type { ExamQuestion } from '@/data/exam'
 import type { VoicePrompt } from '@/data/voicePractice'
 import type { CodingChallenge } from '@/data/coding'
-import { fetchAllContent, type ContentRecord } from '@/services/contentApi'
+import { fetchAllContent, type ContentRecord, RequestCancelledError } from '@/services/contentApi'
 
 export interface GeneratedContentMap {
   question?: Question[]
@@ -56,6 +56,7 @@ interface UseGeneratedContentResult {
   loading: boolean
   error: string | null
   refresh: () => void
+  cancel: () => void
   parseErrors?: Array<{ type: string; message: string }>
 }
 
@@ -64,10 +65,11 @@ interface QueryResult {
   parseErrors: Array<{ type: string; message: string }>
 }
 
-async function queryAllContentFromApi(): Promise<QueryResult> {
+async function queryAllContentFromApi(signal?: AbortSignal): Promise<QueryResult> {
   const records = await fetchAllContent({
     status: 'published,approved',
     limit: 1000,
+    signal,
   })
 
   const grouped: Record<string, unknown[]> = {
@@ -133,13 +135,31 @@ export function useGeneratedContent(): UseGeneratedContentResult {
   const [error, setError] = useState<string | null>(null)
   const [parseErrors, setParseErrors] = useState<Array<{ type: string; message: string }>>([])
 
+  const abortControllerRef = useRef<AbortController | null>(null)
+
+  const cancel = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+      abortControllerRef.current = null
+    }
+    if (fetchPromise) {
+      fetchPromise = null
+    }
+    setLoading(false)
+  }, [])
+
   const fetchContent = useCallback(async (): Promise<void> => {
     if (fetchPromise) return fetchPromise
+
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+    }
+    abortControllerRef.current = new AbortController()
 
     setLoading(true)
     setError(null)
 
-    fetchPromise = queryAllContentFromApi()
+    fetchPromise = queryAllContentFromApi(abortControllerRef.current.signal)
       .then(({ data, parseErrors: errors }) => {
         setGenerated(data)
         saveCache(data)
@@ -150,7 +170,11 @@ export function useGeneratedContent(): UseGeneratedContentResult {
         }
       })
       .catch(e => {
-        setError(e instanceof Error ? e.message : 'Failed to load content from server')
+        if (e instanceof RequestCancelledError) {
+          return
+        }
+        const message = e instanceof Error ? e.message : 'Failed to load content from server'
+        setError(message)
         console.warn('[DevPrep] Generated content unavailable from API:', e)
       })
       .finally(() => {
@@ -164,6 +188,13 @@ export function useGeneratedContent(): UseGeneratedContentResult {
   useEffect(() => {
     if (memoryCache.has(CACHE_KEY)) return
     fetchContent()
+
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort()
+        abortControllerRef.current = null
+      }
+    }
   }, [fetchContent])
 
   const refresh = useCallback(() => {
@@ -173,5 +204,5 @@ export function useGeneratedContent(): UseGeneratedContentResult {
     fetchContent()
   }, [fetchContent])
 
-  return { generated, loading, error, refresh, parseErrors }
+  return { generated, loading, error, refresh, cancel, parseErrors }
 }
