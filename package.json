@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
+    "agents": "bun run run-agents.ts",
     "build": "bun run typecheck && bun run --filter @workspace/devprep build",
     "typecheck:libs": "bun x tsc --build",
     "typecheck": "bun run typecheck:libs && bun run --filter @workspace/devprep typecheck && bun run --filter @workspace/scripts typecheck",
@@ -27,6 +28,7 @@
   },
   "private": true,
   "devDependencies": {
+    "@types/node": "^25.5.0",
     "prettier": "^3.8.1",
     "typescript": "~5.9.2",
     "wrangler": "^4.0.0"
