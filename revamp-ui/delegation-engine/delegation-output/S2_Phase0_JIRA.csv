@@ -1,0 +1,14 @@
+Issue Type,Summ ary,Description,Priority,Status,Assignee,Labels,Story Points,Epic Link,Sprint
+Story,Core Button component,Implement Button.tsx with props: label, onClick, variant ('primary'|'secondary'), disabled; consume tokens; accessible label.,High,In Progress,S2,Phase0;Component;Button,5,PHASE 0 - Token & Foundation,Phase 0
+Story,Core Input component,Implement Input.tsx with placeholder, value, onChange, type, and aria-label; consume tokens.,High,In Progress,S2,Phase0;Component;Input,5,PHASE 0 - Token & Foundation,Phase 0
+Story,Core Card component,Implement Card.tsx with optional title and content area; accessible semantics.,High,In Progress,S2,Phase0;Component;Card,5,PHASE 0 - Token & Foundation,Phase 0
+Story,Core Nav component,Implement Nav.tsx with a simple horizontal list of items; keyboard-friendly.,Medium,In Progress,S2,Phase0;Component;Nav,3,PHASE 0 - Token & Foundation,Phase 0
+Task,Storybook setup for revamp-ui,Initialize Storybook for revamp-ui; create stories for Button, Input, Card, Nav, Onboarding; connect tokens.,High,In Progress,S2,Phase0;Frontend;Storybook,5,PHASE 0 - Token & Foundation,Phase 0
+Task,Design Systems Council governance doc,Create governance cadence, artifacts, and migration plan for tokens/components.,Medium,To Do,S2,Phase0;Governance;Docs,3,PHASE 0 - Token & Foundation,Phase 0
+Task,Core Button component,Implement Button.tsx with props: label, onClick, variant ('primary'|'secondary'), disabled; consume tokens; accessible label.,,To Do,S2,Phase0;Component;Button,5,PHASE 0 - Token & Foundation,Phase 0
+Task,Core Input component,Implement Input.tsx with placeholder, value, onChange, type, and aria-label; consume tokens.,,To Do,S2,Phase0;Component;Input,5,PHASE 0 - Token & Foundation,Phase 0
+Task,Core Card component,Implement Card.tsx with optional title and content area; accessible semantics.,,To Do,S2,Phase0;Component;Card,5,PHASE 0 - Token & Foundation,Phase 0
+Task,Core Nav component,Implement Nav.tsx with a simple horizontal list of items; keyboard-friendly.,,To Do,S2,Phase0;Component;Nav,3,PHASE 0 - Token & Foundation,Phase 0
+Task,Storybook setup for revamp-ui,Initialize Storybook for revamp-ui; create stories for Button, Input, Card, Nav, Onboarding; connect tokens.,,To Do,S2,Phase0;Frontend;Storybook,5,PHASE 0 - Token & Foundation,Phase 0
+Task,Phase 0 sprint kickoff plan,Publish Phase 0 sprint plan with cadence, ceremonies, and win conditions.,,To Do,S2,Phase 0,,Phase0;Planning;Docs,2
+Task,Phase 0 demo readiness,Prepare a 1–2 screen demo combining onboarding flow with Token-driven UI kit for leadership demo.,,To Do,S2,Phase 0,,Phase0;Demo;Preview,5

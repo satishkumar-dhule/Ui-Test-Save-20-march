@@ -1,0 +1,5 @@
+Issue Type,Summ ary,Description,Priority,Status,Assignee,Labels,Story Points,Epic Link,Sprint
+Story,Onboarding flow integration,Implement Onboarding flow using Button, Input, Card; collect a name and a simple action on Continue.,High,In Progress,S3,Phase0;Component;Onboarding,5,PHASE 0 - Token & Foundation,Phase 0
+Task,UX Research onboarding usability test plan,Recruit participants and run 1 usability test on onboarding flow; capture feedback.,Medium,To Do,S3,Phase0;Research;Usability,3,PHASE 0 - Token & Foundation,Phase 0
+Task,Onboarding flow integration,Implement Onboarding flow using Button, Input, Card; collect a name and a simple action on Continue.,,To Do,S3,Phase0;Component;Onboarding,5,PHASE 0 - Token & Foundation,Phase 0
+Task,Design Systems Council governance doc,Create governance cadence, artifacts, and migration plan for tokens/components.,,To Do,S3,Phase 0,,Phase0;Governance;Docs,3

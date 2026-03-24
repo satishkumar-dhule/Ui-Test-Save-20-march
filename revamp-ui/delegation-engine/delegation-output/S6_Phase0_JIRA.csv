@@ -1,0 +1,3 @@
+Issue Type,Summ ary,Description,Priority,Status,Assignee,Labels,Story Points,Epic Link,Sprint
+Task,Migration plan (Phase 0) for token-based system,Draft a high-level migration path from old UI to token-based system; include risk and rollback notes.,Low,To Do,S6,Phase0;Migration;Planning,2,PHASE 0 - Token & Foundation,Phase 0
+Task,Metrics plan for Phase 0,Define task time, task success rate, error rate, and adoption KPIs; define data collection method.,,To Do,S6,Phase 0,,Phase0;Metrics;Planning,3

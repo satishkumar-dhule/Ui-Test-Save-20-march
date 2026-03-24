@@ -1,0 +1,14 @@
+{
+  "name": "revamp-ui",
+  "version": "0.1.0",
+  "private": true,
+  "main": "index.js",
+  "types": "src/index.d.ts",
+  "dependencies": {
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
+  },
+  "scripts": {
+    "upgrade": "node delegation-engine/delegate.js"
+  }
+}

@@ -6,14 +6,13 @@ test.describe('Flashcards Page', () => {
     await bypassOnboarding(page, ['javascript', 'typescript', 'react'], { section: 'flashcards' })
     await page.goto('/')
     await waitForAppReady(page)
-    await page.click('[data-testid="section-tab-flashcards"]')
+    await page.click('[role="tab"]:has-text("Flashcards")')
     await page.waitForTimeout(600)
   })
 
   test('flashcards page loads', async ({ page }) => {
     await expect(
-      page.locator('[data-testid="flashcard-shuffle-btn"]')
-        .or(page.locator('text=No flashcards')),
+      page.locator('[data-testid="flashcard-shuffle-btn"]').or(page.locator('text=No flashcards'))
     ).toBeVisible({ timeout: 8000 })
   })
 
@@ -33,7 +32,7 @@ test.describe('Flashcards Page', () => {
 
   test('flashcard is displayed', async ({ page }) => {
     const shuffleBtn = page.locator('[data-testid="flashcard-shuffle-btn"]')
-    if (!await shuffleBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
+    if (!(await shuffleBtn.isVisible({ timeout: 5000 }).catch(() => false))) {
       test.skip()
     }
     // A flip-card element should be visible
@@ -43,7 +42,7 @@ test.describe('Flashcards Page', () => {
 
   test('clicking flashcard flips it', async ({ page }) => {
     const card = page.locator('.flip-card')
-    if (!await card.isVisible({ timeout: 5000 }).catch(() => false)) test.skip()
+    if (!(await card.isVisible({ timeout: 5000 }).catch(() => false))) test.skip()
 
     // Should NOT have 'flipped' class initially
     await expect(card).not.toHaveClass(/flipped/)
@@ -55,13 +54,16 @@ test.describe('Flashcards Page', () => {
 
   test('next button navigates to next card', async ({ page }) => {
     const nextBtn = page.locator('[aria-label="Next flashcard"]')
-    if (!await nextBtn.isVisible({ timeout: 5000 }).catch(() => false)) test.skip()
+    if (!(await nextBtn.isVisible({ timeout: 5000 }).catch(() => false))) test.skip()
 
     const counterBefore = await page.locator('.text-xs.text-muted-foreground').first().textContent()
     if (await nextBtn.isEnabled()) {
       await nextBtn.click()
       await page.waitForTimeout(300)
-      const counterAfter = await page.locator('.text-xs.text-muted-foreground').first().textContent()
+      const counterAfter = await page
+        .locator('.text-xs.text-muted-foreground')
+        .first()
+        .textContent()
       expect(counterAfter).not.toBe(counterBefore)
     }
   })
@@ -69,7 +71,7 @@ test.describe('Flashcards Page', () => {
   test('previous button navigates back', async ({ page }) => {
     const nextBtn = page.locator('[aria-label="Next flashcard"]')
     const prevBtn = page.locator('[aria-label="Previous flashcard"]')
-    if (!await nextBtn.isVisible({ timeout: 5000 }).catch(() => false)) test.skip()
+    if (!(await nextBtn.isVisible({ timeout: 5000 }).catch(() => false))) test.skip()
 
     // Go forward then back
     if (await nextBtn.isEnabled()) {
@@ -83,7 +85,7 @@ test.describe('Flashcards Page', () => {
 
   test('shuffle button randomises deck', async ({ page }) => {
     const shuffleBtn = page.locator('[data-testid="flashcard-shuffle-btn"]')
-    if (!await shuffleBtn.isVisible({ timeout: 5000 }).catch(() => false)) test.skip()
+    if (!(await shuffleBtn.isVisible({ timeout: 5000 }).catch(() => false))) test.skip()
     await shuffleBtn.click()
     await page.waitForTimeout(300)
     // Button label should change to "Shuffled"
@@ -92,7 +94,7 @@ test.describe('Flashcards Page', () => {
 
   test('reset button clears shuffle and resets progress', async ({ page }) => {
     const resetBtn = page.locator('[data-testid="flashcard-reset-btn"]')
-    if (!await resetBtn.isVisible({ timeout: 5000 }).catch(() => false)) test.skip()
+    if (!(await resetBtn.isVisible({ timeout: 5000 }).catch(() => false))) test.skip()
     await resetBtn.click()
     await page.waitForTimeout(300)
     // Shuffle button should revert to "Shuffle"
@@ -102,13 +104,13 @@ test.describe('Flashcards Page', () => {
 
   test('progress bar is in DOM', async ({ page }) => {
     const progressBar = page.locator('[data-testid="flashcard-progress-bar"]')
-    if (!await progressBar.isAttached({ timeout: 5000 }).catch(() => false)) test.skip()
+    if (!(await progressBar.isAttached({ timeout: 5000 }).catch(() => false))) test.skip()
     await expect(progressBar).toBeAttached()
   })
 
   test('keyboard arrow navigation works', async ({ page }) => {
     const card = page.locator('.flip-card')
-    if (!await card.isVisible({ timeout: 5000 }).catch(() => false)) test.skip()
+    if (!(await card.isVisible({ timeout: 5000 }).catch(() => false))) test.skip()
 
     await page.keyboard.press('ArrowRight')
     await page.waitForTimeout(200)
@@ -120,7 +122,7 @@ test.describe('Flashcards Page', () => {
 
   test('space key flips card when card is focused', async ({ page }) => {
     const card = page.locator('.flip-card')
-    if (!await card.isVisible({ timeout: 5000 }).catch(() => false)) test.skip()
+    if (!(await card.isVisible({ timeout: 5000 }).catch(() => false))) test.skip()
 
     await card.focus()
     await page.keyboard.press('Space')
@@ -131,7 +133,7 @@ test.describe('Flashcards Page', () => {
   test('sidebar is visible on desktop', async ({ page, viewport }) => {
     if (!viewport || viewport.width < 768) test.skip()
     const shuffleBtn = page.locator('[data-testid="flashcard-shuffle-btn"]')
-    if (!await shuffleBtn.isVisible({ timeout: 5000 }).catch(() => false)) test.skip()
+    if (!(await shuffleBtn.isVisible({ timeout: 5000 }).catch(() => false))) test.skip()
     const sidebar = page.locator('.sidebar').first()
     await expect(sidebar).toBeVisible()
   })

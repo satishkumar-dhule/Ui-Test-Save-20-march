@@ -1,0 +1,14 @@
+Name,Notes,Assignee,Projects,Tags,Section,Story Points
+Core Button component,Implement Button.tsx with props: label, onClick, variant ('primary'|'secondary'), disabled; consume tokens; accessible label.,S2,PHASE 0 - Token & Foundation,Phase0;Component;Button,Phase 0,5
+Core Input component,Implement Input.tsx with placeholder, value, onChange, type, and aria-label; consume tokens.,S2,PHASE 0 - Token & Foundation,Phase0;Component;Input,Phase 0,5
+Core Card component,Implement Card.tsx with optional title and content area; accessible semantics.,S2,PHASE 0 - Token & Foundation,Phase0;Component;Card,Phase 0,5
+Core Nav component,Implement Nav.tsx with a simple horizontal list of items; keyboard-friendly.,S2,PHASE 0 - Token & Foundation,Phase0;Component;Nav,Phase 0,3
+Storybook setup for revamp-ui,Initialize Storybook for revamp-ui; create stories for Button, Input, Card, Nav, Onboarding; connect tokens.,S2,PHASE 0 - Token & Foundation,Phase0;Frontend;Storybook,Phase 0,5
+Design Systems Council governance doc,Create governance cadence, artifacts, and migration plan for tokens/components.,S2,PHASE 0 - Token & Foundation,Phase0;Governance;Docs,Phase 0,3
+Core Button component,Implement Button.tsx with props: label, onClick, variant ('primary'|'secondary'), disabled; consume tokens; accessible label.,S2,PHASE 0 - Token & Foundation,Phase0;Component;Button,Phase 0,5
+Core Input component,Implement Input.tsx with placeholder, value, onChange, type, and aria-label; consume tokens.,S2,PHASE 0 - Token & Foundation,Phase0;Component;Input,Phase 0,5
+Core Card component,Implement Card.tsx with optional title and content area; accessible semantics.,S2,PHASE 0 - Token & Foundation,Phase0;Component;Card,Phase 0,5
+Core Nav component,Implement Nav.tsx with a simple horizontal list of items; keyboard-friendly.,S2,PHASE 0 - Token & Foundation,Phase0;Component;Nav,Phase 0,3
+Storybook setup for revamp-ui,Initialize Storybook for revamp-ui; create stories for Button, Input, Card, Nav, Onboarding; connect tokens.,S2,PHASE 0 - Token & Foundation,Phase0;Frontend;Storybook,Phase 0,5
+Phase 0 sprint kickoff plan,Publish Phase 0 sprint plan with cadence, ceremonies, and win conditions.,S2,Phase0;Planning;Docs,Phase 0,2,
+Phase 0 demo readiness,Prepare a 1–2 screen demo combining onboarding flow with Token-driven UI kit for leadership demo.,S2,Phase0;Demo;Preview,Phase 0,5,

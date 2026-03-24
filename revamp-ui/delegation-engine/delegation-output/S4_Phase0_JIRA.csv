@@ -1,0 +1,5 @@
+Issue Type,Summ ary,Description,Priority,Status,Assignee,Labels,Story Points,Epic Link,Sprint
+Task,Handoff pipeline documentation,Document design-to-code mapping, component library contracts, and visual diff checks.,High,To Do,S4,Phase0;DS;Docs,3,PHASE 0 - Token & Foundation,Phase 0
+Task,Accessibility baseline for new flows,Define WCAG targets; ensure keyboard navigation and focus order for onboarding and core components.,High,To Do,S4,Phase0;QA;Accessibility,3,PHASE 0 - Token & Foundation,Phase 0
+Task,Handoff pipeline documentation,Document design-to-code mapping, component library contracts, and visual diff checks.,,To Do,S4,Phase0;DS;Docs,3,PHASE 0 - Token & Foundation,Phase 0
+Task,UX Research onboarding usability test plan,Recruit participants and run 1 usability test on onboarding flow; capture feedback.,,To Do,S4,Phase 0,,Phase0;Research;Usability,3

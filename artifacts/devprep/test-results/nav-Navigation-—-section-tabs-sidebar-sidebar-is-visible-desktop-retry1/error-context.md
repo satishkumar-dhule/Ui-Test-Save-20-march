@@ -1,0 +1,246 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - complementary "Main navigation" [ref=e5]:
+      - generic [ref=e6]:
+        - img [ref=e8]
+        - generic [ref=e10]:
+          - text: DevPrep
+          - generic [ref=e11]: 23+ channels
+      - search "Channel search" [ref=e12]:
+        - img
+        - textbox "Search channels" [ref=e13]:
+          - /placeholder: Find channel...
+      - generic [ref=e14]:
+        - generic [ref=e15]:
+          - img [ref=e16]
+          - generic [ref=e18]: My Channels
+          - button "Edit pinned channels" [ref=e19] [cursor=pointer]:
+            - img [ref=e20]
+        - list [ref=e23]:
+          - listitem [ref=e24]:
+            - button "Select JavaScript channel" [ref=e25] [cursor=pointer]:
+              - generic [ref=e26]: ⚡
+              - generic [ref=e27]: JavaScript
+              - img [ref=e28]
+          - listitem [ref=e30]:
+            - button "Select TypeScript channel" [ref=e31] [cursor=pointer]:
+              - generic [ref=e32]: 💎
+              - generic [ref=e33]: TypeScript
+          - listitem [ref=e34]:
+            - button "Select React channel" [ref=e35] [cursor=pointer]:
+              - generic [ref=e36]: ⚛️
+              - generic [ref=e37]: React
+          - listitem [ref=e38]:
+            - button "Select Algorithms channel" [ref=e39] [cursor=pointer]:
+              - generic [ref=e40]: 🔢
+              - generic [ref=e41]: Algorithms
+          - listitem [ref=e42]:
+            - button "Select DevOps channel" [ref=e43] [cursor=pointer]:
+              - generic [ref=e44]: 🔧
+              - generic [ref=e45]: DevOps
+        - button "Browse all channels" [ref=e46] [cursor=pointer]:
+          - img [ref=e47]
+          - generic [ref=e52]: Browse all 23+ channels
+          - img [ref=e53]
+      - generic [ref=e56]:
+        - generic [ref=e57]:
+          - img [ref=e58]
+          - generic [ref=e60]: Study Mode
+        - tablist "Study sections" [ref=e61]:
+          - tab "Q&A 2" [selected] [ref=e62] [cursor=pointer]:
+            - img [ref=e64]
+            - generic [ref=e66]: Q&A
+            - generic [ref=e67]: "2"
+          - tab "Flashcards 5" [ref=e68] [cursor=pointer]:
+            - img [ref=e70]
+            - generic [ref=e72]: Flashcards
+            - generic [ref=e73]: "5"
+          - tab "Coding 3" [ref=e74] [cursor=pointer]:
+            - img [ref=e76]
+            - generic [ref=e80]: Coding
+            - generic [ref=e81]: "3"
+          - tab "Mock Exam 0" [ref=e82] [cursor=pointer]:
+            - img [ref=e84]
+            - generic [ref=e87]: Mock Exam
+            - generic [ref=e88]: "0"
+          - tab "Voice 0" [ref=e89] [cursor=pointer]:
+            - img [ref=e91]
+            - generic [ref=e95]: Voice
+            - generic [ref=e96]: "0"
+          - tab "Statistics 0" [ref=e97] [cursor=pointer]:
+            - img [ref=e99]
+            - generic [ref=e104]: Statistics
+            - generic [ref=e105]: "0"
+      - button "Add channels" [ref=e107] [cursor=pointer]:
+        - img [ref=e108]
+        - generic [ref=e109]: Add channels
+    - generic [ref=e110]:
+      - banner [ref=e111]:
+        - button "Open navigation menu" [ref=e112] [cursor=pointer]:
+          - img [ref=e113]
+        - navigation "Breadcrumb" [ref=e114]:
+          - list "You are here" [ref=e115]:
+            - listitem [ref=e116]:
+              - link "DevPrep home" [ref=e117] [cursor=pointer]:
+                - /url: /
+                - text: DevPrep
+            - listitem [ref=e118]:
+              - img [ref=e119]
+            - listitem [ref=e121]:
+              - generic [ref=e122]: ⚡
+              - generic [ref=e123]: JavaScript
+            - listitem [ref=e124]:
+              - img [ref=e125]
+            - listitem [ref=e127]:
+              - generic [ref=e128]: Q&A
+        - button "Search content" [ref=e129] [cursor=pointer]:
+          - img [ref=e130]
+          - generic [ref=e133]: Search content...
+          - generic [ref=e134]: ⌘K
+        - button "Switch to light mode" [ref=e135] [cursor=pointer]:
+          - img [ref=e136]
+      - main [ref=e142]:
+        - generic [ref=e143]:
+          - link "Skip to main content" [ref=e144] [cursor=pointer]:
+            - /url: "#qa-main-content"
+          - status [ref=e145]
+          - generic [ref=e146]:
+            - generic [ref=e147]:
+              - img [ref=e148]
+              - generic [ref=e150]: Questions
+              - generic [ref=e151]: "2"
+            - list "Question list" [ref=e152]:
+              - 'listitem "Question 1: How does the JavaScript Event Loop work?" [ref=e153]':
+                - generic [ref=e154]:
+                  - generic [ref=e155]: "#1"
+                  - generic [ref=e156]: int
+                - generic [ref=e157]: How does the JavaScript Event Loop work?
+              - 'listitem "Question 2: What are JavaScript closures and when should you use them?" [ref=e158]':
+                - generic [ref=e159]:
+                  - generic [ref=e160]: "#2"
+                  - generic [ref=e161]: int
+                - generic [ref=e162]: What are JavaScript closures and when should you use them?
+          - generic [ref=e163]:
+            - toolbar "Question navigation" [ref=e164]:
+              - generic [ref=e165]:
+                - img [ref=e166]
+                - textbox "Search questions" [ref=e169]:
+                  - /placeholder: Search questions...
+              - generic [ref=e170]: 1 / 2
+              - button "Previous question" [disabled] [ref=e171]:
+                - img [ref=e172]
+              - button "Next question" [ref=e174]:
+                - img [ref=e175]
+            - generic [ref=e178]:
+              - heading "How does the JavaScript Event Loop work?" [level=1] [ref=e179]
+              - generic [ref=e180]:
+                - heading "Question 1 Details" [level=2] [ref=e181]
+                - generic [ref=e182]:
+                  - generic [ref=e183]: intermediate
+                  - generic [ref=e184]: short
+                  - generic [ref=e185]: diagram
+                  - generic [ref=e186]: code
+                  - generic [ref=e187]: eli5
+                - heading "How does the JavaScript Event Loop work?" [level=1] [ref=e188]
+                - generic [ref=e189]:
+                  - generic [ref=e190]: ▲ 248
+                  - generic [ref=e191]: 👁 12.4k
+                  - generic [ref=e192]: by devlearner
+                  - generic [ref=e193]: 2024-01-15
+                - generic [ref=e194]:
+                  - generic [ref=e195]: javascript
+                  - generic [ref=e196]: async
+                  - generic [ref=e197]: event-loop
+              - generic [ref=e199]:
+                - generic [ref=e200]: Answer
+                - generic [ref=e201]:
+                  - paragraph [ref=e202]:
+                    - generic [ref=e203]:
+                      - text: The
+                      - strong [ref=e204]: event loop
+                      - text: is the mechanism that allows JavaScript to perform non-blocking operations. It continuously checks the
+                      - strong [ref=e205]: call stack
+                      - text: and the
+                      - strong [ref=e206]: task queue
+                      - text: ", pushing tasks from the queue to the stack when the stack is empty."
+                  - paragraph [ref=e207]:
+                    - generic [ref=e208]:
+                      - text: "Key components: -"
+                      - strong [ref=e209]: Call Stack
+                      - text: ": Executes synchronous code one frame at a time -"
+                      - strong [ref=e210]: Web APIs
+                      - text: ": Handle async operations (setTimeout, fetch, DOM events) -"
+                      - strong [ref=e211]: Microtask Queue
+                      - text: ": Higher priority — holds Promise callbacks -"
+                      - strong [ref=e212]: Macrotask Queue
+                      - text: ": Lower priority — holds setTimeout, setInterval callbacks"
+              - generic [ref=e214]:
+                - generic [ref=e215]: Diagram
+                - generic [ref=e216]:
+                  - generic [ref=e217]:
+                    - generic [ref=e218]: Event Loop Architecture
+                    - generic [ref=e219]: The flow of execution in the JavaScript runtime
+                  - img [ref=e221]:
+                    - generic [ref=e223]: CALL
+                    - generic [ref=e225]: console.log()
+                    - generic [ref=e227]: main()
+                    - generic [ref=e229]: WEB
+                    - generic [ref=e231]: setTimeout(cb,)
+                    - generic [ref=e233]: fetch('/api')
+                    - generic [ref=e235]: DOM
+                    - generic [ref=e237]: MICROTASK
+                    - generic [ref=e238]: Promise.then()
+                    - generic [ref=e240]: MACROTASK
+                    - generic [ref=e241]: setTimeout
+                    - generic [ref=e243]: EVENT
+                    - generic [ref=e244]: Stack? →
+              - generic [ref=e249]:
+                - generic [ref=e250]: Code Example
+                - generic [ref=e251]:
+                  - generic [ref=e252]:
+                    - generic [ref=e253]:
+                      - generic [ref=e254]: event-loop-demo.js
+                      - generic [ref=e255]: javascript
+                    - button "Copy" [ref=e256]:
+                      - img [ref=e257]
+                      - generic [ref=e260]: Copy
+                  - generic [ref=e261]:
+                    - generic [ref=e262]: "console.log('1: Sync start');"
+                    - generic [ref=e264]: "setTimeout(() => console.log('4: setTimeout (macrotask)'), 0);"
+                    - generic [ref=e266]: Promise.resolve()
+                    - generic [ref=e267]: ".then(() => console.log('3: Promise.then (microtask)'));"
+                    - generic [ref=e269]: "console.log('2: Sync end');"
+                    - generic [ref=e271]: "// Output order:"
+                    - generic [ref=e272]: "// 1: Sync start"
+                    - generic [ref=e273]: "// 2: Sync end"
+                    - generic [ref=e274]: "// 3: Promise.then (microtask) ← microtasks run before macrotasks"
+                    - generic [ref=e275]: "// 4: setTimeout (macrotask)"
+              - generic [ref=e277]:
+                - generic [ref=e278]: ELI5
+                - generic [ref=e280]:
+                  - generic [ref=e281]: 🧒
+                  - paragraph [ref=e284]:
+                    - generic [ref=e285]:
+                      - text: Imagine a
+                      - strong [ref=e286]: chef
+                      - text: (call stack) who can only cook one dish at a time. When an order takes long (like waiting for ingredients — that's async), the chef hands it to a
+                      - strong [ref=e287]: helper
+                      - text: (Web API). The helper signals back when ready. The chef checks a
+                      - strong [ref=e288]: VIP list
+                      - text: (microtasks / Promises) before the
+                      - strong [ref=e289]: regular queue
+                      - text: (macrotasks / setTimeout). So Promises always cut the line!
+              - generic [ref=e290]:
+                - button "Previous question" [disabled] [ref=e291]:
+                  - img [ref=e292]
+                  - text: Previous
+                - button "Next question" [ref=e297]:
+                  - text: Next
+                  - img [ref=e298]
+  - status [ref=e300]
+```

@@ -1,0 +1,8 @@
+Name,Notes,Assignee,Projects,Tags,Section,Story Points
+Finalize design token schema and naming,Define and lock the design-tokens.json structure (colors, typography, spacing, radii, elevation) and naming conventions. Ensure compatibility with CSS variables and component usage.,S1,PHASE 0 - Token & Foundation,Phase0;Token;DesignTokens,Phase 0,8
+Wire tokens into CSS and provide base variables,Bind design tokens to CSS custom properties and ensure global.css consumes tokens for theming.,S1,PHASE 0 - Token & Foundation,Phase0;Tokens;CSS,Phase 0,5
+Phase 0 sprint kickoff plan,Publish Phase 0 sprint plan with cadence, ceremonies, and win conditions.,S1,PHASE 0 - Token & Foundation,Phase0;Planning;Docs,Phase 0,2
+Phase 0 demo readiness,Prepare a 1–2 screen demo combining onboarding flow with Token-driven UI kit for leadership demo.,S1,PHASE 0 - Token & Foundation,Phase0;Demo;Preview,Phase 0,5
+Finalize design token schema and naming,Define and lock the design-tokens.json structure (colors, typography, spacing, radii, elevation) and naming conventions. Ensure compatibility with CSS variables and component usage.,S1,PHASE 0 - Token & Foundation,Phase0;Token;DesignTokens,Phase 0,8
+Wire tokens into CSS and provide base variables,Bind design tokens to CSS custom properties and ensure global.css consumes tokens for theming.,S1,PHASE 0 - Token & Foundation,Phase0;Tokens;CSS,Phase 0,5
+Migration plan (Phase 0) for token-based system,Draft a high-level migration path from old UI to token-based system; include risk and rollback notes.,S1,Phase0;Migration;Planning,Phase 0,2,

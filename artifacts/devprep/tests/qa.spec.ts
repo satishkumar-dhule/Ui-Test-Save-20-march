@@ -7,15 +7,16 @@ test.describe('Q&A Page', () => {
     await page.goto('/')
     await waitForAppReady(page)
     // Make sure we're on Q&A
-    await page.click('[data-testid="section-tab-qa"]')
+    await page.click('[role="tab"]:has-text("Q&A")')
     await page.waitForTimeout(500)
   })
 
   test('Q&A page loads content', async ({ page }) => {
     // Either shows questions or an empty state
     await expect(
-      page.locator('[data-testid="qa-search"]')
-        .or(page.locator('text=No questions for this channel')),
+      page
+        .locator('[data-testid="qa-search"]')
+        .or(page.locator('text=No questions for this channel'))
     ).toBeVisible({ timeout: 8000 })
   })
 
@@ -73,7 +74,9 @@ test.describe('Q&A Page', () => {
 
   test('code blocks show copy button', async ({ page }) => {
     // Navigate through questions to find one with code
-    const nextBtn = page.locator('[aria-label="Next question"], button:has([data-lucide="chevron-right"])').first()
+    const nextBtn = page
+      .locator('[aria-label="Next question"], button:has([data-lucide="chevron-right"])')
+      .first()
     for (let i = 0; i < 3; i++) {
       const copyBtn = page.locator('[data-testid="code-copy-btn"]').first()
       if (await copyBtn.isVisible()) {

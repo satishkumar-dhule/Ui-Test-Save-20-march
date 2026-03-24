@@ -1,0 +1,8 @@
+Issue Type,Summ ary,Description,Priority,Status,Assignee,Labels,Story Points,Epic Link,Sprint
+Story,Finalize design token schema and naming,Define and lock the design-tokens.json structure (colors, typography, spacing, radii, elevation) and naming conventions. Ensure compatibility with CSS variables and component usage.,High,In Progress,S1,Phase0;Token;DesignTokens,8,PHASE 0 - Token & Foundation,Phase 0
+Task,Wire tokens into CSS and provide base variables,Bind design tokens to CSS custom properties and ensure global.css consumes tokens for theming.,High,In Progress,S1,Phase0;Tokens;CSS,5,PHASE 0 - Token & Foundation,Phase 0
+Task,Phase 0 sprint kickoff plan,Publish Phase 0 sprint plan with cadence, ceremonies, and win conditions.,High,To Do,S1,Phase0;Planning;Docs,2,PHASE 0 - Token & Foundation,Phase 0
+Story,Phase 0 demo readiness,Prepare a 1–2 screen demo combining onboarding flow with Token-driven UI kit for leadership demo.,High,To Do,S1,Phase0;Demo;Preview,5,PHASE 0 - Token & Foundation,Phase 0
+Task,Finalize design token schema and naming,Define and lock the design-tokens.json structure (colors, typography, spacing, radii, elevation) and naming conventions. Ensure compatibility with CSS variables and component usage.,,To Do,S1,Phase0;Token;DesignTokens,8,PHASE 0 - Token & Foundation,Phase 0
+Task,Wire tokens into CSS and provide base variables,Bind design tokens to CSS custom properties and ensure global.css consumes tokens for theming.,,To Do,S1,Phase0;Tokens;CSS,5,PHASE 0 - Token & Foundation,Phase 0
+Task,Migration plan (Phase 0) for token-based system,Draft a high-level migration path from old UI to token-based system; include risk and rollback notes.,,To Do,S1,Phase 0,,Phase0;Migration;Planning,2
