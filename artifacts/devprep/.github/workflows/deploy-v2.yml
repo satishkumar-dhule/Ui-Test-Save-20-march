@@ -19,7 +19,7 @@ on:
 
 env:
   NODE_VERSION: '20'
-  PNPM_VERSION: '9'
+  # Bun is used instead of PNPM
   DOCKER_REGISTRY: docker.io
   DOCKER_IMAGE: ${{ secrets.DOCKER_USERNAME }}/devprep-v2
 
@@ -44,28 +44,23 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
+      - name: Setup Bun
+        run: curl -fsSL https://bun.sh/install | bash
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
+      - name: Setup Node (bun path)
+        run: echo "Bun installed; using bun for subsequent steps"
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: bun install
 
       - name: Type check
-        run: pnpm run typecheck:v2
+        run: bun run typecheck:v2
 
       - name: Lint
-        run: pnpm run lint:v2
+        run: bun run lint:v2
 
       - name: Run tests
-        run: pnpm run test:v2:run
+        run: bun run test:v2:run
 
       - name: Upload test coverage
         uses: actions/upload-artifact@v4
@@ -95,20 +90,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Setup Bun
+        run: curl -fsSL https://bun.sh/install | bash
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
+      - name: Setup Node (bun path)
+        run: echo "Bun installed; using bun for subsequent steps"
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: bun install
 
       - name: Build V2 for ${{ matrix.environment }}
         env:
@@ -117,7 +106,7 @@ jobs:
           STAGING: ${{ matrix.staging }}
           VITE_API_URL: ${{ vars.API_URL }}
           CDN_URL: ${{ vars.CDN_URL }}
-        run: pnpm run build:v2
+        run: bun run build:v2
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4

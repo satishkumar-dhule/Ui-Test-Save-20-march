@@ -58,12 +58,8 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "npm"
-          cache-dependency-path: content-gen/package.json
+      - name: Setup Bun
+        run: curl -fsSL https://bun.sh/install | bash
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -105,7 +101,7 @@ jobs:
       - name: Install Node dependencies
         run: |
           cd content-gen
-          npm ci
+          bun install
 
       - name: Install Python dependencies
         run: |
@@ -139,12 +135,8 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "npm"
-          cache-dependency-path: content-gen/package.json
+      - name: Setup Bun
+        run: curl -fsSL https://bun.sh/install | bash
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -155,7 +147,7 @@ jobs:
       - name: Install dependencies
         run: |
           cd content-gen
-          npm ci
+          bun install
           pip install sentence-transformers faiss-cpu --quiet
 
       - name: Download database

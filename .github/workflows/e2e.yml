@@ -10,20 +10,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "pnpm"
+      - name: Setup Bun
+        run: curl -fsSL https://bun.sh/install | bash
+      - name: Setup Node (bun path)
+        run: echo "Bun installed; using bun for subsequent steps"
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: bun install
       - name: Install Playwright browsers
-        run: pnpm exec playwright install
+        run: bunx playwright install
       - name: Run Playwright E2E tests
-        run: pnpm exec playwright test --config tests/e2e/playwright.config.ts
+        run: bunx playwright test --config tests/e2e/playwright.config.ts
         env:
           BASE_URL: http://localhost:3001
