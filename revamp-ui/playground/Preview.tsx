@@ -1,5 +1,5 @@
 import React from "react";
-import Phase1Preview from "../flows/Phase1Preview";
+import Phase2Preview from "../flows/Phase2Preview";
 import "../styles/global.css";
 
 export const Preview: React.FC = () => {
@@ -9,7 +9,7 @@ export const Preview: React.FC = () => {
         className="rev-container"
         style={{ maxWidth: 1000, margin: "0 auto" }}
       >
-        <Phase1Preview />
+        <Phase2Preview />
       </div>
     </div>
   );

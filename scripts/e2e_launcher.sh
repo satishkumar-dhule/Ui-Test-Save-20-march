@@ -6,6 +6,12 @@ exec >> "$LOG" 2>&1
 
 export DISPLAY=:1
 DIR="$(cd "$(dirname "$0")" && pwd)"
+# If a JSON config exists, convert it to shell launcher config
+if [ -f "$DIR/launcher_config.json" ]; then
+  if command -v python3 >/dev/null 2>&1; then
+    python3 "$DIR/convert_json_launcher.py" "$DIR/launcher_config.json" > "$DIR/launcher_config.sh" || true
+  fi
+fi
 if [ -f "$DIR/launcher_config.sh" ]; then
   . "$DIR/launcher_config.sh"
 fi
