@@ -9,7 +9,7 @@ import type { CodingChallenge } from '@/data/coding'
 import type { ContentItem, ContentStats, ContentType, ContentStatus } from '@/stores/types'
 
 export type { ContentItem, ContentStats, ContentType, ContentStatus }
-export type Section = 'qa' | 'flashcards' | 'exam' | 'voice' | 'coding'
+export type Section = 'qa' | 'flashcards' | 'exam' | 'voice' | 'coding' | 'stats'
 
 type ContentMap = {
   questions: Question[]
@@ -399,6 +399,7 @@ export const useSectionCounts = (tagFilter: string[] | undefined) => {
       exam: filtered.exam.length,
       voice: filtered.voice.length,
       coding: filtered.coding.length,
+      stats: 0,
     }),
     [filtered]
   )

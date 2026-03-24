@@ -17,6 +17,7 @@ export type LazyRouteKey =
   | 'MockExamPage'
   | 'VoicePracticePage'
   | 'CodingPage'
+  | 'StatsPage'
   | 'RealtimeDashboard'
   | 'AIPage'
   | 'OnboardingPage'
@@ -92,6 +93,13 @@ export const LAZY_ROUTE_CONFIGS: Record<LazyRouteKey, LazyRouteConfig> = {
     priority: 'low',
     prefetchOnIdle: false,
   },
+  StatsPage: {
+    importFn: () => import('@/pages-v2/StatsPage').then(m => ({ default: m.StatsPage })),
+    skeleton: 'dashboard',
+    chunkName: 'page-stats',
+    priority: 'low',
+    prefetchOnIdle: false,
+  },
   NotFound: {
     importFn: () => import('@/pages/not-found').then(m => ({ default: m.default })),
     skeleton: 'notFound',
@@ -110,6 +118,7 @@ export const LazyRealtimeDashboard = lazy(() => LAZY_ROUTE_CONFIGS.RealtimeDashb
 export const LazyAIPage = lazy(() => LAZY_ROUTE_CONFIGS.AIPage.importFn())
 export const LazyOnboardingPage = lazy(() => LAZY_ROUTE_CONFIGS.OnboardingPage.importFn())
 export const LazyNotFound = lazy(() => LAZY_ROUTE_CONFIGS.NotFound.importFn())
+export const LazyStatsPage = lazy(() => LAZY_ROUTE_CONFIGS.StatsPage.importFn())
 
 export const LAZY_COMPONENTS: Record<LazyRouteKey, ReturnType<typeof lazy>> = {
   QAPage: LazyQAPage,
@@ -121,6 +130,7 @@ export const LAZY_COMPONENTS: Record<LazyRouteKey, ReturnType<typeof lazy>> = {
   AIPage: LazyAIPage,
   OnboardingPage: LazyOnboardingPage,
   NotFound: LazyNotFound,
+  StatsPage: LazyStatsPage,
 }
 
 const PAGE_TITLES: Record<LazyRouteKey, string> = {
@@ -129,6 +139,7 @@ const PAGE_TITLES: Record<LazyRouteKey, string> = {
   MockExamPage: 'Loading exam...',
   VoicePracticePage: 'Loading voice practice...',
   CodingPage: 'Loading coding challenges...',
+  StatsPage: 'Loading statistics...',
   RealtimeDashboard: 'Loading dashboard...',
   AIPage: 'Loading AI assistant...',
   OnboardingPage: 'Loading...',
@@ -198,6 +209,7 @@ export const SectionToPageMap: Record<string, LazyRouteKey> = {
   exam: 'MockExamPage',
   voice: 'VoicePracticePage',
   coding: 'CodingPage',
+  stats: 'StatsPage',
 }
 
 export function getPageForSection(section: string): LazyRouteKey {

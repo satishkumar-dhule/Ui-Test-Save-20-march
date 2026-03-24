@@ -1,96 +1,105 @@
 import {
-  agentTeam,
   agentRegistry,
   delegationTracker,
   taskOrchestrator,
+  taskExecutor,
+  statusTracker,
 } from "./src/agents";
 
-console.log("=".repeat(60));
-console.log("AGENT TEAM HIERARCHY - 3 LEVELS");
-console.log("=".repeat(60));
-console.log("\nLEVEL 1 - ARCHITECTS (Strategic)");
-console.log("-".repeat(40));
-
-const architects = agentRegistry.getAgentsByLevel("architect");
-for (const a of architects) {
-  console.log("  " + a.name + " (" + a.role + ")");
-  console.log("      Skills: " + a.capabilities.skills.join(", "));
-}
-
-console.log("\nLEVEL 2 - MANAGERS (Tactical)");
-console.log("-".repeat(40));
-
-const managers = agentRegistry.getAgentsByLevel("manager");
-for (const m of managers) {
-  console.log("  " + m.name + " (" + m.role + ")");
-}
-
-console.log("\nLEVEL 3 - SPECIALISTS (Ground/Execution)");
-console.log("-".repeat(40));
-
-const ground = agentRegistry
-  .getAgentsByLevel("specialist")
-  .concat(agentRegistry.getAgentsByLevel("ground"));
-for (const g of ground) {
-  console.log("  " + g.name + " (" + g.role + ")");
-}
-
-console.log("\n" + "=".repeat(60));
-console.log("DELEGATION FLOW DEMO");
-console.log("=".repeat(60));
-
-const demoTasks = [
+const REVAMP_TASKS = [
   {
-    title: "Design Auth System",
-    description: "Create authentication architecture",
+    title: "Audit Current Website",
+    description: "Review all existing pages, components, styles",
     priority: "critical" as const,
   },
   {
-    title: "Build REST API",
-    description: "Implement API endpoints",
+    title: "Design System Architecture",
+    description: "Create new component library structure",
+    priority: "critical" as const,
+  },
+  {
+    title: "Build New Layout Components",
+    description: "Create responsive Layout components",
+    priority: "high" as const,
+  },
+  {
+    title: "Implement Theme System",
+    description: "Build Light/Dark theme with CSS variables",
+    priority: "high" as const,
+  },
+  {
+    title: "Create Navigation System",
+    description: "Implement primary navigation with breadcrumbs",
+    priority: "high" as const,
+  },
+  {
+    title: "Build Dashboard Widgets",
+    description: "Create StatsCard, ProgressBar widgets",
+    priority: "medium" as const,
+  },
+  {
+    title: "Implement Performance Optimizations",
+    description: "Add code splitting, lazy loading",
+    priority: "medium" as const,
+  },
+  {
+    title: "Create Page Templates",
+    description: "Build HomePage, ContentPage templates",
+    priority: "medium" as const,
+  },
+  {
+    title: "Add Accessibility Features",
+    description: "Implement ARIA labels, keyboard nav",
     priority: "high" as const,
   },
   {
     title: "Write Documentation",
-    description: "Document the system",
-    priority: "medium" as const,
+    description: "Document new components and migration",
+    priority: "low" as const,
   },
 ];
 
-const creator = architects[0];
-console.log("\nCreating tasks from: " + creator.name);
+async function runRevampProject() {
+  console.log("=".repeat(60));
+  console.log("PROJECT: REVAMP WEBSITE");
+  console.log("=".repeat(60) + "\n");
 
-for (const task of demoTasks) {
-  const created = taskOrchestrator.createAndOrchestrateTask(
-    task.title,
-    task.description,
-    task.priority,
-    creator.id,
-    "ground",
-  );
-  if (created) {
-    console.log(
-      "  Created: " +
-        created.title +
-        " -> " +
-        created.delegationChain.join(" -> "),
+  const architects = agentRegistry.getAgentsByLevel("architect");
+  const creator = architects[0];
+
+  const createdTasks: any[] = [];
+
+  for (const taskConfig of REVAMP_TASKS) {
+    const task = taskOrchestrator.createAndOrchestrateTask(
+      taskConfig.title,
+      taskConfig.description,
+      taskConfig.priority,
+      creator.id,
+      "ground",
     );
+    if (task) {
+      createdTasks.push(task);
+      const assignee = agentRegistry.getAgent(task.assignedTo || "");
+      console.log(
+        "[" +
+          taskConfig.priority +
+          "] " +
+          task.title +
+          " → " +
+          (assignee?.name || "?"),
+      );
+    }
   }
+
+  console.log("\nExecuting " + createdTasks.length + " tasks...\n");
+
+  for (const task of createdTasks) {
+    const result = await taskExecutor.executeTask(task.id);
+    console.log((result.success ? "✓" : "✗") + " " + task.title);
+  }
+
+  console.log("\n" + "=".repeat(60));
+  statusTracker.printStatusDashboard();
 }
 
-console.log("\n" + "=".repeat(60));
-console.log("TEAM METRICS");
-console.log("=".repeat(60));
-console.log(JSON.stringify(agentRegistry.getTeamMetrics(), null, 2));
-
-console.log("\n" + "=".repeat(60));
-console.log("DELEGATION TRACKERS");
-console.log("=".repeat(60));
-console.log(JSON.stringify(delegationTracker.getAnalytics(), null, 2));
-
-console.log("\n" + "=".repeat(60));
-console.log("TASK ORCHESTRATOR DASHBOARD");
-console.log("=".repeat(60));
-const dashboard = taskOrchestrator.getDashboard();
-console.log("Active Trackers: " + dashboard.taskTrackers.length);
-console.log("Workload Distribution:", dashboard.workload);
+runRevampProject();

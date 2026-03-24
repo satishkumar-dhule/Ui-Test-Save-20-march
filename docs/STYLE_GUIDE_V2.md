@@ -42,6 +42,7 @@ src/
 ### File Naming
 
 #### Components
+
 ```
 Button/index.tsx          # Component file
 Button/__tests__/Button.test.tsx  # Test file
@@ -50,12 +51,14 @@ Button/types.ts                   # Type definitions (optional)
 ```
 
 #### Utilities
+
 ```
 cn.ts                     # Utility function with descriptive name
 format-date.ts            # Utility function with kebab-case
 ```
 
 #### Features
+
 ```
 content/
 ├── components/           # Feature-specific components
@@ -125,13 +128,19 @@ const response: PaginatedResponse<ContentItem> = await fetchContent();
 
 ```typescript
 // ✅ Good: Union type for specific values
-type ButtonVariant = 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
+type ButtonVariant =
+  | "default"
+  | "destructive"
+  | "outline"
+  | "secondary"
+  | "ghost"
+  | "link";
 
 // ✅ Good: Discriminated union
-type ContentItem = 
-  | { type: 'question'; data: QuestionData }
-  | { type: 'flashcard'; data: FlashcardData }
-  | { type: 'exam'; data: ExamData };
+type ContentItem =
+  | { type: "question"; data: QuestionData }
+  | { type: "flashcard"; data: FlashcardData }
+  | { type: "exam"; data: ExamData };
 ```
 
 ## React Components
@@ -168,15 +177,21 @@ Button.displayName = 'Button';
 ```typescript
 // ✅ Good: Props interface with clear naming
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
-  size?: 'default' | 'sm' | 'lg' | 'icon';
+  variant?:
+    | "default"
+    | "destructive"
+    | "outline"
+    | "secondary"
+    | "ghost"
+    | "link";
+  size?: "default" | "sm" | "lg" | "icon";
   isLoading?: boolean;
   asChild?: boolean;
 }
 
 // ✅ Good: Extending HTML attributes for flexibility
 interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
-  variant?: 'default' | 'outline';
+  variant?: "default" | "outline";
   interactive?: boolean;
 }
 ```
@@ -219,7 +234,7 @@ export function LoginForm({ onSubmit }: LoginFormProps) {
 
 ```typescript
 // ✅ Good: Custom hook with clear return type
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
 interface UseLocalStorageResult<T> {
   value: T;
@@ -229,7 +244,7 @@ interface UseLocalStorageResult<T> {
 
 export function useLocalStorage<T>(
   key: string,
-  initialValue: T
+  initialValue: T,
 ): UseLocalStorageResult<T> {
   const [value, setValue] = useState<T>(() => {
     try {
@@ -274,8 +289,8 @@ fetchContent();
 
 ```typescript
 // ✅ Good: Zustand store with TypeScript
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 interface ContentState {
   items: ContentItem[];
@@ -292,7 +307,7 @@ export const useContentStore = create<ContentState>()(
       items: [],
       isLoading: false,
       error: null,
-      
+
       fetchItems: async () => {
         set({ isLoading: true, error: null });
         try {
@@ -302,20 +317,22 @@ export const useContentStore = create<ContentState>()(
           set({ error: error.message, isLoading: false });
         }
       },
-      
-      addItem: (item) => set((state) => ({ 
-        items: [...state.items, item] 
-      })),
-      
-      removeItem: (id) => set((state) => ({ 
-        items: state.items.filter(item => item.id !== id) 
-      })),
+
+      addItem: (item) =>
+        set((state) => ({
+          items: [...state.items, item],
+        })),
+
+      removeItem: (id) =>
+        set((state) => ({
+          items: state.items.filter((item) => item.id !== id),
+        })),
     }),
     {
-      name: 'devprep-content',
+      name: "devprep-content",
       partialize: (state) => ({ items: state.items }),
-    }
-  )
+    },
+  ),
 );
 ```
 
@@ -330,22 +347,22 @@ export const useContentStore = create<ContentState>()(
   --color-primary: #6366f1;
   --color-secondary: #14b8a6;
   --color-accent: #f97316;
-  
+
   /* Semantic colors */
   --color-success: #10b981;
   --color-warning: #f59e0b;
   --color-error: #ef4444;
   --color-info: #3b82f6;
-  
+
   /* Background and foreground */
   --background: 0 0% 100%;
   --foreground: 222.2 84% 4.9%;
-  
+
   /* Border and input */
   --border: 214.3 31.8% 91.4%;
   --input: 214.3 31.8% 91.4%;
   --ring: 222.2 84% 4.9%;
-  
+
   /* Radius */
   --radius: 0.5rem;
 }
@@ -410,26 +427,26 @@ function Button({ variant, size, className, ...props }) {
 
 ```typescript
 // ✅ Good: API client with proper error handling
-import axios from 'axios';
+import axios from "axios";
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api',
+  baseURL: import.meta.env.VITE_API_URL || "/api",
   timeout: 10000,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
 });
 
 // Request interceptor
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(error),
 );
 
 // Response interceptor
@@ -438,10 +455,10 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       // Handle unauthorized
-      window.location.href = '/login';
+      window.location.href = "/login";
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 export { api };
@@ -451,7 +468,7 @@ export { api };
 
 ```typescript
 // ✅ Good: Service layer with typed responses
-import { api } from '@/lib/api/client';
+import { api } from "@/lib/api/client";
 
 interface ContentResponse {
   data: ContentItem[];
@@ -462,25 +479,28 @@ interface ContentResponse {
 
 export const contentService = {
   getAll: async (page = 1, limit = 10): Promise<ContentResponse> => {
-    const response = await api.get('/content', { params: { page, limit } });
+    const response = await api.get("/content", { params: { page, limit } });
     return response.data;
   },
-  
+
   getById: async (id: string): Promise<ContentItem> => {
     const response = await api.get(`/content/${id}`);
     return response.data;
   },
-  
+
   create: async (data: CreateContentRequest): Promise<ContentItem> => {
-    const response = await api.post('/content', data);
+    const response = await api.post("/content", data);
     return response.data;
   },
-  
-  update: async (id: string, data: UpdateContentRequest): Promise<ContentItem> => {
+
+  update: async (
+    id: string,
+    data: UpdateContentRequest,
+  ): Promise<ContentItem> => {
     const response = await api.put(`/content/${id}`, data);
     return response.data;
   },
-  
+
   delete: async (id: string): Promise<void> => {
     await api.delete(`/content/${id}`);
   },
@@ -503,23 +523,23 @@ describe('Button', () => {
       render(<Button>Click me</Button>);
       expect(screen.getByText('Click me')).toBeInTheDocument();
     });
-    
+
     it('renders with variant', () => {
       render(<Button variant="destructive">Delete</Button>);
       // Add assertions
     });
   });
-  
+
   describe('interactions', () => {
     it('handles click events', () => {
       const handleClick = vi.fn();
       render(<Button onClick={handleClick}>Click me</Button>);
-      
+
       fireEvent.click(screen.getByText('Click me'));
       expect(handleClick).toHaveBeenCalledTimes(1);
     });
   });
-  
+
   describe('accessibility', () => {
     it('has proper aria attributes', () => {
       render(<Button disabled>Submit</Button>);
@@ -560,14 +580,14 @@ export function useDebounce<T>(value: T, delay: number): T {
 
 ### JSDoc
 
-```typescript
+````typescript
 // ✅ Good: JSDoc for public APIs
 /**
  * Creates a lazy-loaded component with suspense fallback
  * @param importFunc - Dynamic import function
  * @param options - Lazy load options
  * @returns Lazy-loaded component
- * 
+ *
  * @example
  * ```tsx
  * const LazyComponent = createLazyComponent(
@@ -578,11 +598,11 @@ export function useDebounce<T>(value: T, delay: number): T {
  */
 export function createLazyComponent<T>(
   importFunc: () => Promise<{ default: T }>,
-  options?: LazyLoadOptions
+  options?: LazyLoadOptions,
 ): React.LazyExoticComponent<T> {
   // implementation
 }
-```
+````
 
 ## Accessibility
 
@@ -656,6 +676,7 @@ import { lazy, Suspense } from 'react';
 const HomePage = lazy(() => import('@/pages/HomePage'));
 const ChannelPage = lazy(() => import('@/pages/ChannelPage'));
 const SearchPage = lazy(() => import('@/pages/SearchPage'));
+const StatsPage = lazy(() => import('@/pages/StatsPage'));
 
 function App() {
   return (
@@ -664,6 +685,7 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/channel/:id" element={<ChannelPage />} />
         <Route path="/search" element={<SearchPage />} />
+        <Route path="/stats" element={<StatsPage />} />
       </Routes>
     </Suspense>
   );
@@ -761,19 +783,19 @@ test/button-component
 // eslint.config.js
 export default [
   {
-    files: ['**/*.{ts,tsx}'],
+    files: ["**/*.{ts,tsx}"],
     plugins: {
-      '@typescript-eslint': typescriptEslint,
-      'react': react,
-      'react-hooks': reactHooks,
+      "@typescript-eslint": typescriptEslint,
+      react: react,
+      "react-hooks": reactHooks,
     },
     rules: {
       ...react.configs.recommended.rules,
       ...reactHooks.configs.recommended.rules,
-      '@typescript-eslint/no-unused-vars': 'error',
-      '@typescript-eslint/no-explicit-any': 'error',
-      'react/prop-types': 'off',
-      'react/react-in-jsx-scope': 'off',
+      "@typescript-eslint/no-unused-vars": "error",
+      "@typescript-eslint/no-explicit-any": "error",
+      "react/prop-types": "off",
+      "react/react-in-jsx-scope": "off",
     },
   },
 ];

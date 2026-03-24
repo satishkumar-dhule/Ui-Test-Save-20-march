@@ -147,16 +147,36 @@
 }
 
 /* Stagger delays up to 10 children */
-.anim-stagger > *:nth-child(1) { animation-delay: 0ms; }
-.anim-stagger > *:nth-child(2) { animation-delay: var(--anim-stagger-increment); }
-.anim-stagger > *:nth-child(3) { animation-delay: calc(var(--anim-stagger-increment) * 2); }
-.anim-stagger > *:nth-child(4) { animation-delay: calc(var(--anim-stagger-increment) * 3); }
-.anim-stagger > *:nth-child(5) { animation-delay: calc(var(--anim-stagger-increment) * 4); }
-.anim-stagger > *:nth-child(6) { animation-delay: calc(var(--anim-stagger-increment) * 5); }
-.anim-stagger > *:nth-child(7) { animation-delay: calc(var(--anim-stagger-increment) * 6); }
-.anim-stagger > *:nth-child(8) { animation-delay: calc(var(--anim-stagger-increment) * 7); }
-.anim-stagger > *:nth-child(9) { animation-delay: calc(var(--anim-stagger-increment) * 8); }
-.anim-stagger > *:nth-child(10) { animation-delay: calc(var(--anim-stagger-increment) * 9); }
+.anim-stagger > *:nth-child(1) {
+  animation-delay: 0ms;
+}
+.anim-stagger > *:nth-child(2) {
+  animation-delay: var(--anim-stagger-increment);
+}
+.anim-stagger > *:nth-child(3) {
+  animation-delay: calc(var(--anim-stagger-increment) * 2);
+}
+.anim-stagger > *:nth-child(4) {
+  animation-delay: calc(var(--anim-stagger-increment) * 3);
+}
+.anim-stagger > *:nth-child(5) {
+  animation-delay: calc(var(--anim-stagger-increment) * 4);
+}
+.anim-stagger > *:nth-child(6) {
+  animation-delay: calc(var(--anim-stagger-increment) * 5);
+}
+.anim-stagger > *:nth-child(7) {
+  animation-delay: calc(var(--anim-stagger-increment) * 6);
+}
+.anim-stagger > *:nth-child(8) {
+  animation-delay: calc(var(--anim-stagger-increment) * 7);
+}
+.anim-stagger > *:nth-child(9) {
+  animation-delay: calc(var(--anim-stagger-increment) * 8);
+}
+.anim-stagger > *:nth-child(10) {
+  animation-delay: calc(var(--anim-stagger-increment) * 9);
+}
 
 /* ============================================================================
    Micro-interactions
@@ -177,8 +197,9 @@
 
 /* Card hover lift */
 .anim-card-hover {
-  transition: transform var(--anim-duration-normal) var(--anim-ease-out-expo),
-              box-shadow var(--anim-duration-normal) ease;
+  transition:
+    transform var(--anim-duration-normal) var(--anim-ease-out-expo),
+    box-shadow var(--anim-duration-normal) ease;
 }
 
 .anim-card-hover:hover {
@@ -213,8 +234,13 @@
 }
 
 @keyframes anim-loading-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 /* Spinner rotation */
@@ -223,8 +249,12 @@
 }
 
 @keyframes anim-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ============================================================================
@@ -295,4 +325,79 @@
 /* Containment for performance */
 .anim-contain {
   contain: layout style paint;
+}
+
+/* ============================================================================
+   Modal & Toast Animations (for Organism components)
+   ============================================================================ */
+
+@keyframes overlay-show {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes content-show {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -48%) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+.animate-overlay-show {
+  animation: overlay-show 150ms ease-out;
+}
+
+.animate-content-show {
+  animation: content-show 200ms ease-out;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes toast-out {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.95);
+  }
+}
+
+.animate-toast-in {
+  animation: toast-in 200ms ease-out;
+}
+
+.animate-toast-out {
+  animation: toast-out 150ms ease-in;
+}
+
+@keyframes toast-progress {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+.animate-toast-progress {
+  animation: toast-progress linear forwards;
 }

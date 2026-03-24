@@ -90,10 +90,6 @@ export class AgentRegistry {
   private delegationEvents: DelegationEvent[] = [];
   private taskUpdates: TaskUpdate[] = [];
 
-  constructor() {
-    this.initializeDefaultTeam();
-  }
-
   private initializeDefaultTeam(): void {
     const chiefArchitect = this.createAgent(
       "chief_architect",

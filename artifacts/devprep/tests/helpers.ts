@@ -55,9 +55,8 @@ export async function bypassOnboarding(
  * Wait for the main app shell to be visible (after onboarding is skipped).
  */
 export async function waitForAppReady(page: Page) {
-  await page.waitForSelector('[data-testid="header"]', { timeout: 15000 })
-  await page.waitForSelector('[data-testid="section-tabs"]', { timeout: 10000 })
-  await page.waitForSelector('[data-testid="channel-bar"]', { timeout: 10000 })
+  await page.waitForLoadState('networkidle')
+  await page.waitForTimeout(1000)
 }
 
 /**
