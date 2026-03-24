@@ -352,14 +352,26 @@ function initializeDatabase(): void {
 function transformRecord(record: ContentRecord): Record<string, unknown> {
   let parsed: Record<string, unknown> = {}
   try {
-    parsed = JSON.parse(record.data)
+    if (record.data) {
+      parsed = JSON.parse(record.data)
+    }
   } catch {
     /* keep empty */
   }
+
+  let tags: unknown = record.tags
+  try {
+    if (typeof record.tags === 'string' && record.tags) {
+      tags = JSON.parse(record.tags)
+    }
+  } catch {
+    tags = []
+  }
+
   return {
     ...record,
     difficulty: record.difficulty,
-    tags: typeof record.tags === 'string' ? JSON.parse(record.tags) : record.tags,
+    tags,
     data: parsed,
   }
 }
@@ -379,8 +391,14 @@ function queryContent(options: ContentQueryOptions = {}): ContentRecord[] {
     params.push(contentType)
   }
   if (status) {
-    conditions.push('status = ?')
-    params.push(status)
+    if (status.includes(',')) {
+      const statusValues = status.split(',').map(s => s.trim())
+      conditions.push(`status IN (${statusValues.map(() => '?').join(', ')})`)
+      params.push(...statusValues)
+    } else {
+      conditions.push('status = ?')
+      params.push(status)
+    }
   }
   if (minQuality !== undefined) {
     conditions.push('quality_score >= ?')

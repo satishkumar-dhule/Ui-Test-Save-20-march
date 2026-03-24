@@ -16,6 +16,7 @@ This document provides comprehensive visual design specifications for the DevPre
 4. [Creative Visual Elements](#4-creative-visual-elements)
 5. [Illustrations & Empty States](#5-illustrations--empty-states)
 6. [Responsive Visual Strategy](#6-responsive-visual-strategy)
+7. [Statistics Page Design](#7-statistics-page-design)
 
 ---
 
@@ -1652,6 +1653,302 @@ const getAnimationDuration = (baseDuration: number): number => {
   }
 }
 ```
+
+---
+
+## 7. Statistics Page Design
+
+### 7. Content Coverage (Why this matters)
+
+- Content availability: shows what content is currently available to the user across all content types: Questions, Flashcards, Exams, Voice, and Coding.
+- User data coverage: clarifies which fields are tracked for the user and presented on the Stats page (counts per type, per-day trends, and overall totals).
+- Data visibility: the page reflects both previously created content and user-generated content generated via the generator.
+
+### 7.1 Page Layout Structure (Content Coverage)
+
+- Header with page title and time period filter
+- Content Inventory (summary counts by type)
+- Detailed per-type breakdown with counts
+- Visual indicators for data availability (loading states, empty states)
+
+### 7.2 Content Cards (Inventory)
+
+- Card shows total items and per-type counts
+- Icons per type and color-coded chips
+- Loading skeletons when data is not yet available
+
+### 7.3 Charting & Breakdown
+
+- Line-like proportion charts for daily accuracy
+- Bar charts for daily questions
+- Channel breakdown tied to content types
+
+### 7.4 Content Availability & User Coverage
+
+- Available content types: Questions, Flashcards, Examinations, Voice prompts, Coding challenges
+- User coverage: count of items per type in the user's dataset (static + generated)
+- Privacy: only local/visible user data is shown on the UI
+
+### 7.1 Page Layout Structure
+
+#### Page Sections
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Header                                                     │
+│  Title: "Statistics"                                        │
+│  Subtitle: "Track your learning progress"                  │
+│  Time Period Tabs: [7 Days] [30 Days] [90 Days] [All Time] │
+├─────────────────────────────────────────────────────────────┤
+│  Stat Overview Cards (4 columns)                            │
+│  ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐              │
+│  │ Total  │ │ Avg    │ │ Streak │ │ Best   │              │
+│  │Questions│ │Accuracy│ │ Days   │ │ Score  │              │
+│  └────────┘ └────────┘ └────────┘ └────────┘              │
+├─────────────────────────────────────────────────────────────┤
+│  Charts Section                                             │
+│  ┌─────────────────────┐ ┌─────────────────────┐            │
+│  │ Accuracy Over Time │ │ Questions Per Day  │            │
+│  │     Line Chart     │ │     Bar Chart     │            │
+│  └─────────────────────┘ └─────────────────────┘            │
+├─────────────────────────────────────────────────────────────┤
+│  Channel Breakdown                                          │
+│  Progress bars with channel names and completion %         │
+├─────────────────────────────────────────────────────────────┤
+│  Achievement Stats                                          │
+│  Badge grid showing earned achievements                    │
+└─────────────────────────────────────────────────────────────┘
+```
+
+#### Header Specifications
+
+| Element     | Style                                        |
+| ----------- | -------------------------------------------- |
+| Title       | h1, `var(--text-primary)`                    |
+| Subtitle    | body-lg, `var(--text-secondary)`             |
+| Time Tabs   | Segmented control, `--radius-full`           |
+| Tab Padding | `--space-3` horizontal, `--space-2` vertical |
+| Active Tab  | `--brand-primary` background, white text     |
+
+---
+
+### 7.2 Stat Card Specifications
+
+#### Card Dimensions & Layout
+
+| Property      | Value                        |
+| ------------- | ---------------------------- |
+| Min Width     | 200px                        |
+| Max Width     | 280px                        |
+| Height        | Auto (content-based)         |
+| Padding       | `--space-6`                  |
+| Border Radius | `--radius-lg`                |
+| Background    | `--surface-primary`          |
+| Border        | 1px solid `--border-default` |
+
+#### Icon Specifications
+
+| Property   | Value                    |
+| ---------- | ------------------------ |
+| Icon Size  | 32x32px (lg)             |
+| Icon Color | `--brand-primary`        |
+| Container  | 48x48px circle           |
+| Background | `--brand-primary-subtle` |
+
+#### Value Typography
+
+| Element | Font Size       | Font Weight     | Color              |
+| ------- | --------------- | --------------- | ------------------ |
+| Value   | 2.5rem (40px)   | `--font-bold`   | `--text-primary`   |
+| Label   | 0.875rem (14px) | `--font-medium` | `--text-secondary` |
+| Trend   | 0.75rem (12px)  | `--font-medium` | Semantic colors    |
+
+#### Trend Indicator
+
+| State    | Icon           | Color                |
+| -------- | -------------- | -------------------- |
+| Positive | `TrendingUp`   | `--semantic-success` |
+| Negative | `TrendingDown` | `--semantic-error`   |
+| Neutral  | `Minus`        | `--text-tertiary`    |
+
+#### Animation Specifications
+
+| Property           | Value                            |
+| ------------------ | -------------------------------- |
+| Entrance Animation | Fade in + scale from 0.95        |
+| Duration           | `--duration-normal` (200ms)      |
+| Easing             | `--ease-enter`                   |
+| Stagger Delay      | 50ms between cards               |
+| Value Counter      | Number count-up animation, 800ms |
+
+---
+
+### 7.3 Chart Specifications
+
+#### Line Chart - Accuracy Over Time
+
+| Property      | Value                           |
+| ------------- | ------------------------------- |
+| Chart Type    | Line with area fill             |
+| Height        | 240px                           |
+| Line Width    | 2px                             |
+| Area Opacity  | 20%                             |
+| Point Radius  | 4px (hover: 6px)                |
+| Grid Lines    | Horizontal only, dashed         |
+| X-Axis Labels | Date format: "MMM DD"           |
+| Y-Axis Labels | Percentage: "0%", "50%", "100%" |
+
+#### Bar Chart - Questions Per Day
+
+| Property          | Value                       |
+| ----------------- | --------------------------- |
+| Chart Type        | Vertical bar                |
+| Height            | 240px                       |
+| Bar Width         | Dynamic (gap: 4px)          |
+| Bar Border Radius | `--radius-sm` top           |
+| Grouping          | 7 bars visible (scrollable) |
+| X-Axis Labels     | Day: "Mon", "Tue", etc.     |
+| Y-Axis Labels     | Count: "0", "10", "20"...   |
+
+#### Chart Colors by Theme
+
+| Element     | Light Mode          | Dark Mode           |
+| ----------- | ------------------- | ------------------- |
+| Line Stroke | `--brand-primary`   | `--brand-primary`   |
+| Area Fill   | `--brand-primary`   | `--brand-primary`   |
+| Bar Fill    | `--brand-secondary` | `--brand-secondary` |
+| Grid Lines  | `--border-default`  | `--border-default`  |
+| Axis Labels | `--text-tertiary`   | `--text-tertiary`   |
+
+#### Axis Labeling
+
+| Property | Font Size | Color             |
+| -------- | --------- | ----------------- |
+| X-Axis   | 12px      | `--text-tertiary` |
+| Y-Axis   | 12px      | `--text-tertiary` |
+| Tooltip  | 14px      | `--text-primary`  |
+
+---
+
+### 7.4 Channel Progress Bars
+
+#### Bar Dimensions
+
+| Property      | Value                |
+| ------------- | -------------------- |
+| Height        | 12px                 |
+| Border Radius | `--radius-full`      |
+| Background    | `--surface-tertiary` |
+| Padding       | 0 (full-bleed)       |
+
+#### Fill Animation
+
+| Property  | Value                     |
+| --------- | ------------------------- |
+| Animation | Width transition          |
+| Duration  | `--duration-slow` (300ms) |
+| Easing    | `--ease-primary`          |
+| Direction | Left to right             |
+
+#### Label Positioning
+
+| Element       | Position     | Style              |
+| ------------- | ------------ | ------------------ |
+| Channel Name  | Above bar    | `--text-primary`   |
+| Percentage    | Right of bar | `--text-secondary` |
+| Progress Text | Below bar    | "X of Y completed" |
+
+#### Performance Color Coding
+
+| Performance Level | Percentage Range | Color Variable                 |
+| ----------------- | ---------------- | ------------------------------ |
+| Excellent         | > 80%            | `--semantic-success` (#16a34a) |
+| Average           | 50% - 80%        | `--semantic-warning` (#d97706) |
+| Needs Work        | < 50%            | `--semantic-error` (#dc2626)   |
+
+---
+
+### 7.5 Empty State Patterns
+
+#### No Data State
+
+```
+┌─────────────────────────────────────────┐
+│                                         │
+│         ┌───────────────┐              │
+│         │   Clipboard   │              │
+│         │    (lg)       │              │
+│         └───────────────┘              │
+│                                         │
+│         No Statistics Yet              │
+│                                         │
+│    Start practicing to see your        │
+│    progress and achievements here.     │
+│                                         │
+└─────────────────────────────────────────┘
+```
+
+| Element     | Specification               |
+| ----------- | --------------------------- |
+| Icon        | `ClipboardList`, 48x48px    |
+| Icon Color  | `--text-tertiary`           |
+| Title       | h3, `--text-primary`        |
+| Description | body-md, `--text-secondary` |
+
+#### No Activity State
+
+| Icon     | Title Pattern          | Description Pattern                            |
+| -------- | ---------------------- | ---------------------------------------------- |
+| `Flame`  | "No activity recently" | "Practice questions to keep your streak alive" |
+| `Trophy` | "No achievements yet"  | "Complete practice sessions to earn badges"    |
+
+---
+
+### 7.6 Responsive Behavior
+
+#### Stat Cards Grid
+
+| Breakpoint          | Columns | Gap         |
+| ------------------- | ------- | ----------- |
+| Mobile (<640px)     | 1       | `--space-4` |
+| Tablet (640-1024px) | 2       | `--space-4` |
+| Desktop (>1024px)   | 4       | `--space-6` |
+
+#### Charts Responsiveness
+
+| Breakpoint          | Layout                             |
+| ------------------- | ---------------------------------- |
+| Mobile (<640px)     | Stacked, full-width                |
+| Tablet (640-1024px) | Side-by-side                       |
+| Desktop (>1024px)   | Side-by-side, max-width 480px each |
+
+#### Channel Progress Responsive
+
+| Breakpoint          | Layout Changes                 |
+| ------------------- | ------------------------------ |
+| Mobile (<640px)     | Channel name on top, bar below |
+| Tablet (640-1024px) | Inline layout                  |
+| Desktop (>1024px)   | Inline with percentage         |
+
+---
+
+### 7.7 Component States
+
+#### Loading State
+
+| Element      | State                       |
+| ------------ | --------------------------- |
+| Stat Card    | Skeleton with shimmer       |
+| Chart        | Skeleton with chart outline |
+| Progress Bar | Pulsing animation           |
+
+#### Error State
+
+| Element | State                   |
+| ------- | ----------------------- |
+| Display | Error message with icon |
+| Icon    | `AlertCircle`           |
+| Action  | "Retry" button          |
 
 ---
 

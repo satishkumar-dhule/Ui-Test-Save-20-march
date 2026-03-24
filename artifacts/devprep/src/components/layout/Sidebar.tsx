@@ -25,6 +25,7 @@ const SECTIONS: { id: Section; label: string; icon: React.ReactNode; color: stri
   { id: 'coding', label: 'Coding', icon: <Code2 size={15} />, color: '#f7df1e' },
   { id: 'exam', label: 'Mock Exam', icon: <GraduationCap size={15} />, color: '#ff7b72' },
   { id: 'voice', label: 'Voice', icon: <Mic2 size={15} />, color: '#bc8cff' },
+  { id: 'stats', label: 'Statistics', icon: <LayoutGrid size={15} />, color: '#4f46e5' },
 ]
 
 interface SidebarProps {

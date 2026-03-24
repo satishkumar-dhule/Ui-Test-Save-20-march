@@ -3,9 +3,9 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { QUERY_KEYS } from '@/lib/queryClient'
 import { useContentStore, type ContentItem, type ContentStats } from '@/stores/contentStore'
 import type { ContentType, ContentStatus } from '@/stores/types'
-import { fetchAllContent, fetchContentStats } from '@/services/contentApi'
+import { fetchAllContent, fetchContentStats, type ContentRecord } from '@/services/contentApi'
 
-interface UseContentOptions {
+export interface UseContentOptions {
   channelId?: string
   type?: ContentType
   status?: ContentStatus
@@ -14,7 +14,7 @@ interface UseContentOptions {
   enabled?: boolean
 }
 
-interface UseContentResult {
+export interface UseContentResult {
   items: ContentItem[]
   stats: ContentStats | null
   isLoading: boolean
@@ -23,10 +23,23 @@ interface UseContentResult {
   refetch: () => Promise<unknown>
 }
 
-function mapStatus(status: string): ContentItem['status'] {
+export function mapStatus(status: string): ContentItem['status'] {
   if (status === 'published' || status === 'approved') return 'approved'
   if (status === 'rejected') return 'rejected'
   return 'pending'
+}
+
+export function transformRecord(record: ContentRecord): ContentItem {
+  return {
+    id: record.id,
+    channelId: record.channel_id,
+    contentType: record.content_type as ContentType,
+    data: record.data,
+    qualityScore: record.quality_score,
+    createdAt: record.created_at,
+    updatedAt: record.updated_at,
+    status: mapStatus(record.status),
+  }
 }
 
 export function useContent(options: UseContentOptions = {}): UseContentResult {

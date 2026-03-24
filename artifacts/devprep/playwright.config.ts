@@ -15,16 +15,7 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 1,
   workers: process.env.CI ? 1 : 2,
-  reporter: [
-    ['list'],
-    [
-      'html',
-      {
-        outputFolder: 'test-results/html-report',
-        open: 'never',
-      },
-    ],
-  ],
+  reporter: [['list']],
   use: {
     baseURL: process.env.BASE_URL || 'http://localhost:5174',
     trace: 'on-first-retry',

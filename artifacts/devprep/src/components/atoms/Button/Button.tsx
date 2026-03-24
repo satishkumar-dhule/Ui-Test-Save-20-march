@@ -1,9 +1,10 @@
 import * as React from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils/cn'
+import { Loader2 } from 'lucide-react'
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
+  'inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
   {
     variants: {
       variant: {
@@ -31,13 +32,83 @@ const buttonVariants = cva(
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof buttonVariants> {
   asChild?: boolean
+  loading?: boolean
+  leftIcon?: React.ReactNode
+  rightIcon?: React.ReactNode
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
-    const Comp = asChild ? 'span' : 'button'
+  (
+    {
+      className,
+      variant,
+      size,
+      asChild = false,
+      loading = false,
+      leftIcon,
+      rightIcon,
+      disabled,
+      children,
+      ...props
+    },
+    ref
+  ) => {
+    const isDisabled = disabled || loading
+
+    if (loading) {
+      return (
+        <button
+          ref={ref}
+          className={cn(buttonVariants({ variant, size, className }), 'gap-2')}
+          disabled={isDisabled}
+          aria-busy="true"
+          {...props}
+        >
+          <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+          <span className="sr-only">Loading</span>
+          {children}
+        </button>
+      )
+    }
+
+    const content = (
+      <>
+        {leftIcon && (
+          <span className="flex-shrink-0" aria-hidden="true">
+            {leftIcon}
+          </span>
+        )}
+        {children}
+        {rightIcon && (
+          <span className="flex-shrink-0" aria-hidden="true">
+            {rightIcon}
+          </span>
+        )}
+      </>
+    )
+
+    if (asChild && React.isValidElement<{ className?: string }>(children)) {
+      const childClassName = (children as React.ReactElement<{ className?: string }>).props
+        .className
+      return React.cloneElement(children, {
+        className: cn(buttonVariants({ variant, size, className }), childClassName),
+        ref,
+        disabled: isDisabled,
+        'aria-disabled': isDisabled,
+        ...props,
+      } as React.HTMLAttributes<HTMLElement>)
+    }
+
     return (
-      <Comp className={cn(buttonVariants({ variant, size, className }))} ref={ref} {...props} />
+      <button
+        ref={ref}
+        className={cn(buttonVariants({ variant, size, className }), 'gap-2')}
+        disabled={isDisabled}
+        aria-disabled={isDisabled}
+        {...props}
+      >
+        {content}
+      </button>
     )
   }
 )

@@ -15,6 +15,7 @@ import { Spinner } from '@/components/ui/spinner'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { TopBar } from '@/components/layout/TopBar'
 import { StudyContent } from '@/components/layout/StudyContent'
+import { SectionTabs } from '@/components/app/SectionTabs'
 import { useContentStore, useSectionCounts } from '@/stores/contentStore'
 import type { SearchResult } from '@/types/search'
 import { LazyWrapper } from '@/components/LazyWrapper'
@@ -27,7 +28,7 @@ const LazyChannelBrowser = lazy(() =>
   import('@/components/layout/ChannelBrowser').then(m => ({ default: m.ChannelBrowser }))
 )
 
-export type Section = 'qa' | 'flashcards' | 'exam' | 'voice' | 'coding'
+export type Section = 'qa' | 'flashcards' | 'exam' | 'voice' | 'coding' | 'stats'
 
 const SidebarMemo = memo(Sidebar)
 const TopBarMemo = memo(TopBar)
