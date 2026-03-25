@@ -1,38 +1,17 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useAnnounce, SkipLink, LiveRegion } from '@/hooks/useAnnounce'
-import { Layers, RotateCcw, Shuffle, ChevronLeft, ChevronRight, Menu } from 'lucide-react'
+import { Layers, RotateCcw, Shuffle, ChevronLeft, ChevronRight, Menu, X, Check, RefreshCw, Zap, BookOpen } from 'lucide-react'
 import type { Flashcard, CardStatus } from '@/data/flashcards'
 import { MarkdownText } from '@/components/MarkdownText'
 import { progressApi } from '@/services/progressApi'
-import { Skeleton, SkeletonGroup, SkeletonLine } from '@/components/ui/skeleton'
 import { FLASHCARD_STATUS, TIMEOUT_DURATIONS, UI_CONSTANTS } from '@/lib/constants'
 import { Empty, EmptyMedia, EmptyTitle, EmptyDescription } from '@/components/ui/empty'
 
-const STATUS_COLORS: Record<CardStatus, string> = {
-  known: 'hsl(var(--chart-2))',
-  reviewing: 'hsl(var(--chart-3))',
-  hard: 'hsl(var(--chart-5))',
-  unseen: 'hsl(var(--muted-foreground))',
-}
-
-const STATUS_LABELS: Record<CardStatus, string> = {
-  known: 'Known',
-  reviewing: 'Reviewing',
-  hard: 'Hard',
-  unseen: 'Unseen',
-}
-
-// Keyboard shortcuts mapped to status
-const KEYBOARD_STATUS_MAP: Record<string, CardStatus> = {
-  '1': FLASHCARD_STATUS.KNOWN,
-  '2': FLASHCARD_STATUS.REVIEWING,
-  '3': FLASHCARD_STATUS.HARD,
-}
-
-// Navigation direction constants
-const NAVIGATION = {
-  NEXT: 1 as const,
-  PREVIOUS: -1 as const,
+const STATUS_CONFIG: Record<CardStatus, { label: string; color: string; bg: string; border: string; emoji: string; key: string }> = {
+  known:     { label: 'Know it',   color: '#3fb950', bg: 'rgba(63,185,80,0.12)',   border: 'rgba(63,185,80,0.3)',    emoji: '✅', key: '1' },
+  reviewing: { label: 'Review',    color: '#f7a843', bg: 'rgba(247,168,67,0.12)', border: 'rgba(247,168,67,0.3)',  emoji: '🔄', key: '2' },
+  hard:      { label: 'Hard',      color: '#ff7b72', bg: 'rgba(255,123,114,0.12)', border: 'rgba(255,123,114,0.3)', emoji: '❌', key: '3' },
+  unseen:    { label: 'Unseen',    color: '#8b949e', bg: 'rgba(139,148,158,0.1)',  border: 'rgba(139,148,158,0.2)', emoji: '•',  key: '' },
 }
 
 interface FlashcardsPageProps {
@@ -43,53 +22,7 @@ interface FlashcardsPageProps {
   isLoading?: boolean
 }
 
-function FlashcardSkeleton() {
-  return (
-    <div className="w-full max-w-xl" style={{ perspective: UI_CONSTANTS.FLASHCARD_PERSPECTIVE }}>
-      <div className="glass-card-lg p-6" style={{ minHeight: UI_CONSTANTS.FLASHCARD_MIN_HEIGHT }}>
-        <Skeleton variant="text" className="w-20 h-3 mb-4" />
-        <Skeleton variant="heading" className="w-full mb-3" />
-        <Skeleton variant="text" className="w-3/4 mx-auto mb-2" />
-        <Skeleton variant="text" className="w-1/2 mx-auto mb-4" />
-        <Skeleton variant="text" className="w-32 mx-auto" />
-      </div>
-    </div>
-  )
-}
-
-function SidebarSkeleton() {
-  return (
-    <div className="glass-sidebar flex-shrink-0 flex-col w-72 hidden md:flex">
-      <div className="glass-subtle px-4 py-3">
-        <div className="flex items-center gap-2">
-          <Skeleton variant="text" className="w-20 h-4" />
-          <Skeleton variant="text" className="w-8 h-5 ml-auto rounded-full" />
-        </div>
-      </div>
-      <div className="glass-subtle px-4 py-3">
-        <Skeleton variant="text" className="w-24 h-2 mb-2" />
-        <Skeleton variant="text" className="w-full h-1.5 rounded-full" />
-      </div>
-      <div className="flex-1 p-3 space-y-2">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <div key={i} className="glass-subtle flex items-center gap-2 px-3 py-2.5 rounded-lg">
-            <Skeleton variant="avatar" className="w-2 h-2 rounded-full" />
-            <Skeleton variant="text" className="flex-1 h-3" />
-            <Skeleton variant="text" className="w-6 h-3" />
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-export function FlashcardsPage({
-  flashcards,
-  categories,
-  channelId,
-  onFlashcardUpdate,
-  isLoading = false,
-}: FlashcardsPageProps) {
+export function FlashcardsPage({ flashcards, categories, channelId, onFlashcardUpdate, isLoading = false }: FlashcardsPageProps) {
   const [statuses, setStatuses] = useState<Record<string, CardStatus>>({})
   const [activeIdx, setActiveIdx] = useState(0)
   const [flipped, setFlipped] = useState(false)
@@ -97,59 +30,32 @@ export function FlashcardsPage({
   const [filterCat, setFilterCat] = useState('All')
   const [order, setOrder] = useState<number[]>([])
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const mainContentRef = useRef<HTMLDivElement>(null)
   const { announce } = useAnnounce()
 
   useEffect(() => {
-    setActiveIdx(0)
-    setFlipped(false)
-    setFilterCat('All')
-    const idxs = flashcards.map((_, i) => i)
-    setOrder(idxs)
+    setActiveIdx(0); setFlipped(false); setFilterCat('All')
+    setOrder(flashcards.map((_, i) => i))
   }, [channelId, flashcards])
 
-  const filtered =
-    filterCat === 'All' ? flashcards : flashcards.filter(f => f.category === filterCat)
-  const orderedCards = order
-    .map(i => flashcards[i])
-    .filter(Boolean)
-    .filter(f => filterCat === 'All' || f.category === filterCat)
+  const filtered = filterCat === 'All' ? flashcards : flashcards.filter(f => f.category === filterCat)
+  const orderedCards = order.map(i => flashcards[i]).filter(Boolean).filter(f => filterCat === 'All' || f.category === filterCat)
   const displayCards = orderedCards.length > 0 ? orderedCards : filtered
   const active = displayCards[activeIdx]
 
-  const knownCount = displayCards.filter(f => statuses[f.id] === FLASHCARD_STATUS.KNOWN).length
-  const reviewingCount = displayCards.filter(
-    f => statuses[f.id] === FLASHCARD_STATUS.REVIEWING
-  ).length
-  const hardCount = displayCards.filter(f => statuses[f.id] === FLASHCARD_STATUS.HARD).length
-  const unseenCount = displayCards.filter(
-    f => !statuses[f.id] || statuses[f.id] === FLASHCARD_STATUS.UNSEEN
-  ).length
-  const progressPct =
-    displayCards.length > 0
-      ? Math.round(((knownCount + reviewingCount) / displayCards.length) * 100)
-      : 0
+  const counts = {
+    known: displayCards.filter(f => statuses[f.id] === FLASHCARD_STATUS.KNOWN).length,
+    reviewing: displayCards.filter(f => statuses[f.id] === FLASHCARD_STATUS.REVIEWING).length,
+    hard: displayCards.filter(f => statuses[f.id] === FLASHCARD_STATUS.HARD).length,
+    unseen: displayCards.filter(f => !statuses[f.id] || statuses[f.id] === FLASHCARD_STATUS.UNSEEN).length,
+  }
+  const progressPct = displayCards.length > 0 ? Math.round(((counts.known + counts.reviewing) / displayCards.length) * 100) : 0
+  const done = displayCards.length > 0 && displayCards.every(f => statuses[f.id] && statuses[f.id] !== FLASHCARD_STATUS.UNSEEN)
 
-  const done =
-    displayCards.length > 0 &&
-    displayCards.every(f => statuses[f.id] && statuses[f.id] !== FLASHCARD_STATUS.UNSEEN)
-
-  const go = useCallback(
-    (dir: 1 | -1) => {
-      setFlipped(false)
-      setActiveIdx(i => {
-        const max = displayCards.length - 1
-        return Math.max(0, Math.min(max, i + dir))
-      })
-      setTimeout(() => {
-        mainContentRef.current?.focus()
-        announce(
-          `Flashcard ${Math.max(0, Math.min(displayCards.length - 1, activeIdx + dir)) + 1} of ${displayCards.length}`
-        )
-      }, 100)
-    },
-    [displayCards.length, activeIdx, announce]
-  )
+  const go = useCallback((dir: 1 | -1) => {
+    setFlipped(false)
+    setActiveIdx(i => Math.max(0, Math.min(displayCards.length - 1, i + dir)))
+    announce(`Card ${Math.max(0, Math.min(displayCards.length - 1, activeIdx + dir)) + 1} of ${displayCards.length}`)
+  }, [displayCards.length, activeIdx, announce])
 
   const mark = (status: CardStatus) => {
     if (!active) return
@@ -157,7 +63,7 @@ export function FlashcardsPage({
     onFlashcardUpdate?.(active.id, status)
     progressApi.saveFlashcard(channelId, active.id, status)
     if (activeIdx < displayCards.length - 1) {
-      setTimeout(() => go(NAVIGATION.NEXT), TIMEOUT_DURATIONS.AUTO_ADVANCE_DELAY)
+      setTimeout(() => go(1), TIMEOUT_DURATIONS.AUTO_ADVANCE_DELAY)
     }
   }
 
@@ -167,35 +73,25 @@ export function FlashcardsPage({
       const j = Math.floor(Math.random() * (i + 1))
       ;[arr[i], arr[j]] = [arr[j], arr[i]]
     }
-    setOrder(arr)
-    setActiveIdx(0)
-    setFlipped(false)
-    setShuffle(true)
+    setOrder(arr); setActiveIdx(0); setFlipped(false); setShuffle(true)
   }
 
   const reset = () => {
-    setStatuses({})
-    setActiveIdx(0)
-    setFlipped(false)
-    setShuffle(false)
+    setStatuses({}); setActiveIdx(0); setFlipped(false); setShuffle(false)
     setOrder(flashcards.map((_, i) => i))
   }
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.key === ' ' || e.key === 'Enter') {
-        if (document.activeElement?.closest('.flip-card')) {
-          e.preventDefault()
-          setFlipped(f => !f)
-        }
+      if ((e.key === ' ' || e.key === 'Enter') && !e.target?.toString().includes('INPUT')) {
+        e.preventDefault(); setFlipped(f => !f)
       }
-      if (e.key === 'ArrowLeft') go(NAVIGATION.PREVIOUS)
-      if (e.key === 'ArrowRight') go(NAVIGATION.NEXT)
-
-      // Handle status marking with keyboard shortcuts
-      const status = KEYBOARD_STATUS_MAP[e.key]
-      if (status && flipped) {
-        mark(status)
+      if (e.key === 'ArrowLeft') go(-1)
+      if (e.key === 'ArrowRight') go(1)
+      if (flipped) {
+        if (e.key === '1') mark(FLASHCARD_STATUS.KNOWN)
+        if (e.key === '2') mark(FLASHCARD_STATUS.REVIEWING)
+        if (e.key === '3') mark(FLASHCARD_STATUS.HARD)
       }
     }
     window.addEventListener('keydown', handler)
@@ -204,114 +100,72 @@ export function FlashcardsPage({
 
   if (isLoading) {
     return (
-      <div className="flex flex-1 h-full overflow-hidden">
-        <SidebarSkeleton />
-        <div className="flex-1 flex flex-col overflow-hidden">
-          <div
-            className="flex items-center gap-2 px-4 border-b border-border bg-card/50"
-            style={{ height: UI_CONSTANTS.SECTION_TABS_HEIGHT }}
-          >
-            <Skeleton variant="text" className="w-8 h-8 rounded" />
-            <Skeleton variant="text" className="w-20 h-7 rounded" />
-            <Skeleton variant="text" className="w-16 h-7 rounded" />
-            <Skeleton variant="text" className="w-16 ml-auto h-7 rounded" />
-          </div>
-          <div className="flex-1 flex flex-col items-center justify-center p-6 gap-4 overflow-auto">
-            <FlashcardSkeleton />
-            <div className="flex gap-2">
-              <Skeleton variant="text" className="w-20 h-6 rounded-full" />
-              <Skeleton variant="text" className="w-20 h-6 rounded-full" />
-              <Skeleton variant="text" className="w-20 h-6 rounded-full" />
-              <Skeleton variant="text" className="w-20 h-6 rounded-full" />
-            </div>
-          </div>
-        </div>
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ width: 28, height: 28, borderRadius: '50%', border: '2px solid var(--dp-border-0)', borderTopColor: 'var(--dp-green)', animation: 'dp-spin 0.8s linear infinite' }} />
       </div>
     )
   }
 
   if (flashcards.length === 0) {
     return (
-      <Empty>
-        <EmptyMedia variant="icon">
-          <Layers size={24} aria-hidden="true" />
-        </EmptyMedia>
-        <EmptyTitle>No flashcards available</EmptyTitle>
-        <EmptyDescription>Switch to a different channel to study flashcards.</EmptyDescription>
-      </Empty>
+      <div className="dp-empty">
+        <div className="dp-empty-icon"><Layers size={24} /></div>
+        <div className="dp-empty-title">No flashcards available</div>
+        <div className="dp-empty-desc">Switch to a different channel to study flashcards.</div>
+      </div>
     )
   }
 
-  const currentStatus: CardStatus = active
-    ? statuses[active.id] || FLASHCARD_STATUS.UNSEEN
-    : FLASHCARD_STATUS.UNSEEN
+  const currentStatus: CardStatus = active ? (statuses[active.id] || FLASHCARD_STATUS.UNSEEN) : FLASHCARD_STATUS.UNSEEN
 
   return (
-    <div className="flex flex-1 h-full overflow-hidden">
-      <SkipLink targetId="flashcard-main-content">Skip to main content</SkipLink>
+    <div className="study-page">
+      <SkipLink targetId="flashcard-content">Skip to content</SkipLink>
       <LiveRegion />
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 z-30 bg-black/60 md:hidden"
-          onClick={() => setSidebarOpen(false)}
-          role="presentation"
-        />
-      )}
-      {/* Sidebar */}
-      <nav
-        className={`sidebar flex-shrink-0 flex-col border-r border-border overflow-hidden bg-card ${sidebarOpen ? 'fixed left-0 top-0 h-full z-40 flex w-72' : 'hidden md:flex'}`}
-        style={{ width: UI_CONSTANTS.SIDEBAR_WIDTH }}
-        aria-label="Flashcard navigation"
-      >
-        <div className="flex items-center gap-2 px-4 py-3 border-b border-border">
-          <Layers size={14} className="text-muted-foreground" aria-hidden="true" />
-          <span className="text-sm font-semibold text-foreground">Flashcards</span>
-          <span className="ml-auto text-[10px] font-bold bg-primary/15 text-primary px-1.5 rounded-full">
-            {displayCards.length}
-          </span>
+
+      {sidebarOpen && <div className="mobile-overlay md:hidden" onClick={() => setSidebarOpen(false)} />}
+
+      {/* Left panel */}
+      <div className={`study-panel${sidebarOpen ? ' study-panel--mobile-open' : ''}`}
+        style={sidebarOpen ? { position: 'fixed', top: 0, left: 0, height: '100%', zIndex: 40, display: 'flex', width: 270 } : {}}>
+        <div className="study-panel-header">
+          <Layers size={13} style={{ color: 'var(--dp-text-3)' }} />
+          <span className="study-panel-title">Flashcards</span>
+          <span className="study-panel-count">{displayCards.length}</span>
+          {sidebarOpen && (
+            <button onClick={() => setSidebarOpen(false)} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--dp-text-3)' }}>
+              <X size={14} />
+            </button>
+          )}
         </div>
 
         {/* Progress */}
-        <div className="px-4 py-3 border-b border-border">
-          <div className="flex justify-between text-[10px] text-muted-foreground mb-1.5">
+        <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--dp-border-1)', flexShrink: 0 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10.5, color: 'var(--dp-text-2)', marginBottom: 6 }}>
             <span>Progress</span>
-            <span>{progressPct}%</span>
+            <span style={{ fontWeight: 700, color: 'var(--dp-green)' }}>{progressPct}%</span>
           </div>
-          <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-            <div
-              data-testid="flashcard-progress-bar"
-              className="h-full rounded-full transition-all"
-              style={{
-                width: `${progressPct}%`,
-                background: 'hsl(var(--primary))',
-              }}
-            />
+          <div className="dp-progress-bar">
+            <div className="dp-progress-bar-fill" data-testid="flashcard-progress-bar" style={{ width: `${progressPct}%`, background: 'var(--dp-green)' }} />
           </div>
         </div>
 
-        {/* Status grid */}
-        <div className="grid grid-cols-2 gap-1.5 p-3 border-b border-border">
-          {(
-            [
-              FLASHCARD_STATUS.KNOWN,
-              FLASHCARD_STATUS.REVIEWING,
-              FLASHCARD_STATUS.HARD,
-              FLASHCARD_STATUS.UNSEEN,
-            ] as CardStatus[]
-          ).map(s => {
-            const count =
-              s === FLASHCARD_STATUS.UNSEEN
-                ? unseenCount
-                : s === FLASHCARD_STATUS.KNOWN
-                  ? knownCount
-                  : s === FLASHCARD_STATUS.REVIEWING
-                    ? reviewingCount
-                    : hardCount
+        {/* Stats grid */}
+        <div style={{
+          display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4,
+          padding: '8px 10px', borderBottom: '1px solid var(--dp-border-1)', flexShrink: 0,
+        }}>
+          {(['known', 'reviewing', 'hard', 'unseen'] as CardStatus[]).map(s => {
+            const c = STATUS_CONFIG[s]
+            const count = counts[s]
             return (
-              <div key={s} className="flex items-center gap-1.5 px-2 py-1.5 rounded-md bg-muted/30">
-                <div className="w-2 h-2 rounded-full" style={{ background: STATUS_COLORS[s] }} />
-                <span className="text-[10px] text-muted-foreground">{STATUS_LABELS[s]}</span>
-                <span className="ml-auto text-[11px] font-bold text-foreground">{count}</span>
+              <div key={s} style={{
+                display: 'flex', alignItems: 'center', gap: 7, padding: '6px 8px',
+                borderRadius: 'var(--dp-r-md)', background: 'var(--dp-bg-2)',
+              }}>
+                <div style={{ width: 7, height: 7, borderRadius: '50%', background: c.color, flexShrink: 0 }} />
+                <span style={{ fontSize: 10.5, color: 'var(--dp-text-2)', flex: 1 }}>{c.label}</span>
+                <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--dp-text-0)' }}>{count}</span>
               </div>
             )
           })}
@@ -319,26 +173,18 @@ export function FlashcardsPage({
 
         {/* Category filter */}
         {categories.length > 1 && (
-          <div className="p-3 border-b border-border">
-            <div className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider mb-2">
-              Category
-            </div>
-            <div className="flex flex-wrap gap-1.5">
+          <div style={{ padding: '8px 10px', borderBottom: '1px solid var(--dp-border-1)', flexShrink: 0 }}>
+            <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--dp-text-3)', marginBottom: 6 }}>Category</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
               {['All', ...categories].map(cat => (
-                <button
-                  key={cat}
-                  onClick={() => {
-                    setFilterCat(cat)
-                    setActiveIdx(0)
-                    setFlipped(false)
-                  }}
-                  className="text-[11px] px-2 py-0.5 rounded-full border transition-colors"
+                <button key={cat} onClick={() => { setFilterCat(cat); setActiveIdx(0); setFlipped(false) }}
                   style={{
-                    borderColor: filterCat === cat ? 'hsl(var(--primary))' : 'hsl(var(--border))',
-                    color: filterCat === cat ? 'hsl(var(--primary))' : undefined,
-                    background: filterCat === cat ? 'hsl(var(--primary) / 0.1)' : undefined,
-                  }}
-                >
+                    fontSize: 11, padding: '2px 8px', borderRadius: 'var(--dp-r-full)',
+                    border: `1px solid ${filterCat === cat ? 'var(--dp-blue)' : 'var(--dp-border-1)'}`,
+                    background: filterCat === cat ? 'var(--dp-blue-dim)' : 'transparent',
+                    color: filterCat === cat ? 'var(--dp-blue)' : 'var(--dp-text-2)',
+                    cursor: 'pointer', transition: 'all var(--dp-dur-fast)',
+                  }}>
                   {cat}
                 </button>
               ))}
@@ -347,181 +193,150 @@ export function FlashcardsPage({
         )}
 
         {/* Card list */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="study-panel-list" style={{ flex: 1 }}>
           {displayCards.map((f, i) => {
             const st = statuses[f.id] || FLASHCARD_STATUS.UNSEEN
+            const c = STATUS_CONFIG[st]
             return (
-              <button
-                key={f.id}
-                onClick={() => {
-                  setActiveIdx(i)
-                  setFlipped(false)
-                  setSidebarOpen(false)
-                }}
-                className="w-full text-left px-3 py-2.5 transition-colors hover:bg-muted/50 border-l-2 flex items-center gap-2"
-                style={{
-                  borderLeftColor: i === activeIdx ? 'hsl(var(--primary))' : 'transparent',
-                  background: i === activeIdx ? 'hsl(var(--primary) / 0.06)' : undefined,
-                }}
-              >
-                <div
-                  className="w-2 h-2 rounded-full shrink-0"
-                  style={{ background: STATUS_COLORS[st] }}
-                />
-                <span className="text-xs text-foreground line-clamp-2 flex-1">{f.front}</span>
-                <span className="text-[10px] text-muted-foreground shrink-0">#{i + 1}</span>
+              <button key={f.id}
+                className={`study-panel-item${i === activeIdx ? ' study-panel-item--active' : ''}`}
+                onClick={() => { setActiveIdx(i); setFlipped(false); setSidebarOpen(false) }}
+                style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ width: 7, height: 7, borderRadius: '50%', background: c.color, flexShrink: 0 }} />
+                <span className="study-panel-item-title" style={{ flex: 1 }}>{f.front}</span>
+                <span style={{ fontSize: 10, color: 'var(--dp-text-3)' }}>#{i + 1}</span>
               </button>
             )
           })}
         </div>
-      </nav>
+      </div>
 
       {/* Main */}
-      <main
-        id="flashcard-main-content"
-        ref={mainContentRef}
-        tabIndex={-1}
-        className="flex-1 flex flex-col overflow-hidden focus:outline-none"
-        aria-label="Flashcard content"
-      >
+      <main id="flashcard-content" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {/* Toolbar */}
-        <div
-          className="flex items-center gap-2 px-3 border-b border-border bg-card/50"
-          style={{ height: UI_CONSTANTS.SECTION_TABS_HEIGHT }}
-          role="toolbar"
-          aria-label="Flashcard controls"
-        >
-          <button
-            aria-label="Open sidebar menu"
-            className="mob-menu md:hidden items-center justify-center w-8 h-8 rounded hover:bg-muted transition-colors"
-            onClick={() => setSidebarOpen(true)}
-          >
-            <Menu size={16} />
+        <div className="study-toolbar">
+          <button onClick={() => setSidebarOpen(true)} className="md:hidden"
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32, borderRadius: 'var(--dp-r-md)', border: '1px solid var(--dp-border-1)', background: 'var(--dp-bg-2)', color: 'var(--dp-text-2)', cursor: 'pointer' }}>
+            <Menu size={15} />
           </button>
-          <button
-            data-testid="flashcard-shuffle-btn"
-            onClick={shuffle ? reset : doShuffle}
-            className="flex items-center gap-1 text-xs px-2 py-0.5 rounded border border-border hover:bg-muted transition-colors"
-            style={{ color: shuffle ? 'hsl(var(--primary))' : undefined }}
-          >
-            <Shuffle size={10} /> {shuffle ? 'Shuffled' : 'Shuffle'}
+
+          <button data-testid="flashcard-shuffle-btn" onClick={shuffle ? reset : doShuffle}
+            className={`study-toolbar-btn${shuffle ? ' study-toolbar-btn--active' : ''}`}>
+            <Shuffle size={12} />{shuffle ? 'Shuffled' : 'Shuffle'}
           </button>
-          <button
-            data-testid="flashcard-reset-btn"
-            onClick={reset}
-            className="flex items-center gap-1 text-xs px-2 py-0.5 rounded border border-border hover:bg-muted transition-colors text-muted-foreground"
-          >
-            <RotateCcw size={10} /> Reset
+          <button data-testid="flashcard-reset-btn" onClick={reset} className="study-toolbar-btn">
+            <RotateCcw size={12} />Reset
           </button>
-          <span className="text-xs text-muted-foreground ml-auto">
-            {activeIdx + 1} / {displayCards.length}
-          </span>
-          <button
-            aria-label="Previous flashcard"
-            onClick={() => go(NAVIGATION.PREVIOUS)}
-            disabled={activeIdx === 0}
-            className="w-6 h-6 rounded flex items-center justify-center hover:bg-muted disabled:opacity-30 transition-colors"
-          >
-            <ChevronLeft size={12} />
-          </button>
-          <button
-            aria-label="Next flashcard"
-            onClick={() => go(NAVIGATION.NEXT)}
-            disabled={activeIdx === displayCards.length - 1}
-            className="w-6 h-6 rounded flex items-center justify-center hover:bg-muted disabled:opacity-30 transition-colors"
-          >
-            <ChevronRight size={12} />
-          </button>
+
+          <div style={{ flex: 1 }} />
+
+          <span style={{ fontSize: 12, color: 'var(--dp-text-2)' }}>{activeIdx + 1} / {displayCards.length}</span>
+          <button aria-label="Previous" onClick={() => go(-1)} disabled={activeIdx === 0} className="study-toolbar-nav"><ChevronLeft size={13} /></button>
+          <button aria-label="Next" onClick={() => go(1)} disabled={activeIdx === displayCards.length - 1} className="study-toolbar-nav"><ChevronRight size={13} /></button>
         </div>
 
         {/* Card area */}
         {done ? (
-          <div className="flex-1 flex flex-col items-center justify-center gap-6 p-8 text-center">
-            <div className="text-5xl">🎉</div>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 20, padding: 32, textAlign: 'center' }}>
+            <div style={{ fontSize: 64, lineHeight: 1, animation: 'dp-bounce-in 0.6s var(--dp-ease-spring)' }}>🎉</div>
             <div>
-              <h2 className="text-xl font-bold text-foreground mb-2">Deck Complete!</h2>
-              <p className="text-sm text-muted-foreground mb-4">
-                Known: <span style={{ color: STATUS_COLORS.known }}>{knownCount}</span> · Reviewing:{' '}
-                <span style={{ color: STATUS_COLORS.reviewing }}>{reviewingCount}</span> · Hard:{' '}
-                <span style={{ color: STATUS_COLORS.hard }}>{hardCount}</span>
-              </p>
-              <button
-                onClick={reset}
-                className="px-5 py-2 rounded-lg text-sm font-bold"
-                style={{
-                  background: 'hsl(var(--primary))',
-                  color: 'hsl(var(--primary-foreground))',
-                }}
-              >
-                Restart →
+              <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--dp-text-0)', marginBottom: 8 }}>Deck Complete!</div>
+              <div style={{ fontSize: 14, color: 'var(--dp-text-2)', marginBottom: 20 }}>
+                <span style={{ color: '#3fb950', fontWeight: 700 }}>{counts.known}</span> known ·{' '}
+                <span style={{ color: '#f7a843', fontWeight: 700 }}>{counts.reviewing}</span> reviewing ·{' '}
+                <span style={{ color: '#ff7b72', fontWeight: 700 }}>{counts.hard}</span> hard
+              </div>
+              <button onClick={reset} style={{
+                display: 'inline-flex', alignItems: 'center', gap: 8,
+                padding: '10px 24px', borderRadius: 'var(--dp-r-md)',
+                background: 'var(--dp-blue)', color: '#fff', border: 'none',
+                fontSize: 14, fontWeight: 700, cursor: 'pointer',
+                boxShadow: '0 0 20px var(--dp-blue-glow)',
+              }}>
+                <RefreshCw size={14} /> Study Again
               </button>
             </div>
           </div>
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center p-6 gap-4 overflow-auto">
-            {/* 3D flip card - 60fps optimized */}
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px 20px', gap: 20, overflow: 'auto' }}>
+            {/* Status dots */}
+            <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+              {(['known', 'reviewing', 'hard', 'unseen'] as CardStatus[]).map(s => {
+                const c = STATUS_CONFIG[s]
+                const isCurrent = currentStatus === s
+                return (
+                  <div key={s} style={{
+                    display: 'flex', alignItems: 'center', gap: 4, padding: '3px 10px',
+                    borderRadius: 'var(--dp-r-full)', fontSize: 11, fontWeight: 600,
+                    border: `1px solid ${isCurrent ? c.border : 'transparent'}`,
+                    background: isCurrent ? c.bg : 'transparent',
+                    color: isCurrent ? c.color : 'var(--dp-text-3)',
+                    transition: 'all var(--dp-dur-base)',
+                  }}>
+                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: isCurrent ? c.color : 'var(--dp-text-4)' }} />
+                    {c.label}
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* 3D flip card */}
             <div
-              className={`w-full max-w-xl flip-card ${flipped ? 'flipped' : ''}`}
-              style={{ perspective: UI_CONSTANTS.FLASHCARD_PERSPECTIVE }}
+              className={`flip-card${flipped ? ' flipped' : ''}`}
+              style={{ width: '100%', maxWidth: 540, minHeight: 280 }}
             >
               <button
-                className="flip-card-inner w-full cursor-pointer"
-                style={{ minHeight: UI_CONSTANTS.FLASHCARD_MIN_HEIGHT }}
+                className="flip-card-inner"
+                style={{ minHeight: 280, display: 'block' }}
                 onClick={() => setFlipped(f => !f)}
                 data-testid="flashcard-flip"
-                aria-label={flipped ? 'Show question side' : 'Show answer side'}
+                aria-label={flipped ? 'Show question' : 'Show answer'}
                 aria-pressed={flipped}
-                tabIndex={0}
-                onKeyDown={e => {
-                  if (e.key === ' ' || e.key === 'Enter') {
-                    e.preventDefault()
-                    setFlipped(f => !f)
-                  }
-                }}
               >
                 {/* Front */}
-                <div className="flip-card-front rounded-xl border border-border bg-card flex flex-col items-center justify-center p-6 gap-4">
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                    {active?.category}
-                  </span>
-                  <p className="text-lg font-bold text-foreground text-center leading-snug">
+                <div className="flip-card-front" style={{
+                  display: 'flex', flexDirection: 'column', alignItems: 'center',
+                  justifyContent: 'center', padding: '28px 32px', gap: 12, minHeight: 280,
+                }}>
+                  <span style={{
+                    fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em',
+                    color: 'var(--dp-text-3)',
+                  }}>{active?.category}</span>
+                  <p style={{ fontSize: 19, fontWeight: 700, color: 'var(--dp-text-0)', textAlign: 'center', lineHeight: 1.4, margin: 0 }}>
                     {active?.front}
                   </p>
                   {active?.hint && (
-                    <p className="text-xs text-muted-foreground italic">Hint: {active.hint}</p>
+                    <p style={{ fontSize: 12.5, color: 'var(--dp-text-2)', fontStyle: 'italic', textAlign: 'center' }}>
+                      💡 {active.hint}
+                    </p>
                   )}
-                  <p className="text-xs text-muted-foreground mt-auto">
-                    <span className="hidden sm:inline">Click or press Space to reveal answer</span>
-                    <span className="sm:hidden">Tap to reveal answer</span>
+                  <p style={{ fontSize: 12, color: 'var(--dp-text-3)', marginTop: 'auto' }}>
+                    <span className="hidden sm:inline">Space or click to reveal</span>
+                    <span className="sm:hidden">Tap to reveal</span>
                   </p>
                 </div>
+
                 {/* Back */}
-                <div className="flip-card-back rounded-xl border border-border bg-card flex flex-col p-5 gap-3 overflow-y-auto">
-                  <span
-                    className="text-[10px] font-bold uppercase tracking-widest shrink-0"
-                    style={{ color: 'hsl(var(--primary))' }}
-                  >
-                    ANSWER
-                  </span>
-                  <div className="overflow-y-auto">
+                <div className="flip-card-back" style={{ display: 'flex', flexDirection: 'column', padding: '20px 24px', gap: 12, minHeight: 280, overflowY: 'auto' }}>
+                  <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--dp-blue)', flexShrink: 0 }}>Answer</span>
+                  <div style={{ flex: 1, overflowY: 'auto' }}>
                     <MarkdownText content={active?.back ?? ''} />
                     {active?.codeExample && (
-                      <pre
-                        className="mt-3 text-xs font-mono p-3 rounded-lg border border-border overflow-x-auto"
-                        style={{ background: 'hsl(var(--muted) / 0.6)' }}
-                      >
-                        <code>
-                          {typeof active.codeExample === 'string'
-                            ? active.codeExample
-                            : (active.codeExample as unknown as { code: string }).code}
-                        </code>
+                      <pre style={{
+                        marginTop: 12, fontSize: 12, fontFamily: "'SF Mono','Fira Code',monospace",
+                        padding: '10px 14px', borderRadius: 'var(--dp-r-md)',
+                        border: '1px solid var(--dp-border-0)', background: 'var(--dp-bg-1)',
+                        overflowX: 'auto',
+                      }}>
+                        <code>{typeof active.codeExample === 'string' ? active.codeExample : (active.codeExample as any).code}</code>
                       </pre>
                     )}
                     {active?.mnemonic && (
-                      <div
-                        className="mt-3 px-3 py-2 rounded-lg border border-border/50 text-xs text-muted-foreground italic"
-                        style={{ background: 'hsl(var(--primary) / 0.04)' }}
-                      >
+                      <div style={{
+                        marginTop: 12, padding: '8px 12px', borderRadius: 'var(--dp-r-md)',
+                        border: '1px solid var(--dp-border-1)', background: 'var(--dp-blue-dim)',
+                        fontSize: 12.5, color: 'var(--dp-text-2)', fontStyle: 'italic',
+                      }}>
                         💡 {active.mnemonic}
                       </div>
                     )}
@@ -530,82 +345,40 @@ export function FlashcardsPage({
               </button>
             </div>
 
-            {/* Status chips */}
-            <div className="flex gap-2">
-              {(
-                [
-                  FLASHCARD_STATUS.KNOWN,
-                  FLASHCARD_STATUS.REVIEWING,
-                  FLASHCARD_STATUS.HARD,
-                  FLASHCARD_STATUS.UNSEEN,
-                ] as CardStatus[]
-              ).map(s => (
-                <span
-                  key={s}
-                  className="text-[10px] font-bold px-2 py-0.5 rounded-full border"
-                  style={{
-                    borderColor: STATUS_COLORS[s] + (currentStatus === s ? 'ff' : '44'),
-                    color: currentStatus === s ? STATUS_COLORS[s] : 'hsl(var(--muted-foreground))',
-                    background: currentStatus === s ? STATUS_COLORS[s] + '20' : undefined,
-                  }}
-                >
-                  {STATUS_LABELS[s]}
-                </span>
-              ))}
-            </div>
-
-            {/* Action buttons - 44px touch targets */}
+            {/* Action buttons */}
             {flipped && (
-              <div className="flex gap-3" role="group" aria-label="Mark card status">
-                <button
-                  data-testid="flashcard-known"
-                  onClick={() => mark(FLASHCARD_STATUS.KNOWN)}
-                  className="flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-semibold border transition-all btn-micro touch-target"
-                  style={{
-                    borderColor: STATUS_COLORS.known + '66',
-                    color: STATUS_COLORS.known,
-                    background: STATUS_COLORS.known + '15',
-                  }}
-                  aria-label="Mark as known (shortcut: 1)"
-                >
-                  <span aria-hidden="true">✅</span> Know it{' '}
-                  <span className="hidden sm:inline text-xs opacity-60 ml-1">(1)</span>
-                </button>
-                <button
-                  data-testid="flashcard-reviewing"
-                  onClick={() => mark(FLASHCARD_STATUS.REVIEWING)}
-                  className="flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-semibold border transition-all btn-micro touch-target"
-                  style={{
-                    borderColor: STATUS_COLORS.reviewing + '66',
-                    color: STATUS_COLORS.reviewing,
-                    background: STATUS_COLORS.reviewing + '15',
-                  }}
-                  aria-label="Mark for review (shortcut: 2)"
-                >
-                  <span aria-hidden="true">🔄</span> Review{' '}
-                  <span className="hidden sm:inline text-xs opacity-60 ml-1">(2)</span>
-                </button>
-                <button
-                  data-testid="flashcard-hard"
-                  onClick={() => mark(FLASHCARD_STATUS.HARD)}
-                  className="flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-semibold border transition-all btn-micro touch-target"
-                  style={{
-                    borderColor: STATUS_COLORS.hard + '66',
-                    color: STATUS_COLORS.hard,
-                    background: STATUS_COLORS.hard + '15',
-                  }}
-                  aria-label="Mark as hard (shortcut: 3)"
-                >
-                  <span aria-hidden="true">❌</span> Hard{' '}
-                  <span className="hidden sm:inline text-xs opacity-60 ml-1">(3)</span>
-                </button>
+              <div style={{ display: 'flex', gap: 10 }} role="group" aria-label="Rate this card">
+                {(['known', 'reviewing', 'hard'] as CardStatus[]).map(s => {
+                  const c = STATUS_CONFIG[s]
+                  return (
+                    <button
+                      key={s}
+                      data-testid={`flashcard-${s}`}
+                      onClick={() => mark(s)}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 6,
+                        padding: '9px 18px', borderRadius: 'var(--dp-r-md)',
+                        border: `1px solid ${c.border}`, background: c.bg,
+                        color: c.color, fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                        transition: 'all var(--dp-dur-fast)',
+                      }}
+                      aria-label={`Mark as ${c.label} (key: ${c.key})`}
+                    >
+                      <span>{c.emoji}</span>
+                      {c.label}
+                      <span style={{ fontSize: 10, opacity: 0.6 }} className="hidden sm:inline">({c.key})</span>
+                    </button>
+                  )
+                })}
               </div>
             )}
 
-            <p className="text-xs text-muted-foreground">
-              Space = flip · ← / → navigate
-              {flipped ? ' · 1=Know 2=Review 3=Hard' : ''}
-            </p>
+            {/* Keyboard hint */}
+            <div style={{ fontSize: 11, color: 'var(--dp-text-3)', display: 'flex', gap: 12, alignItems: 'center' }}>
+              <span>← → navigate</span>
+              <span>Space flip</span>
+              {flipped && <><span>1 know</span><span>2 review</span><span>3 hard</span></>}
+            </div>
           </div>
         )}
       </main>
