@@ -113,6 +113,14 @@ export function CodingPage({ challenges, channelId, onCodingUpdate, isLoading = 
   useEffect(() => { setActiveIdx(0) }, [channelId])
 
   useEffect(() => {
+    progressApi.load(channelId).then(data => {
+      if (data.coding && Object.keys(data.coding).length > 0) {
+        setStatuses(data.coding as Record<string, 'not_started' | 'in_progress' | 'completed'>)
+      }
+    }).catch(() => {})
+  }, [channelId])
+
+  useEffect(() => {
     if (!challenge) return
     const starter = challenge.starterCode?.[lang] || challenge.starterCode?.javascript || ''
     setCode(starter)

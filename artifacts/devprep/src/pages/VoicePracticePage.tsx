@@ -34,6 +34,14 @@ export function VoicePracticePage({ prompts, channelId, onVoicePractice }: Voice
   const [ratings, setRatings] = useState<Record<string, number>>({})
   const [srSupported, setSrSupported] = useState(true)
 
+  useEffect(() => {
+    progressApi.load(channelId).then(data => {
+      if (data.voice && Object.keys(data.voice).length > 0) {
+        setRatings(data.voice as Record<string, number>)
+      }
+    }).catch(() => {})
+  }, [channelId])
+
   const timerRef = useRef<NodeJS.Timeout | null>(null)
   const cdRef = useRef<NodeJS.Timeout | null>(null)
   const recognitionRef = useRef<any>(null)

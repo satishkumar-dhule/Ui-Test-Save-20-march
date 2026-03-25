@@ -37,6 +37,14 @@ export function FlashcardsPage({ flashcards, categories, channelId, onFlashcardU
     setOrder(flashcards.map((_, i) => i))
   }, [channelId, flashcards])
 
+  useEffect(() => {
+    progressApi.load(channelId).then(data => {
+      if (data.flashcards && Object.keys(data.flashcards).length > 0) {
+        setStatuses(data.flashcards as Record<string, CardStatus>)
+      }
+    }).catch(() => {})
+  }, [channelId])
+
   const filtered = filterCat === 'All' ? flashcards : flashcards.filter(f => f.category === filterCat)
   const orderedCards = order.map(i => flashcards[i]).filter(Boolean).filter(f => filterCat === 'All' || f.category === filterCat)
   const displayCards = orderedCards.length > 0 ? orderedCards : filtered
