@@ -1,0 +1,17 @@
+Name,Notes,Assignee,Projects,Tags,Section,Story Points
+"Finalize design token schema and naming","Define and lock the design-tokens.json structure (colors, typography, spacing, radii, elevation) and naming conventions. Ensure compatibility with CSS variables and component usage.",S1,"PHASE 0 - Token & Foundation","Phase0;Token;DesignTokens","Phase 0",8
+"Wire tokens into CSS and provide base variables","Bind design tokens to CSS custom properties and ensure global.css consumes tokens for theming.",S1,"PHASE 0 - Token & Foundation","Phase0;Tokens;CSS","Phase 0",5
+"Core Button component","Implement Button.tsx with props: label, onClick, variant ('primary'|'secondary'), disabled; consume tokens; accessible label.",S2,"PHASE 0 - Token & Foundation","Phase0;Component;Button","Phase 0",5
+"Core Input component","Implement Input.tsx with placeholder, value, onChange, type, and aria-label; consume tokens.",S2,"PHASE 0 - Token & Foundation","Phase0;Component;Input","Phase 0",5
+"Core Card component","Implement Card.tsx with optional title and content area; accessible semantics.",S2,"PHASE 0 - Token & Foundation","Phase0;Component;Card","Phase 0",5
+"Core Nav component","Implement Nav.tsx with a simple horizontal list of items; keyboard-friendly.",S2,"PHASE 0 - Token & Foundation","Phase0;Component;Nav","Phase 0",3
+"Onboarding flow integration","Implement Onboarding flow using Button, Input, Card; collect a name and a simple action on Continue.",S3,"PHASE 0 - Token & Foundation","Phase0;Component;Onboarding","Phase 0",5
+"Storybook setup for revamp-ui","Initialize Storybook for revamp-ui; create stories for Button, Input, Card, Nav, Onboarding; connect tokens.",S2,"PHASE 0 - Token & Foundation","Phase0;Frontend;Storybook","Phase 0",5
+"Handoff pipeline documentation","Document design-to-code mapping, component library contracts, and visual diff checks.",S4,"PHASE 0 - Token & Foundation","Phase0;DS;Docs","Phase 0",3
+"Phase 0 sprint kickoff plan","Publish Phase 0 sprint plan with cadence, ceremonies, and win conditions.",S4;PM,"Phase0;Planning;Docs","Phase 0",2
+"Design Systems Council governance doc","Create governance cadence, artifacts, and migration plan for tokens/components.",S4;DS,"Phase0;Governance;Docs","Phase 0",3
+"UX Research onboarding usability test plan","Recruit participants and run 1 usability test on onboarding flow; capture feedback.",S5;UX Research,"Phase0;Research;Usability","Phase 0",3
+"Accessibility baseline for new flows","Define WCAG targets; ensure keyboard navigation and focus order for onboarding and core components.",S6;Accessibility,"Phase0;QA;Accessibility","Phase 0",3
+"Metrics plan for Phase 0","Define task time, task success rate, error rate, and adoption KPIs; define data collection method.",S6;UX/Analytics,"Phase0;Metrics;Planning","Phase 0",3
+"Migration plan (Phase 0) for token-based system","Draft a high-level migration path from old UI to token-based system; include risk and rollback notes.",S1;S4;DS,"Phase0;Migration;Planning","Phase 0",2
+"Phase 0 demo readiness","Prepare a 1–2 screen demo combining onboarding flow with Token-driven UI kit for leadership demo.",S1;S2,"Phase0;Demo;Preview","Phase 0",5

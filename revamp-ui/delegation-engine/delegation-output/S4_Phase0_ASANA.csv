@@ -1,0 +1,5 @@
+Name,Notes,Assignee,Projects,Tags,Section,Story Points
+Handoff pipeline documentation,Document design-to-code mapping, component library contracts, and visual diff checks.,S4,PHASE 0 - Token & Foundation,Phase0;DS;Docs,Phase 0,3
+Accessibility baseline for new flows,Define WCAG targets; ensure keyboard navigation and focus order for onboarding and core components.,S4,PHASE 0 - Token & Foundation,Phase0;QA;Accessibility,Phase 0,3
+Handoff pipeline documentation,Document design-to-code mapping, component library contracts, and visual diff checks.,S4,PHASE 0 - Token & Foundation,Phase0;DS;Docs,Phase 0,3
+UX Research onboarding usability test plan,Recruit participants and run 1 usability test on onboarding flow; capture feedback.,S4,Phase0;Research;Usability,Phase 0,3,

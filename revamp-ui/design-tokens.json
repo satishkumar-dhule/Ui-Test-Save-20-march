@@ -1,0 +1,45 @@
+{
+  "color": {
+    "brand": {
+      "primary": "#5B21B6",
+      "secondary": "#14B8A6",
+      "accent": "#F59E0B"
+    },
+    "bg": { "default": "#0F111A" },
+    "surface": "#141824",
+    "text": { "primary": "#E5E7EB", "secondary": "#A3A3A3" }
+  },
+  "typography": {
+    "fontFamily": "Inter, ui-sans-serif, system-ui",
+    "size": { "base": 16, "h1": 28, "h2": 22, "h3": 20, "body": 16, "sm": 14 },
+    "weight": { "regular": 400, "medium": 500, "bold": 600 }
+  },
+  "spacing": { "xs": 4, "sm": 8, "md": 16, "lg": 24, "xl": 32 },
+  "radius": { "sm": 6, "md": 8, "lg": 12, "xl": 16 },
+  "elevation": {
+    "card": "0 2px 6px rgba(0,0,0,.25)",
+    "modal": "0 8px 20px rgba(0,0,0,.3)",
+    "drawer": "0 4px 12px rgba(0,0,0,.25)",
+    "tabs": "0 1px 3px rgba(0,0,0,.1)"
+  },
+  "theme": {
+    "light": {
+      "bg": "#0F111A",
+      "surface": "#141824",
+      "textPrimary": "#E5E7EB",
+      "textSecondary": "#A3A3A3",
+      "brandPrimary": "#5B21B6",
+      "brandSecondary": "#14B8A6",
+      "brandAccent": "#F59E0B"
+    },
+    "dark": {
+      "bg": "#0B1020",
+      "surface": "#141824",
+      "textPrimary": "#E6EAF6",
+      "textSecondary": "#B0B0B0",
+      "brandPrimary": "#8A63D2",
+      "brandSecondary": "#5EEAD4",
+      "brandAccent": "#FBBF24"
+    }
+  }
+}

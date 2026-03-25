@@ -1,0 +1,180 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - complementary "Main navigation" [ref=e5]:
+      - generic [ref=e6]:
+        - img [ref=e8]
+        - generic [ref=e10]:
+          - text: DevPrep
+          - generic [ref=e11]: 23+ channels
+      - search "Channel search" [ref=e12]:
+        - img
+        - textbox "Search channels" [ref=e13]:
+          - /placeholder: Find channel...
+      - generic [ref=e14]:
+        - generic [ref=e15]:
+          - img [ref=e16]
+          - generic [ref=e18]: My Channels
+          - button "Edit pinned channels" [ref=e19] [cursor=pointer]:
+            - img [ref=e20]
+        - list [ref=e23]:
+          - listitem [ref=e24]:
+            - button "Select JavaScript channel" [ref=e25] [cursor=pointer]:
+              - generic [ref=e26]: ⚡
+              - generic [ref=e27]: JavaScript
+              - img [ref=e28]
+          - listitem [ref=e30]:
+            - button "Select TypeScript channel" [ref=e31] [cursor=pointer]:
+              - generic [ref=e32]: 💎
+              - generic [ref=e33]: TypeScript
+          - listitem [ref=e34]:
+            - button "Select React channel" [ref=e35] [cursor=pointer]:
+              - generic [ref=e36]: ⚛️
+              - generic [ref=e37]: React
+        - button "Browse all channels" [ref=e38] [cursor=pointer]:
+          - img [ref=e39]
+          - generic [ref=e44]: Browse all 23+ channels
+          - img [ref=e45]
+      - generic [ref=e48]:
+        - generic [ref=e49]:
+          - img [ref=e50]
+          - generic [ref=e52]: Study Mode
+        - tablist "Study sections" [ref=e53]:
+          - tab "Q&A 2" [ref=e54] [cursor=pointer]:
+            - img [ref=e56]
+            - generic [ref=e58]: Q&A
+            - generic [ref=e59]: "2"
+          - tab "Flashcards 5" [selected] [ref=e60] [cursor=pointer]:
+            - img [ref=e62]
+            - generic [ref=e64]: Flashcards
+            - generic [ref=e65]: "5"
+          - tab "Coding 3" [ref=e66] [cursor=pointer]:
+            - img [ref=e68]
+            - generic [ref=e72]: Coding
+            - generic [ref=e73]: "3"
+          - tab "Mock Exam 0" [ref=e74] [cursor=pointer]:
+            - img [ref=e76]
+            - generic [ref=e79]: Mock Exam
+            - generic [ref=e80]: "0"
+          - tab "Voice 0" [ref=e81] [cursor=pointer]:
+            - img [ref=e83]
+            - generic [ref=e87]: Voice
+            - generic [ref=e88]: "0"
+          - tab "Statistics 0" [ref=e89] [cursor=pointer]:
+            - img [ref=e91]
+            - generic [ref=e96]: Statistics
+            - generic [ref=e97]: "0"
+      - button "Add channels" [ref=e99] [cursor=pointer]:
+        - img [ref=e100]
+        - generic [ref=e101]: Add channels
+    - generic [ref=e102]:
+      - banner [ref=e103]:
+        - button "Open navigation menu" [ref=e104] [cursor=pointer]:
+          - img [ref=e105]
+        - navigation "Breadcrumb" [ref=e106]:
+          - list "You are here" [ref=e107]:
+            - listitem [ref=e108]:
+              - link "DevPrep home" [ref=e109] [cursor=pointer]:
+                - /url: /
+                - text: DevPrep
+            - listitem [ref=e110]:
+              - img [ref=e111]
+            - listitem [ref=e113]:
+              - generic [ref=e114]: ⚡
+              - generic [ref=e115]: JavaScript
+            - listitem [ref=e116]:
+              - img [ref=e117]
+            - listitem [ref=e119]:
+              - generic [ref=e120]: Flashcards
+        - button "Search content" [ref=e121] [cursor=pointer]:
+          - img [ref=e122]
+          - generic [ref=e125]: Search content...
+          - generic [ref=e126]: ⌘K
+        - button "Switch to light mode" [ref=e127] [cursor=pointer]:
+          - img [ref=e128]
+      - main [ref=e134]:
+        - generic [ref=e135]:
+          - link "Skip to main content" [ref=e136] [cursor=pointer]:
+            - /url: "#flashcard-main-content"
+          - status [ref=e137]
+          - navigation "Flashcard navigation" [ref=e138]:
+            - generic [ref=e139]:
+              - img [ref=e140]
+              - generic [ref=e144]: Flashcards
+              - generic [ref=e145]: "5"
+            - generic [ref=e147]:
+              - generic [ref=e148]: Progress
+              - generic [ref=e149]: 0%
+            - generic [ref=e151]:
+              - generic [ref=e152]:
+                - generic [ref=e154]: Known
+                - generic [ref=e155]: "0"
+              - generic [ref=e156]:
+                - generic [ref=e158]: Reviewing
+                - generic [ref=e159]: "0"
+              - generic [ref=e160]:
+                - generic [ref=e162]: Hard
+                - generic [ref=e163]: "0"
+              - generic [ref=e164]:
+                - generic [ref=e166]: Unseen
+                - generic [ref=e167]: "5"
+            - generic [ref=e168]:
+              - 'button "What is hoisting in JavaScript? #1" [ref=e169]':
+                - generic [ref=e171]: What is hoisting in JavaScript?
+                - generic [ref=e172]: "#1"
+              - 'button "What is the difference between `==` and `===` in JavaScript? #2" [ref=e173]':
+                - generic [ref=e175]: "What is the difference between `==` and `===` in JavaScript?"
+                - generic [ref=e176]: "#2"
+              - 'button "What is a Promise in JavaScript? #3" [ref=e177]':
+                - generic [ref=e179]: What is a Promise in JavaScript?
+                - generic [ref=e180]: "#3"
+              - 'button "What does `Array.prototype.reduce()` do? #4" [ref=e181]':
+                - generic [ref=e183]: "What does `Array.prototype.reduce()` do?"
+                - generic [ref=e184]: "#4"
+              - 'button "What is prototypal inheritance in JavaScript? #5" [ref=e185]':
+                - generic [ref=e187]: What is prototypal inheritance in JavaScript?
+                - generic [ref=e188]: "#5"
+          - main "Flashcard content" [active] [ref=e189]:
+            - toolbar "Flashcard controls" [ref=e190]:
+              - button "Shuffle" [ref=e191]:
+                - img [ref=e192]
+                - text: Shuffle
+              - button "Reset" [ref=e198]:
+                - img [ref=e199]
+                - text: Reset
+              - generic [ref=e202]: 2 / 5
+              - button "Previous flashcard" [ref=e203]:
+                - img [ref=e204]
+              - button "Next flashcard" [ref=e206]:
+                - img [ref=e207]
+            - generic [ref=e209]:
+              - button "Show answer side" [ref=e211] [cursor=pointer]:
+                - generic [ref=e212]:
+                  - generic [ref=e213]: JavaScript
+                  - paragraph [ref=e214]: "What is the difference between `==` and `===` in JavaScript?"
+                  - paragraph
+                - generic [ref=e215]:
+                  - generic [ref=e216]: ANSWER
+                  - generic [ref=e217]:
+                    - paragraph [ref=e219]:
+                      - code [ref=e220]: ==
+                      - text: performs
+                      - strong [ref=e221]: type coercion
+                      - text: before comparing.
+                      - code [ref=e222]: ===
+                      - text: checks value AND type — no coercion. Always prefer
+                      - code [ref=e223]: ===
+                      - text: to avoid surprising behavior.
+                    - code [ref=e225]: 0 == false // true (coercion) 0 === false // false (different types) '' == false // true (coercion) null == undefined // true (special case) null === undefined // false
+              - generic [ref=e226]:
+                - generic [ref=e227]: Known
+                - generic [ref=e228]: Reviewing
+                - generic [ref=e229]: Hard
+                - generic [ref=e230]: Unseen
+              - paragraph [ref=e231]: Space = flip · ← / → navigate
+  - status [ref=e232]: Flashcard 2 of 5
+```

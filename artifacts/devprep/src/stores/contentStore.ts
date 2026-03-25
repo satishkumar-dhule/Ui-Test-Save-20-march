@@ -19,11 +19,21 @@ type ContentMap = {
   coding: CodingChallenge[]
 }
 
-function createFilterByTags<T extends object>(items: T[], tagFilter: string[] | undefined): T[] {
-  if (!tagFilter?.length) return items
+function createFilterByChannel<T extends object>(
+  items: T[],
+  channelId: string,
+  tagFilter: string[] | undefined
+): T[] {
   return items.filter(item => {
-    const tags = (item as { tags?: string[] }).tags
-    return tags && tagFilter.some(tag => tags.includes(tag))
+    const itemChannelId = (item as { channelId?: string }).channelId
+    if (itemChannelId) {
+      return itemChannelId === channelId
+    }
+    if (tagFilter?.length) {
+      const tags = (item as { tags?: string[] }).tags
+      return tags && tagFilter.some(tag => tags.includes(tag))
+    }
+    return false
   })
 }
 
@@ -376,22 +386,22 @@ export const useContentStore = create<ContentStore>()(
   )
 )
 
-export const useFilteredContent = (tagFilter: string[] | undefined) => {
+export const useFilteredContent = (channelId: string, tagFilter: string[] | undefined) => {
   const { mergedContent } = useContentStore()
 
   return useMemo(() => {
     return {
-      questions: createFilterByTags(mergedContent.questions, tagFilter),
-      flashcards: createFilterByTags(mergedContent.flashcards, tagFilter),
-      exam: createFilterByTags(mergedContent.exam, tagFilter),
-      voice: createFilterByTags(mergedContent.voice, tagFilter),
-      coding: createFilterByTags(mergedContent.coding, tagFilter),
+      questions: createFilterByChannel(mergedContent.questions, channelId, tagFilter),
+      flashcards: createFilterByChannel(mergedContent.flashcards, channelId, tagFilter),
+      exam: createFilterByChannel(mergedContent.exam, channelId, tagFilter),
+      voice: createFilterByChannel(mergedContent.voice, channelId, tagFilter),
+      coding: createFilterByChannel(mergedContent.coding, channelId, tagFilter),
     }
-  }, [mergedContent, tagFilter])
+  }, [mergedContent, channelId, tagFilter])
 }
 
-export const useSectionCounts = (tagFilter: string[] | undefined) => {
-  const filtered = useFilteredContent(tagFilter)
+export const useSectionCounts = (channelId: string, tagFilter: string[] | undefined) => {
+  const filtered = useFilteredContent(channelId, tagFilter)
   return useMemo(
     () => ({
       qa: filtered.questions.length,

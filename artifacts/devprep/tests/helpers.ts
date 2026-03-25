@@ -60,12 +60,18 @@ export async function waitForAppReady(page: Page) {
 }
 
 /**
- * Navigate to a given section tab by testid.
+ * Navigate to a given section tab by clicking the sidebar tab.
  */
 export async function goToSection(
   page: Page,
   section: 'qa' | 'flashcards' | 'coding' | 'exam' | 'voice'
 ) {
-  await page.click(`[data-testid="section-tab-${section}"]`)
+  const label =
+    section === 'qa'
+      ? 'Q&A'
+      : section === 'voice'
+        ? 'Voice'
+        : section.charAt(0).toUpperCase() + section.slice(1)
+  await page.click(`[role="tab"]:has-text("${label}")`)
   await page.waitForTimeout(400)
 }

@@ -4,6 +4,7 @@ import { JOB_ROLES, SKILL_LEVELS, JOB_ROLE_PRESETS } from '@/data/channels'
 import { useChannels } from '@/hooks/useChannels'
 import { ChannelCard } from '@/components/OnboardingModal'
 import { useToast } from '@/hooks/use-toast'
+import { Search, Sparkles, CheckCircle2, X, Zap, Filter } from 'lucide-react'
 
 interface OnboardingPageProps {
   onDone: (selected: Set<string>) => void
@@ -18,9 +19,7 @@ function loadDraft(): Set<string> | null {
     if (!raw) return null
     const arr = JSON.parse(raw)
     if (Array.isArray(arr) && arr.length > 0) return new Set(arr)
-  } catch {
-    // Ignore parse errors
-  }
+  } catch {}
   return null
 }
 
@@ -41,550 +40,331 @@ export function OnboardingPage({ onDone, initialSelected }: OnboardingPageProps)
 
   const { toast } = useToast()
 
-  // Persist draft to localStorage
   useEffect(() => {
-    try {
-      localStorage.setItem(DRAFT_KEY, JSON.stringify([...selected]))
-    } catch {
-      // Ignore storage errors
-    }
+    try { localStorage.setItem(DRAFT_KEY, JSON.stringify([...selected])) } catch {}
   }, [selected])
 
   const toggle = useCallback((id: string) => {
     setSelected(prev => {
       const next = new Set(prev)
-      if (next.has(id)) {
-        next.delete(id)
-      } else {
-        next.add(id)
-      }
+      next.has(id) ? next.delete(id) : next.add(id)
       return next
     })
   }, [])
 
-  const handleJobRoleClick = useCallback(
-    (roleId: JobRole) => {
-      if (activeJobRole === roleId) {
-        setActiveJobRole(null)
-      } else {
-        setActiveJobRole(roleId)
-        const presetChannels = JOB_ROLE_PRESETS[roleId] || []
-        setSelected(prev => {
-          const next = new Set(prev)
-          presetChannels.forEach(ch => next.add(ch))
-          return next
-        })
-        const roleLabel = JOB_ROLES.find(r => r.id === roleId)?.label || roleId
-        toast({
-          title: `${roleLabel} preset applied`,
-          description: `Selected ${presetChannels.length} recommended channels for ${roleLabel}.`,
-          duration: 2000,
-        })
-      }
-    },
-    [activeJobRole, toast]
-  )
+  const handleJobRoleClick = useCallback((roleId: JobRole) => {
+    if (activeJobRole === roleId) {
+      setActiveJobRole(null)
+    } else {
+      setActiveJobRole(roleId)
+      const presetChannels = JOB_ROLE_PRESETS[roleId] || []
+      setSelected(prev => {
+        const next = new Set(prev)
+        presetChannels.forEach(ch => next.add(ch))
+        return next
+      })
+      const roleLabel = JOB_ROLES.find(r => r.id === roleId)?.label || roleId
+      toast({ title: `${roleLabel} preset applied`, description: `Added ${presetChannels.length} recommended channels.`, duration: 2000 })
+    }
+  }, [activeJobRole, toast])
 
   const toggleSkillLevel = useCallback((level: SkillLevel) => {
     setSelectedSkillLevels(prev => {
       const next = new Set(prev)
-      if (next.has(level)) {
-        next.delete(level)
-      } else {
-        next.add(level)
-      }
+      next.has(level) ? next.delete(level) : next.add(level)
       return next
     })
   }, [])
 
   const clearAllFilters = useCallback(() => {
-    setSearchQuery('')
-    setSelectedSkillLevels(new Set())
-    setActiveTab('all')
-    setActiveJobRole(null)
+    setSearchQuery(''); setSelectedSkillLevels(new Set()); setActiveTab('all'); setActiveJobRole(null)
   }, [])
 
-  // Filter channels based on tab, search, and skill level
   const filteredChannels = useMemo(() => {
     let result = channels
-
-    // Tab filter
-    if (activeTab === 'tech') {
-      result = result.filter(ch => ch.type === 'tech')
-    } else if (activeTab === 'cert') {
-      result = result.filter(ch => ch.type === 'cert')
-    }
-
-    // Search filter
+    if (activeTab === 'tech') result = result.filter(ch => ch.type === 'tech')
+    else if (activeTab === 'cert') result = result.filter(ch => ch.type === 'cert')
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim()
-      result = result.filter(
-        ch =>
-          ch.name.toLowerCase().includes(q) ||
-          ch.description.toLowerCase().includes(q) ||
-          ch.id.toLowerCase().includes(q)
+      result = result.filter(ch =>
+        ch.name.toLowerCase().includes(q) || ch.description.toLowerCase().includes(q) || ch.id.toLowerCase().includes(q)
       )
     }
-
-    // Skill level filter (OR logic - show channels matching any selected level)
     if (selectedSkillLevels.size > 0) {
-      result = result.filter(
-        ch =>
-          !ch.skillLevel ||
-          ch.skillLevel.length === 0 ||
-          ch.skillLevel.some(level => selectedSkillLevels.has(level))
+      result = result.filter(ch =>
+        !ch.skillLevel || ch.skillLevel.length === 0 || ch.skillLevel.some(level => selectedSkillLevels.has(level))
       )
     }
-
     return result
   }, [channels, activeTab, searchQuery, selectedSkillLevels])
 
   const techCount = filteredChannels.filter(c => c.type === 'tech').length
   const certCount = filteredChannels.filter(c => c.type === 'cert').length
-  const activeFilterCount =
-    (searchQuery ? 1 : 0) +
-    selectedSkillLevels.size +
-    (activeJobRole ? 1 : 0) +
-    (activeTab !== 'all' ? 1 : 0)
-
-  const selectAll = useCallback(() => {
-    setSelected(new Set(filteredChannels.map(ch => ch.id)))
-  }, [filteredChannels])
-
-  const clearAll = useCallback(() => {
-    setSelected(new Set())
-  }, [])
+  const activeFilterCount = (searchQuery ? 1 : 0) + selectedSkillLevels.size + (activeJobRole ? 1 : 0) + (activeTab !== 'all' ? 1 : 0)
 
   const selectRecommended = useCallback(() => {
-    const recommended: string[] = [
-      'javascript',
-      'typescript',
-      'react',
-      'python',
-      'sql',
-      'algorithms',
-      'system-design',
-      'devops',
-    ]
-    setSelected(prev => {
-      const next = new Set(prev)
-      recommended.forEach(ch => next.add(ch))
-      return next
-    })
+    const recommended = ['javascript','typescript','react','python','sql','algorithms','system-design','devops']
+    setSelected(prev => { const next = new Set(prev); recommended.forEach(ch => next.add(ch)); return next })
   }, [])
 
   const handleDone = () => {
-    try {
-      localStorage.removeItem(DRAFT_KEY)
-    } catch {
-      // Ignore storage errors
-    }
+    try { localStorage.removeItem(DRAFT_KEY) } catch {}
     onDone(new Set(selected))
   }
 
   return (
-    <div
-      className="fixed inset-0 z-[100] bg-background overflow-y-auto"
-      data-testid="onboarding-modal"
-    >
-      {/* Hero Section */}
-      <div className="border-b border-border" style={{ background: 'hsl(var(--sidebar))' }}>
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12 sm:py-16 text-center">
-          {/* Animated Target Icon */}
-          <div className="mb-6 inline-block">
-            <div className="relative">
-              <div
-                className="text-6xl sm:text-7xl animate-pulse"
-                style={{
-                  animationDuration: '2s',
-                  animationTimingFunction: 'cubic-bezier(0.4, 0, 0.6, 1)',
-                }}
-                aria-hidden="true"
-              >
-                🎯
-              </div>
-              <div
-                className="absolute inset-0 text-6xl sm:text-7xl blur-xl opacity-30"
-                aria-hidden="true"
-              >
-                🎯
-              </div>
-            </div>
-          </div>
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 100,
+      background: 'var(--dp-bg-0)', overflowY: 'auto',
+      display: 'flex', flexDirection: 'column',
+    }} data-testid="onboarding-modal">
 
-          <h1
-            id="onboarding-title"
-            className="text-3xl sm:text-4xl font-bold text-foreground mb-3"
-            data-testid="onboarding-title"
-          >
-            Welcome to DevPrep
-          </h1>
-          <p
-            id="onboarding-description"
-            className="text-base sm:text-lg text-muted-foreground max-w-xl mx-auto leading-relaxed"
-          >
-            Choose the tech topics and certifications you want to prep for. You'll only see content
-            for your selected tracks.
-          </p>
+      {/* Hero */}
+      <div className="onboarding-hero">
+        {/* Logo */}
+        <div style={{ marginBottom: 24 }}>
+          <div style={{
+            width: 64, height: 64, borderRadius: 'var(--dp-r-xl)',
+            background: 'linear-gradient(135deg, var(--dp-blue), var(--dp-purple))',
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 0 40px var(--dp-blue-glow), 0 8px 24px rgba(0,0,0,0.4)',
+          }}>
+            <Zap size={28} color="#fff" strokeWidth={2.5} />
+          </div>
+        </div>
+
+        <h1 id="onboarding-title" data-testid="onboarding-title" style={{
+          fontSize: 'clamp(26px, 4vw, 40px)', fontWeight: 900, color: 'var(--dp-text-0)',
+          letterSpacing: '-1px', marginBottom: 14, lineHeight: 1.1,
+        }}>
+          Your interview prep,<br />
+          <span style={{ background: 'linear-gradient(90deg, var(--dp-blue), var(--dp-purple))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            perfectly tailored.
+          </span>
+        </h1>
+
+        <p style={{ fontSize: 16, color: 'var(--dp-text-2)', maxWidth: 480, margin: '0 auto 28px', lineHeight: 1.65 }}>
+          Pick the technologies and certifications you're preparing for. We'll focus your study content on what matters most.
+        </p>
+
+        {/* Stats */}
+        <div style={{ display: 'flex', gap: 24, justifyContent: 'center', flexWrap: 'wrap' }}>
+          {[
+            { value: `${channels.length}+`, label: 'Channels' },
+            { value: '5', label: 'Study Modes' },
+            { value: '1000+', label: 'Questions' },
+          ].map(stat => (
+            <div key={stat.label} style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--dp-blue)' }}>{stat.value}</div>
+              <div style={{ fontSize: 11.5, color: 'var(--dp-text-3)', marginTop: 1 }}>{stat.label}</div>
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 min-h-full pb-24">
-        {/* Job Role Quick Presets */}
-        <section aria-labelledby="job-role-heading" className="mb-8">
-          <div className="flex items-center gap-2 mb-4">
-            <span
-              id="job-role-heading"
-              className="text-xs font-bold text-muted-foreground tracking-widest uppercase"
-            >
-              Job Role Presets
-            </span>
-            <span className="text-xs text-muted-foreground/60">
-              Click to auto-select relevant channels
-            </span>
+      {/* Main content */}
+      <div style={{ flex: 1, maxWidth: 1200, margin: '0 auto', padding: '32px 20px 120px', width: '100%' }}>
+
+        {/* Job role presets */}
+        <section style={{ marginBottom: 32 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+            <Sparkles size={14} style={{ color: 'var(--dp-blue)' }} />
+            <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--dp-text-2)' }}>Quick Start Presets</span>
+            <span style={{ fontSize: 12, color: 'var(--dp-text-3)' }}>Auto-select channels for your role</span>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 10 }}>
             {JOB_ROLES.map(role => (
-              <button
-                key={role.id}
-                onClick={() => handleJobRoleClick(role.id)}
-                className={`
-                  flex flex-col items-center p-4 rounded-xl border text-center
-                  transition-all duration-200 cursor-pointer btn-micro touch-target hover:scale-105 active:scale-95
-                  ${
-                    activeJobRole === role.id
-                      ? 'border-primary/50 bg-primary/10 shadow-lg shadow-primary/10'
-                      : 'border-border bg-card hover:border-border hover:shadow-md'
-                  }
-                `}
+              <button key={role.id} onClick={() => handleJobRoleClick(role.id)}
                 aria-pressed={activeJobRole === role.id}
-              >
-                <span className="text-2xl mb-2" aria-hidden="true">
-                  {role.emoji}
-                </span>
-                <span className="text-sm font-semibold text-foreground leading-tight mb-0.5">
-                  {role.label}
-                </span>
-                <span className="text-[10px] text-muted-foreground leading-snug line-clamp-2">
-                  {role.description}
-                </span>
+                style={{
+                  display: 'flex', flexDirection: 'column', alignItems: 'center',
+                  padding: '16px 12px', borderRadius: 'var(--dp-r-lg)', textAlign: 'center', cursor: 'pointer',
+                  border: `1px solid ${activeJobRole === role.id ? 'rgba(56,139,253,0.4)' : 'var(--dp-border-1)'}`,
+                  background: activeJobRole === role.id ? 'var(--dp-blue-dim)' : 'var(--dp-glass-1)',
+                  transition: 'all var(--dp-dur-fast)', position: 'relative',
+                  boxShadow: activeJobRole === role.id ? 'var(--dp-shadow-blue)' : 'none',
+                }}>
+                {activeJobRole === role.id && (
+                  <CheckCircle2 size={12} style={{ position: 'absolute', top: 8, right: 8, color: 'var(--dp-blue)' }} />
+                )}
+                <span style={{ fontSize: 26, marginBottom: 8 }}>{role.emoji}</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--dp-text-0)', lineHeight: 1.3, marginBottom: 3 }}>{role.label}</span>
+                <span style={{ fontSize: 11, color: 'var(--dp-text-3)', lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{role.description}</span>
               </button>
             ))}
           </div>
         </section>
 
-        {/* Skill Level Filter */}
-        <section aria-labelledby="skill-level-heading" className="mb-8">
-          <div className="flex items-center gap-2 mb-4">
-            <span
-              id="skill-level-heading"
-              className="text-xs font-bold text-muted-foreground tracking-widest uppercase"
-            >
-              Skill Level
-            </span>
-            <span className="text-xs text-muted-foreground/60">
-              Filter by experience (OR logic)
-            </span>
+        {/* Filters row */}
+        <div style={{
+          display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center',
+          padding: '12px 16px', borderRadius: 'var(--dp-r-lg)',
+          background: 'var(--dp-glass-1)', border: '1px solid var(--dp-border-1)', marginBottom: 20,
+        }}>
+          {/* Search */}
+          <div style={{ position: 'relative', flex: '1 1 220px', minWidth: 180 }}>
+            <Search size={13} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--dp-text-3)', pointerEvents: 'none' }} />
+            <input
+              type="search" value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              placeholder="Search channels..."
+              style={{
+                width: '100%', padding: '7px 10px 7px 30px', fontSize: 13,
+                background: 'var(--dp-bg-2)', border: '1px solid var(--dp-border-1)',
+                borderRadius: 'var(--dp-r-md)', color: 'var(--dp-text-0)', outline: 'none',
+              }}
+            />
+            {searchQuery && (
+              <button onClick={() => setSearchQuery('')} style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--dp-text-3)' }}>
+                <X size={13} />
+              </button>
+            )}
           </div>
-          <div className="flex flex-wrap gap-2">
+
+          {/* Skill levels */}
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             {SKILL_LEVELS.map(level => {
               const isActive = selectedSkillLevels.has(level.id)
               return (
-                <button
-                  key={level.id}
-                  onClick={() => toggleSkillLevel(level.id)}
-                  className={`
-                    flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium
-                    transition-all duration-200 cursor-pointer btn-micro touch-target hover:scale-105 active:scale-95
-                    ${
-                      isActive
-                        ? 'border-primary/50 bg-primary/10 text-foreground'
-                        : 'border-border bg-card text-muted-foreground hover:text-foreground hover:border-border'
-                    }
-                  `}
-                  aria-pressed={isActive}
-                >
-                  <span aria-hidden="true">{level.emoji}</span>
-                  <span>{level.label}</span>
+                <button key={level.id} onClick={() => toggleSkillLevel(level.id)} aria-pressed={isActive}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 5, padding: '5px 12px',
+                    borderRadius: 'var(--dp-r-md)', border: `1px solid ${isActive ? 'rgba(56,139,253,0.4)' : 'var(--dp-border-1)'}`,
+                    background: isActive ? 'var(--dp-blue-dim)' : 'var(--dp-bg-2)',
+                    color: isActive ? 'var(--dp-blue)' : 'var(--dp-text-2)',
+                    fontSize: 12.5, cursor: 'pointer', fontWeight: isActive ? 600 : 400,
+                    transition: 'all var(--dp-dur-fast)',
+                  }}>
+                  <span>{level.emoji}</span>{level.label}
                 </button>
               )
             })}
-            {selectedSkillLevels.size > 0 && (
-              <button
-                onClick={() => setSelectedSkillLevels(new Set())}
-                className="flex items-center gap-1 px-3 py-2.5 rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground transition-all hover:scale-105 active:scale-95"
-              >
-                Clear filter
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 16 16"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                >
-                  <path d="M4 4l8 8M12 4l-8 8" />
-                </svg>
-              </button>
-            )}
-          </div>
-        </section>
-
-        {/* Search Bar */}
-        <section aria-labelledby="search-heading" className="mb-8">
-          <div className="relative max-w-md">
-            <span id="search-heading" className="sr-only">
-              Search channels
-            </span>
-            <svg
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/60"
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <circle cx="11" cy="11" r="8" />
-              <path d="M21 21l-4.35-4.35" />
-            </svg>
-            <input
-              type="search"
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Search channels by name, description, or ID..."
-              className="w-full pl-10 pr-4 py-3 rounded-xl border border-border bg-card text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-all hover:scale-110 active:scale-90 p-1"
-                aria-label="Clear search"
-              >
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 16 16"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                >
-                  <path d="M4 4l8 8M12 4l-8 8" />
-                </svg>
-              </button>
-            )}
-          </div>
-        </section>
-
-        {/* Category Tabs */}
-        <section aria-labelledby="channels-heading">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-            <div className="flex items-center gap-2">
-              <span
-                id="channels-heading"
-                className="text-xs font-bold text-muted-foreground tracking-widest uppercase"
-              >
-                Channels
-              </span>
-              {activeFilterCount > 0 && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-primary/10 text-primary border border-primary/20">
-                  {activeFilterCount} filter{activeFilterCount > 1 ? 's' : ''} active
-                  <button
-                    onClick={clearAllFilters}
-                    className="ml-0.5 hover:text-primary/80 transition-colors"
-                    aria-label="Clear all filters"
-                  >
-                    <svg
-                      width="10"
-                      height="10"
-                      viewBox="0 0 16 16"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                    >
-                      <path d="M4 4l8 8M12 4l-8 8" />
-                    </svg>
-                  </button>
-                </span>
-              )}
-              <span className="text-xs text-muted-foreground/60">
-                {filteredChannels.length} available
-              </span>
-            </div>
-
-            {/* Smart Select Buttons */}
-            <div className="flex flex-wrap gap-2">
-              <button
-                onClick={selectAll}
-                className="px-3 py-1.5 rounded-md text-xs font-medium border border-border bg-card text-muted-foreground hover:text-foreground hover:border-border transition-all hover:scale-105 active:scale-95"
-              >
-                Select All
-              </button>
-              <button
-                onClick={clearAll}
-                className="px-3 py-1.5 rounded-md text-xs font-medium border border-border bg-card text-muted-foreground hover:text-foreground hover:border-border transition-all hover:scale-105 active:scale-95"
-              >
-                Clear
-              </button>
-              <button
-                onClick={selectRecommended}
-                className="px-3 py-1.5 rounded-md text-xs font-medium border border-primary/30 bg-primary/10 text-primary hover:bg-primary/20 transition-all hover:scale-105 active:scale-95"
-              >
-                Recommended
-              </button>
-            </div>
           </div>
 
-          {/* Tab Buttons */}
-          <div className="flex gap-1 p-1 rounded-lg bg-muted/50 mb-6 w-fit">
+          {activeFilterCount > 0 && (
+            <button onClick={clearAllFilters} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 'var(--dp-r-md)', background: 'none', border: '1px solid var(--dp-border-1)', color: 'var(--dp-text-3)', fontSize: 12, cursor: 'pointer' }}>
+              <X size={11} /> Clear filters ({activeFilterCount})
+            </button>
+          )}
+        </div>
+
+        {/* Tabs + controls */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
+          {/* Tab pills */}
+          <div style={{ display: 'flex', gap: 4, padding: 3, borderRadius: 'var(--dp-r-md)', background: 'var(--dp-bg-2)', border: '1px solid var(--dp-border-1)' }}>
             {[
               { id: 'all' as TabType, label: 'All', count: filteredChannels.length },
-              { id: 'tech' as TabType, label: 'Tech Topics', count: techCount },
-              { id: 'cert' as TabType, label: 'Certifications', count: certCount },
+              { id: 'tech' as TabType, label: 'Tech', count: techCount },
+              { id: 'cert' as TabType, label: 'Certs', count: certCount },
             ].map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`
-                  px-4 py-2 rounded-md text-sm font-medium transition-all hover:scale-105 active:scale-95
-                  ${
-                    activeTab === tab.id
-                      ? 'bg-card text-foreground shadow-sm border border-border'
-                      : 'text-muted-foreground hover:text-foreground'
-                  }
-                `}
-                aria-pressed={activeTab === tab.id}
-              >
+              <button key={tab.id} onClick={() => setActiveTab(tab.id)} aria-pressed={activeTab === tab.id}
+                style={{
+                  padding: '5px 14px', borderRadius: 'var(--dp-r-sm)', fontSize: 13, fontWeight: activeTab === tab.id ? 700 : 400, cursor: 'pointer',
+                  border: 'none', background: activeTab === tab.id ? 'var(--dp-bg-1)' : 'transparent',
+                  color: activeTab === tab.id ? 'var(--dp-text-0)' : 'var(--dp-text-2)',
+                  transition: 'all var(--dp-dur-fast)',
+                  boxShadow: activeTab === tab.id ? 'var(--dp-shadow-sm)' : 'none',
+                }}>
                 {tab.label}
-                <span className="ml-1.5 text-xs text-muted-foreground/60">({tab.count})</span>
+                <span style={{ fontSize: 10.5, marginLeft: 5, color: activeTab === tab.id ? 'var(--dp-text-2)' : 'var(--dp-text-3)' }}>({tab.count})</span>
               </button>
             ))}
           </div>
 
-          {/* Channels Grid */}
-          {filteredChannels.length === 0 ? (
-            <div className="text-center py-16 border border-dashed border-border rounded-xl">
-              <div className="text-6xl mb-4" aria-hidden="true">
-                🔎
-              </div>
-              <h3 className="text-lg font-semibold text-foreground mb-2">
-                No channels match your filters
-              </h3>
-              <p className="text-muted-foreground text-sm max-w-md mx-auto mb-4">
-                {activeFilterCount > 0 ? (
-                  <>
-                    You have {activeFilterCount} active filter{activeFilterCount > 1 ? 's' : ''}.
-                    Try adjusting your search, skill level, or category to see more channels.
-                  </>
-                ) : (
-                  'All channels are currently hidden. Try adjusting your search or category filters.'
-                )}
-              </p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <button
-                  onClick={clearAllFilters}
-                  className="px-5 py-2.5 rounded-lg text-sm font-medium border border-primary/30 bg-primary/10 text-primary hover:bg-primary/20 transition-all hover:scale-105 active:scale-95"
-                >
-                  Clear all filters
-                </button>
-                <button
-                  onClick={selectRecommended}
-                  className="px-5 py-2.5 rounded-lg text-sm font-medium border border-border bg-card text-muted-foreground hover:text-foreground hover:border-border transition-all hover:scale-105 active:scale-95"
-                >
-                  Select recommended channels
-                </button>
-              </div>
-              {activeFilterCount === 0 && (
-                <div className="mt-6 text-left max-w-xs mx-auto">
-                  <p className="text-xs text-muted-foreground/60 mb-2">
-                    Popular channels you might like:
-                  </p>
-                  <div className="flex flex-wrap gap-2 justify-center">
-                    {['javascript', 'python', 'react'].map(id => {
-                      const ch = channels.find(c => c.id === id)
-                      return ch ? (
-                        <button
-                          key={id}
-                          onClick={() => toggle(id)}
-                          className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all hover:scale-105 active:scale-95 ${
-                            selected.has(id)
-                              ? 'bg-primary/20 text-primary border border-primary/30'
-                              : 'bg-muted/50 text-muted-foreground hover:text-foreground border border-transparent hover:border-border'
-                          }`}
-                        >
-                          {ch.emoji} {ch.name}
-                        </button>
-                      ) : null
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {filteredChannels.map(ch => (
-                <ChannelCard
-                  key={ch.id}
-                  channel={ch}
-                  selected={selected.has(ch.id)}
-                  onToggle={() => toggle(ch.id)}
-                />
-              ))}
-            </div>
-          )}
-        </section>
-      </div>
-
-      {/* Sticky Bottom Bar */}
-      <div
-        className="sticky bottom-0 left-0 right-0 border-t border-border px-4 py-4 sm:px-6 z-10"
-        style={{
-          background: 'hsl(var(--card) / 0.95)',
-          backdropFilter: 'blur(8px)',
-        }}
-      >
-        <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
-          <span className="text-sm text-muted-foreground" aria-live="polite">
-            {selected.size === 0 ? (
-              <span className="text-destructive">Select at least one track to continue</span>
-            ) : (
-              <>
-                <span className="font-semibold text-foreground">{selected.size}</span> track
-                {selected.size === 1 ? '' : 's'} selected
-              </>
-            )}
+          <span style={{ fontSize: 13, color: 'var(--dp-text-3)' }}>
+            {filteredChannels.length} available · <strong style={{ color: 'var(--dp-text-1)' }}>{selected.size}</strong> selected
           </span>
 
-          <div className="flex items-center gap-3">
-            <span className="hidden sm:block text-xs text-muted-foreground/60">
-              {selected.size > 0 && 'Your selection is saved automatically'}
-            </span>
-            <button
-              data-testid="onboarding-done-btn"
-              disabled={selected.size === 0}
-              onClick={handleDone}
-              className="px-6 py-2.5 rounded-lg text-sm font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed btn-micro touch-target"
-              style={{
-                background: 'hsl(var(--primary))',
-                color: 'hsl(var(--primary-foreground))',
-              }}
-              aria-disabled={selected.size === 0}
-            >
-              Get Started
+          <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+            <button onClick={() => setSelected(new Set(filteredChannels.map(ch => ch.id)))}
+              style={{ padding: '5px 12px', borderRadius: 'var(--dp-r-md)', border: '1px solid var(--dp-border-1)', background: 'var(--dp-bg-2)', color: 'var(--dp-text-2)', fontSize: 12.5, cursor: 'pointer' }}>
+              Select All
+            </button>
+            <button onClick={() => setSelected(new Set())}
+              style={{ padding: '5px 12px', borderRadius: 'var(--dp-r-md)', border: '1px solid var(--dp-border-1)', background: 'var(--dp-bg-2)', color: 'var(--dp-text-2)', fontSize: 12.5, cursor: 'pointer' }}>
+              Clear
+            </button>
+            <button onClick={selectRecommended}
+              style={{ padding: '5px 12px', borderRadius: 'var(--dp-r-md)', border: '1px solid rgba(56,139,253,0.3)', background: 'var(--dp-blue-dim)', color: 'var(--dp-blue)', fontSize: 12.5, cursor: 'pointer', fontWeight: 600 }}>
+              Recommended
             </button>
           </div>
         </div>
+
+        {/* Channel grid */}
+        {filteredChannels.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '60px 24px', borderRadius: 'var(--dp-r-xl)', border: '1px dashed var(--dp-border-1)', background: 'var(--dp-glass-1)' }}>
+            <div style={{ fontSize: 40, marginBottom: 12 }}>🔎</div>
+            <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--dp-text-0)', marginBottom: 8 }}>No channels found</div>
+            <div style={{ fontSize: 13.5, color: 'var(--dp-text-2)', marginBottom: 20 }}>Try adjusting your search or filters.</div>
+            <button onClick={clearAllFilters}
+              style={{ padding: '9px 22px', borderRadius: 'var(--dp-r-md)', border: 'none', background: 'var(--dp-blue)', color: '#fff', fontSize: 13.5, fontWeight: 700, cursor: 'pointer' }}>
+              Clear all filters
+            </button>
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 10 }}>
+            {filteredChannels.map(ch => (
+              <ChannelCard
+                key={ch.id}
+                channel={ch}
+                selected={selected.has(ch.id)}
+                onToggle={() => toggle(ch.id)}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* Bottom spacing for fixed bar */}
-      <div className="h-20" />
+      {/* Sticky CTA bar */}
+      <div style={{
+        position: 'sticky', bottom: 0, left: 0, right: 0, zIndex: 10,
+        background: 'var(--dp-glass-0)', backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        borderTop: '1px solid var(--dp-border-0)',
+        padding: '14px 20px',
+      }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            {/* Progress */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ width: 80, height: 4, borderRadius: 'var(--dp-r-full)', background: 'var(--dp-bg-3)' }}>
+                <div style={{ height: '100%', borderRadius: 'var(--dp-r-full)', background: 'var(--dp-blue)', width: `${Math.min(100, (selected.size / Math.max(1, channels.length)) * 100 * 5)}%`, transition: 'width 0.3s var(--dp-ease)', maxWidth: '100%' }} />
+              </div>
+              <span style={{ fontSize: 13.5, color: 'var(--dp-text-1)' }} aria-live="polite">
+                {selected.size === 0
+                  ? <span style={{ color: '#ff7b72' }}>Select at least one channel</span>
+                  : <><strong style={{ color: 'var(--dp-text-0)' }}>{selected.size}</strong> channel{selected.size !== 1 ? 's' : ''} selected</>
+                }
+              </span>
+            </div>
+            {selected.size > 0 && (
+              <span style={{ fontSize: 12, color: 'var(--dp-text-3)' }} className="hidden sm:inline">
+                Saved automatically
+              </span>
+            )}
+          </div>
+
+          <button
+            data-testid="onboarding-done-btn"
+            disabled={selected.size === 0}
+            onClick={handleDone}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              padding: '11px 28px', borderRadius: 'var(--dp-r-lg)',
+              background: selected.size > 0 ? 'linear-gradient(135deg, var(--dp-blue), var(--dp-purple))' : 'var(--dp-bg-3)',
+              color: selected.size > 0 ? '#fff' : 'var(--dp-text-3)',
+              border: 'none', fontSize: 14.5, fontWeight: 800, cursor: selected.size > 0 ? 'pointer' : 'not-allowed',
+              boxShadow: selected.size > 0 ? 'var(--dp-shadow-blue)' : 'none',
+              transition: 'all var(--dp-dur-base)', letterSpacing: '-0.2px',
+              opacity: selected.size === 0 ? 0.5 : 1,
+            }}
+            aria-disabled={selected.size === 0}
+          >
+            <Zap size={15} /> Start Learning →
+          </button>
+        </div>
+      </div>
     </div>
   )
 }

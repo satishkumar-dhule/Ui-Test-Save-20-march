@@ -1,15 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useAnnounce, SkipLink, LiveRegion } from '@/hooks/useAnnounce'
 import {
-  Trophy,
-  Flag,
-  ChevronLeft,
-  ChevronRight,
-  AlertCircle,
-  CheckCircle,
-  XCircle,
-  Menu,
-  GraduationCap,
+  Trophy, Flag, ChevronLeft, ChevronRight, AlertCircle,
+  CheckCircle, XCircle, Menu, GraduationCap, Timer, X, RotateCcw, Zap,
 } from 'lucide-react'
 import type { ExamQuestion } from '@/data/exam'
 import { progressApi } from '@/services/progressApi'
@@ -23,10 +16,15 @@ interface MockExamPageProps {
   onExamComplete?: (score: number, total: number, passed: boolean, durationMs: number) => void
 }
 
-const DIFF_COLORS: Record<string, string> = {
-  easy: 'hsl(var(--chart-2))',
-  medium: 'hsl(var(--chart-3))',
-  hard: 'hsl(var(--chart-5))',
+const DIFF_COLORS: Record<string, { color: string; bg: string }> = {
+  easy:   { color: '#3fb950', bg: 'rgba(63,185,80,0.1)' },
+  medium: { color: '#f7a843', bg: 'rgba(247,168,67,0.1)' },
+  hard:   { color: '#ff7b72', bg: 'rgba(255,123,114,0.1)' },
+}
+
+function fmt(s: number) {
+  const m = Math.floor(s / 60)
+  return `${m}:${String(s % 60).padStart(2, '0')}`
 }
 
 export function MockExamPage({ questions, channelId, onExamComplete }: MockExamPageProps) {
@@ -37,642 +35,443 @@ export function MockExamPage({ questions, channelId, onExamComplete }: MockExamP
   const [timeLeft, setTimeLeft] = useState(45 * 60)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [examStartTime, setExamStartTime] = useState<number | null>(null)
-  const [isVisible, setIsVisible] = useState(true)
   const timerRef = useRef<NodeJS.Timeout | null>(null)
-  const navRef = useRef<HTMLDivElement>(null)
-  const pausedTimeRef = useRef<number>(0)
-  const visibilityChangeRef = useRef<number>(0)
   const answersRef = useRef<Record<number, string>>({})
-  const mainContentRef = useRef<HTMLDivElement>(null)
+  const visibilityPausedRef = useRef(0)
   const { announce } = useAnnounce()
 
-  useEffect(() => {
-    answersRef.current = answers
-  })
+  useEffect(() => { answersRef.current = answers }, [answers])
 
   useEffect(() => {
-    setPhase('ready')
-    setCurrent(0)
-    setAnswers({})
-    setFlagged(new Set())
-    setTimeLeft(45 * 60)
-    setIsVisible(true)
+    setPhase('ready'); setCurrent(0); setAnswers({})
+    setFlagged(new Set()); setTimeLeft(45 * 60)
   }, [channelId])
 
   useEffect(() => {
-    const handleVisibilityChange = () => {
-      const visible = document.visibilityState === 'visible'
-      setIsVisible(visible)
-      if (!visible && phase === 'exam') {
-        pausedTimeRef.current = Date.now()
-        if (timerRef.current) clearInterval(timerRef.current)
-        timerRef.current = null
-      } else if (visible && phase === 'exam') {
-        if (pausedTimeRef.current > 0) {
-          const pausedDuration = Math.floor((Date.now() - pausedTimeRef.current) / 1000)
-          visibilityChangeRef.current += pausedDuration
-          pausedTimeRef.current = 0
-        }
-      }
-    }
-    document.addEventListener('visibilitychange', handleVisibilityChange)
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange)
-    }
+    if (phase !== 'exam') return
+    timerRef.current = setInterval(() => {
+      setTimeLeft(t => {
+        if (t <= 1) { clearInterval(timerRef.current!); submitExam(); return 0 }
+        return t - 1
+      })
+    }, 1000)
+    return () => { if (timerRef.current) clearInterval(timerRef.current) }
   }, [phase])
 
   const submitExam = useCallback(() => {
+    if (timerRef.current) clearInterval(timerRef.current)
     setPhase('result')
-    const durationMs = (45 * 60 - timeLeft + visibilityChangeRef.current) * 1000
-    const score = questions.reduce(
-      (acc, q, i) => acc + (answersRef.current[i] === q.correct ? 1 : 0),
-      0
-    )
+    const durationMs = (45 * 60 - timeLeft) * 1000
+    const score = questions.reduce((acc, q, i) => acc + (answersRef.current[i] === q.correct ? 1 : 0), 0)
     const pct = questions.length > 0 ? Math.round((score / questions.length) * 100) : 0
     const passed = pct >= 72
-
-    if (examStartTime && onExamComplete) {
-      onExamComplete(score, questions.length, passed, durationMs)
-    }
-
+    if (examStartTime && onExamComplete) onExamComplete(score, questions.length, passed, durationMs)
     progressApi.saveExam(channelId, channelId, {
-      score,
-      total: questions.length,
-      passed,
+      score, total: questions.length, passed,
     })
-  }, [examStartTime, onExamComplete, timeLeft, questions, channelId])
+  }, [timeLeft, questions, channelId, examStartTime, onExamComplete])
 
-  useEffect(() => {
-    if (phase === 'exam' && isVisible) {
-      timerRef.current = setInterval(() => {
-        setTimeLeft(t => {
-          if (t <= 1) {
-            clearInterval(timerRef.current!)
-            submitExam()
-            return 0
-          }
-          return t - 1
-        })
-      }, 1000)
-    } else {
-      if (timerRef.current) clearInterval(timerRef.current)
-      timerRef.current = null
-    }
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current)
-      timerRef.current = null
-    }
-  }, [phase, isVisible, submitExam])
+  const startExam = () => {
+    setPhase('exam')
+    setExamStartTime(Date.now())
+  }
 
+  const answeredCount = Object.keys(answers).length
   const score = questions.reduce((acc, q, i) => acc + (answers[i] === q.correct ? 1 : 0), 0)
   const pct = questions.length > 0 ? Math.round((score / questions.length) * 100) : 0
   const passed = pct >= 72
-
-  const mm = String(Math.floor(timeLeft / 60)).padStart(2, '0')
-  const ss = String(timeLeft % 60).padStart(2, '0')
-  const timerPct = (timeLeft / (45 * 60)) * 100
-  const timerColor =
-    timerPct > 50
-      ? 'hsl(var(--chart-2))'
-      : timerPct > 25
-        ? 'hsl(var(--chart-3))'
-        : 'hsl(var(--chart-5))'
-
-  const answeredCount = Object.keys(answers).length
-  const q = questions[current]
+  const timeUsed = 45 * 60 - timeLeft
+  const timerDanger = timeLeft < 5 * 60
+  const timerWarning = timeLeft < 15 * 60 && !timerDanger
 
   if (questions.length === 0) {
     return (
-      <Empty>
-        <EmptyMedia variant="icon">
-          <GraduationCap size={24} aria-hidden="true" />
-        </EmptyMedia>
-        <EmptyTitle>No exam questions available</EmptyTitle>
-        <EmptyDescription>
-          Try switching to certification channels like AWS SAA, CKA, or Terraform.
-        </EmptyDescription>
-      </Empty>
+      <div className="dp-empty">
+        <div className="dp-empty-icon"><GraduationCap size={24} /></div>
+        <div className="dp-empty-title">No exam questions</div>
+        <div className="dp-empty-desc">Switch to a different channel to take a mock exam.</div>
+      </div>
     )
   }
 
-  const announcePhase = (newPhase: Phase) => {
-    const messages: Record<Phase, string> = {
-      ready: 'Ready to start exam',
-      exam: 'Exam started',
-      result: `Exam complete. Score: ${pct}%`,
-      review: 'Reviewing answers',
-    }
-    announce(messages[newPhase])
-  }
-
+  /* ── READY SCREEN ── */
   if (phase === 'ready') {
-    const byDiff = {
-      easy: questions.filter(q => q.difficulty === 'easy').length,
-      medium: questions.filter(q => q.difficulty === 'medium').length,
-      hard: questions.filter(q => q.difficulty === 'hard').length,
-    }
     return (
-      <div className="flex flex-1 h-full overflow-hidden">
-        <SkipLink targetId="exam-main-content">Skip to main content</SkipLink>
-        <LiveRegion />
-        <main
-          id="exam-main-content"
-          ref={mainContentRef}
-          tabIndex={-1}
-          className="flex-1 flex flex-col items-center justify-center p-8 focus:outline-none"
-          aria-label="Mock exam start screen"
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '32px 20px', gap: 28 }}>
+        <div style={{
+          width: 80, height: 80, borderRadius: 'var(--dp-r-xl)',
+          background: 'linear-gradient(135deg, rgba(255,123,114,0.2), rgba(188,140,255,0.2))',
+          border: '1px solid rgba(255,123,114,0.3)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          boxShadow: '0 0 32px rgba(255,123,114,0.15)',
+        }}>
+          <GraduationCap size={36} style={{ color: '#ff7b72' }} />
+        </div>
+
+        <div style={{ textAlign: 'center', maxWidth: 440 }}>
+          <h1 style={{ fontSize: 26, fontWeight: 800, color: 'var(--dp-text-0)', marginBottom: 10, letterSpacing: '-0.5px' }}>
+            Mock Exam
+          </h1>
+          <p style={{ fontSize: 15, color: 'var(--dp-text-2)', lineHeight: 1.6 }}>
+            Test your knowledge with a timed exam. You need <strong style={{ color: 'var(--dp-text-0)' }}>72%</strong> to pass.
+          </p>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, width: '100%', maxWidth: 420 }}>
+          {[
+            { label: 'Questions', value: questions.length, icon: '📝' },
+            { label: 'Time Limit', value: '45 min', icon: '⏱️' },
+            { label: 'Pass Mark', value: '72%', icon: '🎯' },
+          ].map(stat => (
+            <div key={stat.label} style={{
+              background: 'var(--dp-glass-1)', border: '1px solid var(--dp-border-0)',
+              borderRadius: 'var(--dp-r-lg)', padding: '16px 12px', textAlign: 'center',
+            }}>
+              <div style={{ fontSize: 24, marginBottom: 6 }}>{stat.icon}</div>
+              <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--dp-text-0)' }}>{stat.value}</div>
+              <div style={{ fontSize: 11, color: 'var(--dp-text-3)', marginTop: 2 }}>{stat.label}</div>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ background: 'var(--dp-glass-1)', border: '1px solid var(--dp-border-1)', borderRadius: 'var(--dp-r-lg)', padding: '14px 18px', maxWidth: 420, width: '100%' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+            <AlertCircle size={14} style={{ color: 'var(--dp-orange)' }} />
+            <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--dp-text-1)' }}>Before you start</span>
+          </div>
+          <ul style={{ margin: 0, padding: '0 0 0 20px', fontSize: 12.5, color: 'var(--dp-text-2)', lineHeight: 1.7 }}>
+            <li>Timer starts when you click "Start Exam"</li>
+            <li>Use flags to mark questions for review</li>
+            <li>You can navigate freely between questions</li>
+          </ul>
+        </div>
+
+        <button
+          onClick={startExam}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 10,
+            padding: '13px 32px', borderRadius: 'var(--dp-r-lg)',
+            background: 'linear-gradient(135deg, #ff7b72, #bc8cff)',
+            color: '#fff', border: 'none', fontSize: 15, fontWeight: 700,
+            cursor: 'pointer', boxShadow: '0 8px 24px rgba(255,123,114,0.35)',
+            transition: 'all var(--dp-dur-base)', letterSpacing: '-0.2px',
+          }}
         >
-          <div className="w-full max-w-md text-center space-y-6">
-            <div
-              className="w-16 h-16 rounded-full flex items-center justify-center mx-auto"
-              style={{
-                background: 'hsl(var(--chart-3) / 0.15)',
-                border: '2px solid hsl(var(--chart-3) / 0.4)',
-              }}
-            >
-              <Trophy size={28} style={{ color: 'hsl(var(--chart-3))' }} />
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold text-foreground mb-1">Mock Exam</h2>
-              <p className="text-muted-foreground text-sm">
-                {questions.length} questions · 45 minutes · 72% to pass
-              </p>
-            </div>
-            <div className="grid grid-cols-3 gap-3">
-              {Object.entries(byDiff).map(([d, c]) => (
-                <div key={d} className="p-3 rounded-lg border border-border bg-card text-center">
-                  <div className="text-lg font-bold" style={{ color: DIFF_COLORS[d] }}>
-                    {c}
-                  </div>
-                  <div className="text-[11px] text-muted-foreground capitalize">{d}</div>
-                </div>
-              ))}
-            </div>
-            <button
-              data-testid="exam-start-btn"
-              onClick={() => {
-                setExamStartTime(Date.now())
-                setPhase('exam')
-                setCurrent(0)
-                setAnswers({})
-                setFlagged(new Set())
-                setTimeLeft(45 * 60)
-              }}
-              className="w-full py-3 rounded-lg text-sm font-bold transition-all hover:opacity-90"
-              style={{
-                background: 'hsl(var(--primary))',
-                color: 'hsl(var(--primary-foreground))',
-              }}
-            >
-              Start Exam →
-            </button>
-          </div>
-        </main>
+          <Zap size={16} /> Start Exam
+        </button>
       </div>
     )
   }
 
+  /* ── RESULT SCREEN ── */
   if (phase === 'result') {
-    const domains = [...new Set(questions.map(q => q.domain))]
     return (
-      <div className="flex-1 overflow-y-auto p-6">
-        <div className="max-w-md mx-auto space-y-6 text-center">
-          {/* Score circle */}
-          <div className="flex flex-col items-center gap-2">
-            <div
-              className="w-28 h-28 rounded-full border-4 flex flex-col items-center justify-center"
-              style={{
-                borderColor: passed ? 'hsl(var(--chart-2))' : 'hsl(var(--chart-5))',
-              }}
-            >
-              <span
-                className="text-3xl font-bold"
-                style={{
-                  color: passed ? 'hsl(var(--chart-2))' : 'hsl(var(--chart-5))',
-                }}
-              >
-                {pct}%
-              </span>
-              <span className="text-xs text-muted-foreground">
-                {score}/{questions.length}
-              </span>
+      <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '32px 20px', gap: 24 }}>
+        <div style={{ fontSize: 64, lineHeight: 1, animation: 'dp-bounce-in 0.7s var(--dp-ease-spring)' }}>
+          {passed ? '🏆' : '📚'}
+        </div>
+
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: 64, fontWeight: 900, letterSpacing: '-4px', lineHeight: 1, color: passed ? '#3fb950' : '#ff7b72', marginBottom: 4 }}>
+            {pct}%
+          </div>
+          <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--dp-text-0)', marginBottom: 6 }}>
+            {passed ? 'Exam Passed! 🎉' : 'Keep Practicing'}
+          </div>
+          <div style={{ fontSize: 14, color: 'var(--dp-text-2)' }}>
+            {score} / {questions.length} correct · {fmt(timeUsed)} used
+          </div>
+        </div>
+
+        {/* Score breakdown */}
+        <div style={{
+          width: '100%', maxWidth: 400,
+          background: 'var(--dp-glass-1)', border: '1px solid var(--dp-border-0)',
+          borderRadius: 'var(--dp-r-xl)', padding: '20px 24px',
+        }}>
+          <div style={{ height: 8, borderRadius: 'var(--dp-r-full)', background: 'var(--dp-bg-3)', marginBottom: 16, overflow: 'hidden' }}>
+            <div style={{ height: '100%', borderRadius: 'var(--dp-r-full)', width: `${pct}%`, background: passed ? 'var(--dp-green)' : 'var(--dp-red)', transition: 'width 1s var(--dp-ease)' }} />
+          </div>
+
+          {questions.map((q, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '6px 0', borderBottom: i < questions.length - 1 ? '1px solid var(--dp-border-2)' : 'none' }}>
+              {answers[i] === q.correct
+                ? <CheckCircle size={14} style={{ color: '#3fb950', flexShrink: 0, marginTop: 1 }} />
+                : <XCircle size={14} style={{ color: '#ff7b72', flexShrink: 0, marginTop: 1 }} />
+              }
+              <span style={{ fontSize: 12.5, color: 'var(--dp-text-1)', flex: 1 }}>{q.question}</span>
             </div>
-            <h2
-              className="text-xl font-bold"
-              style={{
-                color: passed ? 'hsl(var(--chart-2))' : 'hsl(var(--chart-5))',
-              }}
-            >
-              {passed ? '🎉 Passed!' : 'Not yet — keep going!'}
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              {passed
-                ? 'Great work! You exceeded the 72% passing threshold.'
-                : 'You need 72% to pass. Review the answers and try again.'}
-            </p>
-          </div>
+          ))}
+        </div>
 
-          {/* By difficulty */}
-          <div className="p-4 rounded-lg border border-border bg-card text-left space-y-3">
-            {(['easy', 'medium', 'hard'] as const).map(d => {
-              const dQs = questions.filter(q => q.difficulty === d)
-              const dCorrect = dQs.filter(
-                (q, i) => answers[questions.indexOf(q)] === q.correct
-              ).length
-              const dPct = dQs.length > 0 ? Math.round((dCorrect / dQs.length) * 100) : 0
-              return (
-                <div key={d}>
-                  <div className="flex justify-between text-xs mb-1">
-                    <span className="capitalize font-medium" style={{ color: DIFF_COLORS[d] }}>
-                      {d}
-                    </span>
-                    <span className="text-muted-foreground">
-                      {dCorrect}/{dQs.length}
-                    </span>
-                  </div>
-                  <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-                    <div
-                      className="h-full rounded-full transition-all"
-                      style={{ width: `${dPct}%`, background: DIFF_COLORS[d] }}
-                    />
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-
-          <div className="flex gap-3">
-            <button
-              data-testid="exam-review-btn"
-              onClick={() => {
-                setPhase('review')
-                setCurrent(0)
-              }}
-              className="flex-1 py-2 rounded-lg text-sm font-semibold border border-border hover:bg-muted transition-colors"
-            >
-              Review Answers
-            </button>
-            <button
-              data-testid="exam-retry-btn"
-              onClick={() => {
-                setPhase('ready')
-                setAnswers({})
-                setFlagged(new Set())
-              }}
-              className="flex-1 py-2 rounded-lg text-sm font-bold transition-all hover:opacity-90"
-              style={{
-                background: 'hsl(var(--primary))',
-                color: 'hsl(var(--primary-foreground))',
-              }}
-            >
-              Retry
-            </button>
-          </div>
+        <div style={{ display: 'flex', gap: 12 }}>
+          <button onClick={() => setPhase('review')} style={{
+            display: 'flex', alignItems: 'center', gap: 8, padding: '9px 20px',
+            borderRadius: 'var(--dp-r-md)', border: '1px solid var(--dp-border-0)',
+            background: 'var(--dp-bg-2)', color: 'var(--dp-text-1)', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+          }}>
+            Review Answers
+          </button>
+          <button onClick={() => { setPhase('ready'); setAnswers({}); setFlagged(new Set()); setTimeLeft(45*60); setCurrent(0) }}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 8, padding: '9px 20px',
+              borderRadius: 'var(--dp-r-md)', border: 'none',
+              background: 'var(--dp-blue)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+            }}>
+            <RotateCcw size={13} /> Retake
+          </button>
         </div>
       </div>
     )
   }
 
-  return (
-    <div className="flex flex-1 h-full overflow-hidden">
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 z-30 bg-black/60 md:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
-      {/* Left navigator - hidden on mobile by default, can be opened via sidebar button */}
-      <div
-        ref={navRef}
-        className={`sidebar flex-shrink-0 flex-col border-r border-border overflow-hidden bg-card ${sidebarOpen ? 'fixed left-0 top-0 h-full z-40 flex w-72' : 'hidden md:flex'}`}
-        style={{ width: 220 }}
-      >
-        <div className="p-3 border-b border-border">
-          <div className="flex justify-between text-xs text-muted-foreground mb-1.5">
-            <span>Answered</span>
-            <span>
-              {answeredCount}/{questions.length}
-            </span>
+  /* ── REVIEW SCREEN ── */
+  if (phase === 'review') {
+    return (
+      <div style={{ flex: 1, overflowY: 'auto', padding: '20px' }}>
+        <div style={{ maxWidth: 680, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+            <div>
+              <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--dp-text-0)', margin: 0 }}>Review Answers</h2>
+              <p style={{ fontSize: 13, color: 'var(--dp-text-2)', margin: '4px 0 0' }}>{score}/{questions.length} correct · {pct}%</p>
+            </div>
+            <button onClick={() => setPhase('result')} style={{ background: 'none', border: '1px solid var(--dp-border-1)', borderRadius: 'var(--dp-r-md)', padding: '6px 12px', fontSize: 12, color: 'var(--dp-text-2)', cursor: 'pointer' }}>
+              ← Back
+            </button>
           </div>
-          <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-            <div
-              className="h-full rounded-full transition-all"
-              style={{
-                width: `${(answeredCount / questions.length) * 100}%`,
-                background: 'hsl(var(--primary))',
-              }}
-            />
+
+          {questions.map((q, i) => {
+            const userAns = answers[i]
+            const isCorrect = userAns === q.correct
+            return (
+              <div key={i} style={{
+                background: 'var(--dp-glass-1)', border: `1px solid ${isCorrect ? 'rgba(63,185,80,0.25)' : 'rgba(255,123,114,0.25)'}`,
+                borderRadius: 'var(--dp-r-xl)', padding: '16px 20px',
+              }}>
+                <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', marginBottom: 12 }}>
+                  {isCorrect
+                    ? <CheckCircle size={16} style={{ color: '#3fb950', flexShrink: 0, marginTop: 2 }} />
+                    : <XCircle size={16} style={{ color: '#ff7b72', flexShrink: 0, marginTop: 2 }} />
+                  }
+                  <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--dp-text-0)', margin: 0, lineHeight: 1.5 }}>{q.question}</p>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginLeft: 26 }}>
+                  {(q.choices || []).map((choice) => {
+                    const isCorrectOpt = choice.id === q.correct
+                    const isUserOpt = choice.id === userAns
+                    let bg = 'var(--dp-bg-2)'
+                    let border = 'var(--dp-border-1)'
+                    let color = 'var(--dp-text-1)'
+                    if (isCorrectOpt) { bg = 'rgba(63,185,80,0.08)'; border = 'rgba(63,185,80,0.3)'; color = '#3fb950' }
+                    else if (isUserOpt && !isCorrect) { bg = 'rgba(255,123,114,0.08)'; border = 'rgba(255,123,114,0.3)'; color = '#ff7b72' }
+                    return (
+                      <div key={choice.id} style={{ padding: '6px 12px', borderRadius: 'var(--dp-r-md)', border: `1px solid ${border}`, background: bg, fontSize: 13, color, display: 'flex', alignItems: 'center', gap: 8 }}>
+                        {isCorrectOpt && <CheckCircle size={12} />}
+                        {isUserOpt && !isCorrect && <XCircle size={12} />}
+                        <span style={{ fontWeight: 600, marginRight: 4 }}>{choice.id}.</span> {choice.text}
+                      </div>
+                    )
+                  })}
+                </div>
+                {q.explanation && (
+                  <div style={{ marginLeft: 26, marginTop: 10, padding: '8px 12px', borderRadius: 'var(--dp-r-md)', background: 'var(--dp-blue-dim)', border: '1px solid rgba(56,139,253,0.2)', fontSize: 12.5, color: 'var(--dp-text-1)', lineHeight: 1.5 }}>
+                    💡 {q.explanation}
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    )
+  }
+
+  /* ── EXAM SCREEN ── */
+  const q = questions[current]
+  return (
+    <div className="study-page">
+      <SkipLink targetId="exam-content">Skip to content</SkipLink>
+      <LiveRegion />
+
+      {sidebarOpen && <div className="mobile-overlay md:hidden" onClick={() => setSidebarOpen(false)} />}
+
+      {/* Left panel - question grid */}
+      <div className={`study-panel${sidebarOpen ? ' study-panel--mobile-open' : ''}`}
+        style={sidebarOpen ? { position: 'fixed', top: 0, left: 0, height: '100%', zIndex: 40, display: 'flex', width: 270 } : {}}>
+        <div className="study-panel-header">
+          <GraduationCap size={13} style={{ color: 'var(--dp-text-3)' }} />
+          <span className="study-panel-title">Questions</span>
+          <span className="study-panel-count">{answeredCount}/{questions.length}</span>
+          {sidebarOpen && (
+            <button onClick={() => setSidebarOpen(false)} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--dp-text-3)' }}>
+              <X size={14} />
+            </button>
+          )}
+        </div>
+
+        {/* Progress */}
+        <div style={{ padding: '8px 12px', borderBottom: '1px solid var(--dp-border-1)', flexShrink: 0 }}>
+          <div className="dp-progress-bar">
+            <div className="dp-progress-bar-fill" style={{ width: `${questions.length > 0 ? (answeredCount / questions.length) * 100 : 0}%` }} />
           </div>
         </div>
-        <div className="p-2 flex-1 overflow-y-auto">
-          <div className="grid grid-cols-5 gap-1">
+
+        {/* Legend */}
+        <div style={{ display: 'flex', gap: 12, padding: '8px 12px', borderBottom: '1px solid var(--dp-border-1)', flexShrink: 0 }}>
+          {[
+            { color: 'var(--dp-bg-4)', label: 'Unanswered' },
+            { color: 'var(--dp-green)', label: 'Answered' },
+            { color: 'var(--dp-orange)', label: 'Flagged' },
+          ].map(item => (
+            <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 10.5, color: 'var(--dp-text-3)' }}>
+              <div style={{ width: 8, height: 8, borderRadius: 2, background: item.color }} />
+              {item.label}
+            </div>
+          ))}
+        </div>
+
+        {/* Question grid */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: 12 }}>
+          <div className="dp-exam-grid">
             {questions.map((_, i) => {
-              const isAnswered = i in answers
+              const isAnswered = !!answers[i]
               const isFlagged = flagged.has(i)
               const isCurrent = i === current
+              let bg = 'var(--dp-bg-3)'
+              let color = 'var(--dp-text-3)'
+              let borderColor = 'transparent'
+              if (isCurrent) { bg = 'var(--dp-blue)'; color = '#fff' }
+              else if (isFlagged) { bg = 'var(--dp-orange-dim)'; color = 'var(--dp-orange)'; borderColor = 'rgba(247,168,67,0.3)' }
+              else if (isAnswered) { bg = 'var(--dp-green-dim)'; color = 'var(--dp-green)'; borderColor = 'rgba(63,185,80,0.3)' }
               return (
-                <button
-                  key={i}
-                  data-testid={`exam-nav-${i}`}
-                  onClick={() => {
-                    setCurrent(i)
-                    setSidebarOpen(false)
-                  }}
-                  className="h-8 text-xs font-semibold rounded border transition-all"
-                  style={{
-                    borderColor: isCurrent
-                      ? 'hsl(var(--primary))'
-                      : isFlagged
-                        ? 'hsl(var(--chart-3))'
-                        : 'hsl(var(--border))',
-                    background: isAnswered
-                      ? phase === 'review'
-                        ? answers[i] === questions[i].correct
-                          ? 'hsl(var(--chart-2) / 0.2)'
-                          : 'hsl(var(--chart-5) / 0.2)'
-                        : 'hsl(var(--primary) / 0.15)'
-                      : undefined,
-                    color: isCurrent ? 'hsl(var(--primary))' : undefined,
-                    fontWeight: isCurrent ? 700 : undefined,
-                  }}
+                <button key={i}
+                  className="dp-exam-cell"
+                  style={{ background: bg, color, border: `1px solid ${borderColor}` }}
+                  onClick={() => { setCurrent(i); setSidebarOpen(false) }}
                 >
                   {i + 1}
                 </button>
               )
             })}
           </div>
-          <div className="mt-3 space-y-1 text-[10px] text-muted-foreground px-1">
-            <div className="flex items-center gap-1.5">
-              <div
-                className="w-3 h-3 rounded border"
-                style={{
-                  background: 'hsl(var(--primary) / 0.15)',
-                  borderColor: 'hsl(var(--border))',
-                }}
-              />
-              Answered ({answeredCount})
-            </div>
-            <div className="flex items-center gap-1.5">
-              <div
-                className="w-3 h-3 rounded border"
-                style={{ borderColor: 'hsl(var(--border))' }}
-              />
-              Unanswered ({questions.length - answeredCount})
-            </div>
-            <div className="flex items-center gap-1.5">
-              <div
-                className="w-3 h-3 rounded border"
-                style={{ borderColor: 'hsl(var(--chart-3))' }}
-              />
-              Flagged ({flagged.size})
-            </div>
-          </div>
+        </div>
+
+        <div style={{ padding: '10px 12px', borderTop: '1px solid var(--dp-border-1)', flexShrink: 0 }}>
+          <button onClick={submitExam} style={{
+            width: '100%', padding: '9px', borderRadius: 'var(--dp-r-md)',
+            background: answeredCount === questions.length ? 'var(--dp-green)' : 'var(--dp-bg-3)',
+            color: answeredCount === questions.length ? '#fff' : 'var(--dp-text-2)',
+            border: 'none', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+            transition: 'all var(--dp-dur-base)',
+          }}>
+            Submit Exam
+          </button>
         </div>
       </div>
 
       {/* Main */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <main id="exam-content" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {/* Toolbar */}
-        <div
-          className="flex items-center gap-2 px-3 border-b border-border bg-card/50"
-          style={{ height: 44 }}
-        >
-          <button
-            aria-label="Open exam navigation"
-            className="mob-menu md:hidden items-center justify-center w-8 h-8 rounded hover:bg-muted transition-colors"
-            onClick={() => setSidebarOpen(true)}
-          >
-            <Menu size={16} />
+        <div className="study-toolbar">
+          <button onClick={() => setSidebarOpen(true)} className="md:hidden"
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32, borderRadius: 'var(--dp-r-md)', border: '1px solid var(--dp-border-1)', background: 'var(--dp-bg-2)', color: 'var(--dp-text-2)', cursor: 'pointer' }}>
+            <Menu size={15} />
           </button>
 
-          {phase === 'exam' && (
-            <>
-              {/* Circular timer */}
-              <div className="flex items-center gap-2" data-testid="exam-timer">
-                <svg width={28} height={28} className="-rotate-90">
-                  <circle
-                    cx={14}
-                    cy={14}
-                    r={11}
-                    fill="none"
-                    stroke="hsl(var(--border))"
-                    strokeWidth={2.5}
-                  />
-                  <circle
-                    cx={14}
-                    cy={14}
-                    r={11}
-                    fill="none"
-                    stroke={timerColor}
-                    strokeWidth={2.5}
-                    strokeDasharray={`${2 * Math.PI * 11}`}
-                    strokeDashoffset={`${2 * Math.PI * 11 * (1 - timerPct / 100)}`}
-                    strokeLinecap="round"
-                    style={{
-                      transition: 'stroke-dashoffset 1s linear, stroke 0.5s ease',
-                    }}
-                  />
-                </svg>
-                <span className="font-mono text-sm font-bold" style={{ color: timerColor }}>
-                  {mm}:{ss}
-                </span>
-              </div>
-              <button
-                onClick={() =>
-                  setFlagged(f => {
-                    const n = new Set(f)
-                    n.has(current) ? n.delete(current) : n.add(current)
-                    return n
-                  })
-                }
-                className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded border transition-colors"
-                style={{
-                  borderColor: flagged.has(current) ? 'hsl(var(--chart-3))' : 'hsl(var(--border))',
-                  color: flagged.has(current) ? 'hsl(var(--chart-3))' : undefined,
-                  background: flagged.has(current) ? 'hsl(var(--chart-3) / 0.1)' : undefined,
-                }}
-              >
-                <Flag size={12} /> {flagged.has(current) ? 'Flagged' : 'Flag'}
-              </button>
-              <button
-                data-testid="exam-submit-btn"
-                onClick={submitExam}
-                className="ml-auto text-xs px-3 py-1 rounded font-semibold transition-all"
-                style={{
-                  background: 'hsl(var(--primary))',
-                  color: 'hsl(var(--primary-foreground))',
-                }}
-              >
-                Submit Exam
-              </button>
-            </>
+          <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--dp-text-0)' }}>Q {current + 1}/{questions.length}</span>
+          {q.difficulty && (
+            <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', padding: '2px 8px', borderRadius: 'var(--dp-r-full)', background: (DIFF_COLORS[q.difficulty] || { bg: 'var(--dp-bg-3)' }).bg, color: (DIFF_COLORS[q.difficulty] || { color: 'var(--dp-text-3)' }).color }}>
+              {q.difficulty}
+            </span>
           )}
-          {phase === 'review' && (
-            <>
-              <span className="text-xs font-semibold text-muted-foreground">Review Mode</span>
-              <button
-                onClick={() => setPhase('result')}
-                className="ml-auto text-xs px-3 py-1 rounded border border-border hover:bg-muted transition-colors flex items-center gap-1"
-              >
-                <ChevronLeft size={12} /> Back to results
-              </button>
-            </>
-          )}
+
+          <div style={{ flex: 1 }} />
+
+          {/* Timer */}
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 6,
+            padding: '4px 12px', borderRadius: 'var(--dp-r-full)',
+            background: timerDanger ? 'rgba(255,123,114,0.15)' : timerWarning ? 'rgba(247,168,67,0.12)' : 'var(--dp-bg-2)',
+            border: `1px solid ${timerDanger ? 'rgba(255,123,114,0.3)' : timerWarning ? 'rgba(247,168,67,0.25)' : 'var(--dp-border-1)'}`,
+          }}>
+            <Timer size={12} style={{ color: timerDanger ? '#ff7b72' : timerWarning ? '#f7a843' : 'var(--dp-text-3)' }} />
+            <span style={{ fontSize: 13, fontWeight: 700, fontFamily: 'monospace', color: timerDanger ? '#ff7b72' : timerWarning ? '#f7a843' : 'var(--dp-text-0)' }}>
+              {fmt(timeLeft)}
+            </span>
+          </div>
+
+          <button
+            onClick={() => setFlagged(prev => { const n = new Set(prev); n.has(current) ? n.delete(current) : n.add(current); return n })}
+            style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 'var(--dp-r-md)', border: `1px solid ${flagged.has(current) ? 'rgba(247,168,67,0.3)' : 'var(--dp-border-1)'}`, background: flagged.has(current) ? 'var(--dp-orange-dim)' : 'var(--dp-bg-2)', color: flagged.has(current) ? 'var(--dp-orange)' : 'var(--dp-text-2)', fontSize: 11.5, cursor: 'pointer', transition: 'all var(--dp-dur-fast)' }}
+          >
+            <Flag size={12} />{flagged.has(current) ? 'Flagged' : 'Flag'}
+          </button>
+
+          <button onClick={() => setCurrent(c => Math.max(0, c - 1))} disabled={current === 0} className="study-toolbar-nav"><ChevronLeft size={13} /></button>
+          <button onClick={() => setCurrent(c => Math.min(questions.length - 1, c + 1))} disabled={current === questions.length - 1} className="study-toolbar-nav"><ChevronRight size={13} /></button>
         </div>
 
         {/* Question */}
-        <div className="flex-1 overflow-y-auto p-6">
-          <div className="max-w-2xl mx-auto space-y-4">
-            <div className="flex items-center gap-2 text-xs">
-              <span className="text-muted-foreground">
-                Question {current + 1} of {questions.length}
-              </span>
-              <span
-                className="font-semibold uppercase px-1.5 py-0.5 rounded-full text-[10px]"
-                style={{
-                  background: DIFF_COLORS[q?.difficulty] + '20',
-                  color: DIFF_COLORS[q?.difficulty],
-                }}
-              >
-                {q?.difficulty}
-              </span>
-              <span className="text-muted-foreground">· {q?.domain}</span>
-              {flagged.has(current) && (
-                <span className="text-[10px] font-bold" style={{ color: 'hsl(var(--chart-3))' }}>
-                  🚩 Flagged
-                </span>
-              )}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '24px 20px' }}>
+          <div style={{ maxWidth: 680, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{
+              background: 'var(--dp-glass-1)', border: '1px solid var(--dp-border-0)',
+              borderRadius: 'var(--dp-r-xl)', padding: '22px 24px',
+            }}>
+              <p style={{ fontSize: 17, fontWeight: 600, color: 'var(--dp-text-0)', lineHeight: 1.55, margin: 0 }}>
+                {q.question}
+              </p>
             </div>
 
-            <div className="text-base font-semibold text-foreground whitespace-pre-line leading-relaxed">
-              {q?.question}
-            </div>
-
-            <div className="space-y-2.5">
-              {q?.choices.map(choice => {
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {(q.choices || []).map((choice) => {
                 const isSelected = answers[current] === choice.id
-                const isCorrect = choice.id === q.correct
-                const isWrong = phase === 'review' && isSelected && !isCorrect
-                const showCorrect = phase === 'review' && isCorrect
-
                 return (
                   <button
                     key={choice.id}
-                    data-testid={`exam-choice-${choice.id}`}
-                    disabled={phase === 'review'}
                     onClick={() => setAnswers(prev => ({ ...prev, [current]: choice.id }))}
-                    className="w-full text-left flex items-start gap-3 p-3.5 rounded-lg border transition-all"
                     style={{
-                      borderColor: showCorrect
-                        ? 'hsl(var(--chart-2))'
-                        : isWrong
-                          ? 'hsl(var(--chart-5))'
-                          : isSelected
-                            ? 'hsl(var(--primary))'
-                            : 'hsl(var(--border))',
-                      background: showCorrect
-                        ? 'hsl(var(--chart-2) / 0.1)'
-                        : isWrong
-                          ? 'hsl(var(--chart-5) / 0.1)'
-                          : isSelected
-                            ? 'hsl(var(--primary) / 0.08)'
-                            : undefined,
+                      width: '100%', textAlign: 'left', padding: '13px 16px',
+                      borderRadius: 'var(--dp-r-lg)', cursor: 'pointer',
+                      border: isSelected ? '2px solid var(--dp-blue)' : '1px solid var(--dp-border-0)',
+                      background: isSelected ? 'var(--dp-blue-dim)' : 'var(--dp-glass-1)',
+                      color: isSelected ? 'var(--dp-text-0)' : 'var(--dp-text-1)',
+                      fontSize: 14, lineHeight: 1.5, fontWeight: isSelected ? 600 : 400,
+                      transition: 'all var(--dp-dur-fast)',
+                      boxShadow: isSelected ? '0 0 0 1px var(--dp-blue-dim)' : 'none',
                     }}
                   >
-                    <span
-                      className="w-6 h-6 rounded-full border flex items-center justify-center text-xs font-bold shrink-0 mt-0.5"
-                      style={{
-                        borderColor: showCorrect
-                          ? 'hsl(var(--chart-2))'
-                          : isWrong
-                            ? 'hsl(var(--chart-5))'
-                            : isSelected
-                              ? 'hsl(var(--primary))'
-                              : 'hsl(var(--border))',
-                        color: showCorrect
-                          ? 'hsl(var(--chart-2))'
-                          : isWrong
-                            ? 'hsl(var(--chart-5))'
-                            : isSelected
-                              ? 'hsl(var(--primary))'
-                              : 'hsl(var(--muted-foreground))',
-                        background: showCorrect
-                          ? 'hsl(var(--chart-2) / 0.15)'
-                          : isWrong
-                            ? 'hsl(var(--chart-5) / 0.15)'
-                            : isSelected
-                              ? 'hsl(var(--primary) / 0.15)'
-                              : undefined,
-                      }}
-                    >
-                      {phase === 'review' && showCorrect ? (
-                        <CheckCircle size={14} />
-                      ) : phase === 'review' && isWrong ? (
-                        <XCircle size={14} />
-                      ) : (
-                        choice.id
-                      )}
+                    <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 24, height: 24, borderRadius: '50%', border: isSelected ? `2px solid var(--dp-blue)` : '1px solid var(--dp-border-0)', background: isSelected ? 'var(--dp-blue)' : 'transparent', color: isSelected ? '#fff' : 'var(--dp-text-3)', fontSize: 11, fontWeight: 700, marginRight: 10, flexShrink: 0 }}>
+                      {choice.id}
                     </span>
-                    <span className="text-sm text-foreground">{choice.text}</span>
+                    {choice.text}
                   </button>
                 )
               })}
             </div>
 
-            {/* Explanation (review) */}
-            {phase === 'review' && (
-              <div
-                className="flex gap-2.5 p-3.5 rounded-lg border"
-                style={{
-                  borderColor: 'hsl(var(--primary) / 0.3)',
-                  background: 'hsl(var(--primary) / 0.06)',
-                }}
-              >
-                <AlertCircle
-                  size={16}
-                  className="shrink-0 mt-0.5"
-                  style={{ color: 'hsl(var(--primary))' }}
-                />
-                <p className="text-sm text-foreground">{q?.explanation}</p>
-              </div>
-            )}
-
-            {/* Nav */}
-            <div className="flex gap-3 pt-2">
-              <button
-                aria-label="Previous question"
-                onClick={() => setCurrent(c => Math.max(0, c - 1))}
-                disabled={current === 0}
-                className="flex items-center gap-1 px-3 py-1.5 text-sm rounded border border-border hover:bg-muted disabled:opacity-30 transition-colors"
-              >
+            {/* Bottom nav */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: 8 }}>
+              <button onClick={() => setCurrent(c => Math.max(0, c - 1))} disabled={current === 0}
+                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 'var(--dp-r-md)', border: '1px solid var(--dp-border-1)', background: 'var(--dp-bg-2)', color: 'var(--dp-text-2)', fontSize: 13, cursor: 'pointer', opacity: current === 0 ? 0.4 : 1 }}>
                 <ChevronLeft size={14} /> Previous
               </button>
+
               {current < questions.length - 1 ? (
-                <button
-                  aria-label="Next question"
-                  onClick={() => setCurrent(c => c + 1)}
-                  className="flex items-center gap-1 ml-auto px-3 py-1.5 text-sm rounded border border-border hover:bg-muted transition-colors"
-                >
+                <button onClick={() => setCurrent(c => c + 1)}
+                  style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 'var(--dp-r-md)', border: '1px solid var(--dp-blue-dim)', background: 'var(--dp-blue-dim)', color: 'var(--dp-blue)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
                   Next <ChevronRight size={14} />
                 </button>
-              ) : phase === 'exam' ? (
-                <button
-                  aria-label="Submit exam"
-                  onClick={submitExam}
-                  className="ml-auto px-4 py-1.5 text-sm rounded font-bold"
-                  style={{
-                    background: 'hsl(var(--primary))',
-                    color: 'hsl(var(--primary-foreground))',
-                  }}
-                >
-                  Submit Exam
+              ) : (
+                <button onClick={submitExam}
+                  style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 20px', borderRadius: 'var(--dp-r-md)', border: 'none', background: 'var(--dp-green)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+                  Submit Exam ✓
                 </button>
-              ) : null}
+              )}
             </div>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   )
 }

@@ -99,7 +99,7 @@ function App() {
       .filter(Boolean) as typeof allChannels
   }, [allChannels, selectedChannelIds])
 
-  const sectionCounts = useSectionCounts(currentChannel?.tagFilter)
+  const sectionCounts = useSectionCounts(channelId, currentChannel?.tagFilter)
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -243,11 +243,9 @@ function App() {
         <SearchModalWrapperMemo />
 
         {loading && (
-          <div className="fixed inset-0 flex items-center justify-center bg-background/60 backdrop-blur-sm z-50">
-            <div className="flex flex-col items-center gap-3">
-              <Spinner className="size-8" />
-              <span className="text-sm text-muted-foreground">Loading study content...</span>
-            </div>
+          <div style={{ position: 'fixed', bottom: 20, right: 20, zIndex: 9999, display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px', borderRadius: 'var(--dp-r-lg)', background: 'var(--dp-glass-2)', border: '1px solid var(--dp-border-0)', boxShadow: 'var(--dp-shadow-lg)', backdropFilter: 'blur(16px)', fontSize: 12.5, color: 'var(--dp-text-2)' }}>
+            <Spinner className="size-3" />
+            Syncing content…
           </div>
         )}
       </div>

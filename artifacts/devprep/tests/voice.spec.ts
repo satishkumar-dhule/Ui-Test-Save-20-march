@@ -3,17 +3,20 @@ import { bypassOnboarding, waitForAppReady } from './helpers'
 
 test.describe('Voice Practice Page', () => {
   test.beforeEach(async ({ page }) => {
-    await bypassOnboarding(page, ['javascript', 'react', 'system-design'], { section: 'voice', channelId: 'javascript' })
+    await bypassOnboarding(page, ['javascript', 'react', 'system-design'], {
+      section: 'voice',
+      channelId: 'javascript',
+    })
     await page.goto('/')
     await waitForAppReady(page)
-    await page.click('[data-testid="section-tab-voice"]')
+    await page.click('[role="tab"]:has-text("Voice")')
     await page.waitForTimeout(600)
   })
 
   test('voice practice page loads', async ({ page }) => {
-    await expect(
-      page.locator('text=Voice').or(page.locator('text=No voice prompts')),
-    ).toBeVisible({ timeout: 8000 })
+    await expect(page.locator('text=Voice').or(page.locator('text=No voice prompts'))).toBeVisible({
+      timeout: 8000,
+    })
   })
 
   test('voice practice heading is visible', async ({ page }) => {
@@ -24,9 +27,10 @@ test.describe('Voice Practice Page', () => {
   test('prompt is displayed', async ({ page }) => {
     // Either a prompt is shown or empty state
     await expect(
-      page.locator('text=Practice Scenarios')
+      page
+        .locator('text=Practice Scenarios')
         .or(page.locator('text=No voice prompts'))
-        .or(page.locator('text=Voice Practice')),
+        .or(page.locator('text=Voice Practice'))
     ).toBeVisible({ timeout: 8000 })
   })
 
@@ -42,7 +46,11 @@ test.describe('Voice Practice Page', () => {
     const noPrompts = page.locator('text=No voice prompts')
     if (await noPrompts.isVisible({ timeout: 3000 }).catch(() => false)) test.skip()
 
-    const nextBtn = page.locator('button[aria-label*="Next"], button[disabled]:has(svg), button:has([data-lucide="chevron-right"])').last()
+    const nextBtn = page
+      .locator(
+        'button[aria-label*="Next"], button[disabled]:has(svg), button:has([data-lucide="chevron-right"])'
+      )
+      .last()
     await expect(nextBtn).toBeVisible({ timeout: 8000 })
   })
 
@@ -50,8 +58,12 @@ test.describe('Voice Practice Page', () => {
     const noPrompts = page.locator('text=No voice prompts')
     if (await noPrompts.isVisible({ timeout: 3000 }).catch(() => false)) test.skip()
 
-    const nextBtn = page.locator('button').filter({ hasText: '' }).filter({ has: page.locator('[data-lucide="chevron-right"]') }).last()
-    if (await nextBtn.isVisible() && await nextBtn.isEnabled()) {
+    const nextBtn = page
+      .locator('button')
+      .filter({ hasText: '' })
+      .filter({ has: page.locator('[data-lucide="chevron-right"]') })
+      .last()
+    if ((await nextBtn.isVisible()) && (await nextBtn.isEnabled())) {
       await nextBtn.click()
       await page.waitForTimeout(300)
       await expect(page.locator('[data-testid="header"]')).toBeVisible()
@@ -81,7 +93,9 @@ test.describe('Voice Practice Page', () => {
     if (await noPrompts.isVisible({ timeout: 3000 }).catch(() => false)) test.skip()
 
     // Mic button — has Mic icon or starts recording
-    const micBtn = page.locator('button:has([data-lucide="mic"]), button:has-text("Start"), button:has-text("Record")')
+    const micBtn = page.locator(
+      'button:has([data-lucide="mic"]), button:has-text("Start"), button:has-text("Record")'
+    )
     await expect(micBtn.first()).toBeVisible({ timeout: 8000 })
   })
 
@@ -97,7 +111,10 @@ test.describe('Voice Practice Page', () => {
     const noPrompts = page.locator('text=No voice prompts')
     if (await noPrompts.isVisible({ timeout: 3000 }).catch(() => false)) test.skip()
 
-    const badge = page.locator('text=BEGINNER').or(page.locator('text=INTERMEDIATE')).or(page.locator('text=ADVANCED'))
+    const badge = page
+      .locator('text=BEGINNER')
+      .or(page.locator('text=INTERMEDIATE'))
+      .or(page.locator('text=ADVANCED'))
     await expect(badge.first()).toBeVisible({ timeout: 8000 })
   })
 
@@ -105,8 +122,15 @@ test.describe('Voice Practice Page', () => {
     const noPrompts = page.locator('text=No voice prompts')
     if (await noPrompts.isVisible({ timeout: 3000 }).catch(() => false)) test.skip()
 
-    const keyPointsToggle = page.locator('button:has-text("Key Points"), button:has([data-lucide="lightbulb"])')
-    if (await keyPointsToggle.first().isVisible({ timeout: 5000 }).catch(() => false)) {
+    const keyPointsToggle = page.locator(
+      'button:has-text("Key Points"), button:has([data-lucide="lightbulb"])'
+    )
+    if (
+      await keyPointsToggle
+        .first()
+        .isVisible({ timeout: 5000 })
+        .catch(() => false)
+    ) {
       await keyPointsToggle.first().click()
       await page.waitForTimeout(300)
       await expect(page.locator('[data-testid="header"]')).toBeVisible()

@@ -1,0 +1,5 @@
+Name,Notes,Assignee,Projects,Tags,Section,Story Points
+Onboarding flow integration,Implement Onboarding flow using Button, Input, Card; collect a name and a simple action on Continue.,S3,PHASE 0 - Token & Foundation,Phase0;Component;Onboarding,Phase 0,5
+UX Research onboarding usability test plan,Recruit participants and run 1 usability test on onboarding flow; capture feedback.,S3,PHASE 0 - Token & Foundation,Phase0;Research;Usability,Phase 0,3
+Onboarding flow integration,Implement Onboarding flow using Button, Input, Card; collect a name and a simple action on Continue.,S3,PHASE 0 - Token & Foundation,Phase0;Component;Onboarding,Phase 0,5
+Design Systems Council governance doc,Create governance cadence, artifacts, and migration plan for tokens/components.,S3,Phase0;Governance;Docs,Phase 0,3,

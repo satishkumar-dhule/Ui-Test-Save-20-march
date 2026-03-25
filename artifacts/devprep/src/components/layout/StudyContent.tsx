@@ -51,7 +51,7 @@ export function StudyContent({
   const channels = useChannels()
   const currentChannel = channels.find(c => c.id === channelId)
 
-  const filtered = useFilteredContent(currentChannel?.tagFilter)
+  const filtered = useFilteredContent(channelId, currentChannel?.tagFilter)
 
   return (
     <main className="study-main">

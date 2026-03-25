@@ -9,26 +9,35 @@ import {
   Copy,
   Check,
   MessageSquare,
+  X,
+  ArrowUp,
+  Eye,
+  Clock,
+  Tag,
 } from 'lucide-react'
 import type { Question, AnswerSection } from '@/data/questions'
 import type { ReactElement } from 'react'
-import { Skeleton } from '@/components/ui/skeleton'
 import { sanitizeSVG } from '@/lib/security'
 import { Empty, EmptyMedia, EmptyTitle, EmptyDescription } from '@/components/ui/empty'
 
-const DIFF_COLOR: Record<string, string> = {
-  beginner: 'hsl(var(--chart-2))',
-  intermediate: 'hsl(var(--chart-3))',
-  advanced: 'hsl(var(--chart-5))',
+const DIFF_CONFIG: Record<string, { label: string; color: string; bg: string; border: string }> = {
+  beginner: { label: 'Beginner', color: '#3fb950', bg: 'rgba(63,185,80,0.1)', border: 'rgba(63,185,80,0.25)' },
+  intermediate: { label: 'Intermediate', color: '#f7a843', bg: 'rgba(247,168,67,0.1)', border: 'rgba(247,168,67,0.25)' },
+  advanced: { label: 'Advanced', color: '#ff7b72', bg: 'rgba(255,123,114,0.1)', border: 'rgba(255,123,114,0.25)' },
 }
 
-const SECTION_COLORS: Record<string, string> = {
-  short: 'hsl(var(--primary))',
-  code: 'hsl(var(--chart-3))',
-  diagram: 'hsl(var(--chart-4))',
-  video: 'hsl(var(--chart-5))',
-  related: 'hsl(var(--chart-2))',
-  eli5: 'hsl(var(--chart-3))',
+function DiffBadge({ level }: { level: string }) {
+  const c = DIFF_CONFIG[level] ?? { label: level, color: 'var(--dp-text-3)', bg: 'var(--dp-bg-3)', border: 'var(--dp-border-1)' }
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center',
+      fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em',
+      padding: '2px 8px', borderRadius: 'var(--dp-r-full)',
+      color: c.color, background: c.bg, border: `1px solid ${c.border}`,
+    }}>
+      {c.label}
+    </span>
+  )
 }
 
 function renderMarkdown(text: string): ReactElement {
@@ -36,27 +45,19 @@ function renderMarkdown(text: string): ReactElement {
   return (
     <span>
       {parts.map((p, i) => {
-        if (p.startsWith('**') && p.endsWith('**')) {
+        if (p.startsWith('**') && p.endsWith('**'))
+          return <strong key={i} style={{ color: 'var(--dp-text-0)', fontWeight: 600 }}>{p.slice(2, -2)}</strong>
+        if (p.startsWith('`') && p.endsWith('`'))
           return (
-            <strong key={i} className="text-foreground font-semibold">
-              {p.slice(2, -2)}
-            </strong>
-          )
-        }
-        if (p.startsWith('`') && p.endsWith('`')) {
-          return (
-            <code
-              key={i}
-              className="px-1 py-0.5 rounded text-xs font-mono"
-              style={{
-                background: 'hsl(var(--muted))',
-                color: 'hsl(var(--chart-1))',
-              }}
-            >
+            <code key={i} style={{
+              padding: '1px 6px', borderRadius: 4, fontSize: '0.9em',
+              fontFamily: "'SF Mono','Fira Code',monospace",
+              background: 'var(--dp-bg-3)', color: '#a5d6ff',
+              border: '1px solid var(--dp-border-1)',
+            }}>
               {p.slice(1, -1)}
             </code>
           )
-        }
         return <span key={i}>{p}</span>
       })}
     </span>
@@ -65,23 +66,15 @@ function renderMarkdown(text: string): ReactElement {
 
 function MarkdownBlock({ content }: { content: string }) {
   return (
-    <div className="text-sm text-foreground leading-relaxed space-y-2">
+    <div style={{ fontSize: 14, color: 'var(--dp-text-1)', lineHeight: 1.7 }}>
       {content.split('\n\n').map((para, i) => (
-        <p key={i}>{renderMarkdown(para)}</p>
+        <p key={i} style={{ marginBottom: 8 }}>{renderMarkdown(para)}</p>
       ))}
     </div>
   )
 }
 
-function CodeBlock({
-  language,
-  content,
-  filename,
-}: {
-  language: string
-  content: string
-  filename?: string
-}) {
+function CodeBlock({ language, content, filename }: { language: string; content: string; filename?: string }) {
   const [copied, setCopied] = useState(false)
 
   const copy = () => {
@@ -96,42 +89,18 @@ function CodeBlock({
       /(\b(?:const|let|var|function|return|if|else|for|while|class|async|await|import|export|from|new|typeof|instanceof|of|in|default|throw|try|catch|finally|=>|null|undefined|true|false)\b|"[^"]*"|'[^']*'|`[^`]*`|\/\/.*$|\d+)/g
     )
     return (
-      <div key={li} className="min-h-[1.5em]">
+      <div key={li} style={{ minHeight: '1.6em' }}>
         {tokens.map((tok, ti) => {
-          if (
-            /^(const|let|var|function|return|if|else|for|while|class|async|await|import|export|from|new|typeof|instanceof|of|in|default|throw|try|catch|finally)$/.test(
-              tok
-            )
-          )
-            return (
-              <span key={ti} style={{ color: 'hsl(var(--chart-4))' }}>
-                {tok}
-              </span>
-            )
+          if (/^(const|let|var|function|return|if|else|for|while|class|async|await|import|export|from|new|typeof|instanceof|of|in|default|throw|try|catch|finally)$/.test(tok))
+            return <span key={ti} className="dp-token-kw">{tok}</span>
           if (/^(null|undefined|true|false)$/.test(tok))
-            return (
-              <span key={ti} style={{ color: 'hsl(var(--chart-5))' }}>
-                {tok}
-              </span>
-            )
+            return <span key={ti} className="dp-token-bool">{tok}</span>
           if (/^\d+$/.test(tok))
-            return (
-              <span key={ti} style={{ color: 'hsl(var(--chart-2))' }}>
-                {tok}
-              </span>
-            )
+            return <span key={ti} className="dp-token-num">{tok}</span>
           if (/^("|'|`)/.test(tok))
-            return (
-              <span key={ti} style={{ color: 'hsl(var(--chart-3))' }}>
-                {tok}
-              </span>
-            )
+            return <span key={ti} className="dp-token-str">{tok}</span>
           if (tok.startsWith('//'))
-            return (
-              <span key={ti} style={{ color: 'hsl(var(--muted-foreground))' }}>
-                {tok}
-              </span>
-            )
+            return <span key={ti} className="dp-token-comment">{tok}</span>
           return <span key={ti}>{tok}</span>
         })}
       </div>
@@ -139,27 +108,43 @@ function CodeBlock({
   })
 
   return (
-    <div className="rounded-lg overflow-hidden border border-border">
-      <div className="flex items-center justify-between px-3 py-2 border-b border-border bg-muted/50">
-        <div className="flex items-center gap-2">
-          {filename && <span className="text-xs text-muted-foreground font-mono">{filename}</span>}
-          <span className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">
-            {language}
-          </span>
+    <div className="dp-code-block">
+      <div className="dp-code-header">
+        <div className="dp-code-dots">
+          <div className="dp-code-dot" style={{ background: '#ff5f57' }} />
+          <div className="dp-code-dot" style={{ background: '#ffbd2e' }} />
+          <div className="dp-code-dot" style={{ background: '#28c840' }} />
         </div>
-        <button
-          data-testid="code-copy-btn"
-          onClick={copy}
-          className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-        >
-          {copied ? <Check size={12} /> : <Copy size={12} />}
-          <span>{copied ? 'Copied!' : 'Copy'}</span>
+        <span className="dp-code-filename">{filename || language}</span>
+        <button className="dp-code-copy" data-testid="code-copy-btn" onClick={copy}>
+          {copied ? <Check size={11} /> : <Copy size={11} />}
+          {copied ? 'Copied!' : 'Copy'}
         </button>
       </div>
-      <pre className="p-4 overflow-x-auto text-xs font-mono text-foreground bg-muted/30 leading-relaxed">
-        {highlighted}
-      </pre>
+      <pre className="dp-code-pre">{highlighted}</pre>
     </div>
+  )
+}
+
+function SectionChip({ type }: { type: string }) {
+  const configs: Record<string, { label: string; color: string }> = {
+    short: { label: 'Answer', color: 'var(--dp-blue)' },
+    code: { label: 'Code', color: '#f7df1e' },
+    diagram: { label: 'Diagram', color: 'var(--dp-purple)' },
+    video: { label: 'Video', color: 'var(--dp-red)' },
+    related: { label: 'Related', color: 'var(--dp-green)' },
+    eli5: { label: 'ELI5', color: 'var(--dp-orange)' },
+  }
+  const c = configs[type] ?? { label: type, color: 'var(--dp-text-3)' }
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center',
+      fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em',
+      padding: '2px 9px', borderRadius: 'var(--dp-r-full)', marginBottom: 10,
+      color: c.color, background: c.color + '15', border: `1px solid ${c.color}33`,
+    }}>
+      {c.label}
+    </span>
   )
 }
 
@@ -167,23 +152,10 @@ function SectionBlock({ section }: { section: AnswerSection }) {
   const [videoLoaded, setVideoLoaded] = useState(false)
   const [relOpen, setRelOpen] = useState(true)
 
-  const chip = (label: string, type: string) => (
-    <span
-      className="inline-flex items-center text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full mb-3"
-      style={{
-        background: SECTION_COLORS[type] + '20',
-        color: SECTION_COLORS[type],
-        border: `1px solid ${SECTION_COLORS[type]}44`,
-      }}
-    >
-      {label}
-    </span>
-  )
-
   if (section.type === 'short')
     return (
       <div>
-        {chip('Answer', 'short')}
+        <SectionChip type="short" />
         <MarkdownBlock content={section.content} />
       </div>
     )
@@ -191,41 +163,28 @@ function SectionBlock({ section }: { section: AnswerSection }) {
   if (section.type === 'code')
     return (
       <div>
-        {chip('Code Example', 'code')}
-        <CodeBlock
-          language={section.language}
-          content={section.content}
-          filename={section.filename}
-        />
+        <SectionChip type="code" />
+        <CodeBlock language={section.language} content={section.content} filename={section.filename} />
       </div>
     )
 
   if (section.type === 'diagram')
     return (
       <div>
-        {chip('Diagram', 'diagram')}
-        <div className="rounded-lg border border-border overflow-hidden">
-          <div className="px-4 py-2.5 border-b border-border bg-muted/30">
-            <div className="text-sm font-semibold text-foreground">{section.title}</div>
-            <div className="text-xs text-muted-foreground">{section.description}</div>
+        <SectionChip type="diagram" />
+        <div style={{
+          borderRadius: 'var(--dp-r-lg)', overflow: 'hidden',
+          border: '1px solid var(--dp-border-0)', background: 'var(--dp-bg-1)',
+        }}>
+          <div style={{
+            padding: '10px 14px', borderBottom: '1px solid var(--dp-border-1)',
+            background: 'var(--dp-bg-2)',
+          }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--dp-text-0)' }}>{section.title}</div>
+            <div style={{ fontSize: 11, color: 'var(--dp-text-2)', marginTop: 2 }}>{section.description}</div>
           </div>
-          {/*
-            XSS Prevention: SVG content is sanitized before rendering.
-            The sanitizeSVG function from @/lib/security:
-            - Validates SVG size limits (max 10KB)
-            - Removes dangerous patterns (scripts, event handlers, javascript: URLs)
-            - Whitelists only allowed SVG elements and attributes
-            
-            For enhanced security in production, consider using DOMPurify:
-            import DOMPurify from 'dompurify';
-            const cleanSVG = DOMPurify.sanitize(section.svgContent, {
-              USE_PROFILES: { svg: true },
-              ALLOWED_TAGS: ['svg', 'g', 'path', 'rect', 'circle', 'text'],
-              ALLOWED_ATTR: ['viewBox', 'fill', 'stroke', 'd', 'x', 'y', 'width', 'height']
-            });
-          */}
           <div
-            className="p-4 flex justify-center bg-card"
+            style={{ padding: 16, display: 'flex', justifyContent: 'center', background: 'var(--dp-bg-1)' }}
             dangerouslySetInnerHTML={{ __html: sanitizeSVG(section.svgContent) }}
           />
         </div>
@@ -235,25 +194,30 @@ function SectionBlock({ section }: { section: AnswerSection }) {
   if (section.type === 'video')
     return (
       <div>
-        {chip('Video', 'video')}
+        <SectionChip type="video" />
         {!videoLoaded ? (
           <button
             onClick={() => setVideoLoaded(true)}
-            className="w-full h-40 rounded-lg border border-border bg-muted/30 flex flex-col items-center justify-center gap-2 hover:bg-muted/50 transition-colors"
+            style={{
+              width: '100%', height: 140, borderRadius: 'var(--dp-r-lg)',
+              border: '1px solid var(--dp-border-1)', background: 'var(--dp-bg-2)',
+              display: 'flex', flexDirection: 'column', alignItems: 'center',
+              justifyContent: 'center', gap: 10, cursor: 'pointer',
+              transition: 'background var(--dp-dur-fast)',
+            }}
           >
-            <div className="w-12 h-12 rounded-full bg-primary/20 border border-primary/40 flex items-center justify-center">
-              <span className="text-xl">▶</span>
-            </div>
-            <span className="text-sm font-medium text-foreground">{section.title}</span>
-            <span className="text-xs text-muted-foreground">Click to load video</span>
+            <div style={{
+              width: 48, height: 48, borderRadius: '50%',
+              background: 'rgba(255,123,114,0.15)', border: '1px solid rgba(255,123,114,0.3)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20,
+            }}>▶</div>
+            <span style={{ fontSize: 13, color: 'var(--dp-text-0)', fontWeight: 500 }}>{section.title}</span>
+            <span style={{ fontSize: 11, color: 'var(--dp-text-3)' }}>Click to load</span>
           </button>
         ) : (
-          <iframe
-            src={section.url}
-            title={section.title}
-            className="w-full h-56 rounded-lg border border-border"
-            allowFullScreen
-          />
+          <iframe src={section.url} title={section.title}
+            style={{ width: '100%', height: 240, borderRadius: 'var(--dp-r-lg)', border: '1px solid var(--dp-border-0)' }}
+            allowFullScreen />
         )}
       </div>
     )
@@ -261,18 +225,22 @@ function SectionBlock({ section }: { section: AnswerSection }) {
   if (section.type === 'related')
     return (
       <div>
-        {chip('Related Topics', 'related')}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <SectionChip type="related" />
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 8 }}>
           {(section.topics || []).map((t, i) => (
-            <div
-              key={i}
-              className="p-3 rounded-lg border border-border bg-card hover:bg-muted/30 transition-colors"
-            >
-              <div className="text-sm font-semibold text-foreground mb-1">{t.title}</div>
-              <div className="text-xs text-muted-foreground leading-snug">{t.description}</div>
-              <span className="mt-2 inline-block text-[10px] px-1.5 rounded-sm font-mono bg-muted text-muted-foreground">
-                {t.tag}
-              </span>
+            <div key={i} style={{
+              padding: '10px 12px', borderRadius: 'var(--dp-r-md)',
+              border: '1px solid var(--dp-border-1)', background: 'var(--dp-bg-2)',
+              transition: 'all var(--dp-dur-fast)',
+            }}>
+              <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--dp-text-0)', marginBottom: 3 }}>{t.title}</div>
+              <div style={{ fontSize: 11.5, color: 'var(--dp-text-2)', lineHeight: 1.4 }}>{t.description}</div>
+              <span style={{
+                display: 'inline-block', marginTop: 6, fontSize: 10,
+                padding: '1px 6px', borderRadius: 3,
+                background: 'var(--dp-bg-3)', color: 'var(--dp-text-3)',
+                fontFamily: 'monospace',
+              }}>{t.tag}</span>
             </div>
           ))}
         </div>
@@ -282,19 +250,15 @@ function SectionBlock({ section }: { section: AnswerSection }) {
   if (section.type === 'eli5')
     return (
       <div>
-        {chip('ELI5', 'eli5')}
-        <div
-          className="p-4 rounded-lg border"
-          style={{
-            background: 'hsl(var(--chart-3) / 0.08)',
-            borderColor: 'hsl(var(--chart-3) / 0.25)',
-          }}
-        >
-          <div className="flex gap-2.5">
-            <span className="text-xl shrink-0">🧒</span>
-            <div className="text-sm text-foreground leading-relaxed">
-              <MarkdownBlock content={section.content} />
-            </div>
+        <SectionChip type="eli5" />
+        <div style={{
+          padding: '14px 16px', borderRadius: 'var(--dp-r-lg)',
+          border: '1px solid rgba(247,168,67,0.2)',
+          background: 'rgba(247,168,67,0.06)',
+        }}>
+          <div style={{ display: 'flex', gap: 10 }}>
+            <span style={{ fontSize: 20, flexShrink: 0 }}>🧒</span>
+            <MarkdownBlock content={section.content} />
           </div>
         </div>
       </div>
@@ -310,105 +274,35 @@ interface QAPageProps {
   isLoading?: boolean
 }
 
-function ContentSkeleton() {
-  return (
-    <div className="max-w-3xl mx-auto space-y-6">
-      <div className="p-4 rounded-lg border border-border bg-card">
-        <div className="flex items-center gap-2 mb-3">
-          <Skeleton className="w-20 h-5 rounded-full" />
-          <Skeleton className="w-16 h-5 rounded-full" />
-        </div>
-        <Skeleton className="w-full h-7 mb-3 rounded" />
-        <div className="flex items-center gap-4 mb-3">
-          <Skeleton className="w-12 h-4" />
-          <Skeleton className="w-12 h-4" />
-          <Skeleton className="w-24 h-4" />
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Skeleton className="w-16 h-5 rounded" />
-          <Skeleton className="w-20 h-5 rounded" />
-          <Skeleton className="w-14 h-5 rounded" />
-        </div>
-      </div>
-      <div className="p-4 rounded-lg border border-border">
-        <Skeleton className="w-16 h-5 mb-3" />
-        <Skeleton className="w-full h-4 mb-2" />
-        <Skeleton className="w-full h-4 mb-2" />
-        <Skeleton className="w-3/4 h-4" />
-      </div>
-      <div className="p-4 rounded-lg border border-border">
-        <Skeleton className="w-24 h-5 mb-3" />
-        <Skeleton className="w-full h-32 rounded" />
-      </div>
-    </div>
-  )
-}
-
-function SidebarSkeleton() {
-  return (
-    <div className="flex-shrink-0 flex-col border-r border-border overflow-hidden bg-card w-72 hidden md:flex">
-      <div className="flex items-center gap-2 px-4 py-3 border-b border-border">
-        <Skeleton className="w-20 h-4" />
-        <Skeleton className="w-8 h-5 ml-auto rounded-full" />
-      </div>
-      <div className="overflow-y-auto flex-1 p-2">
-        {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
-          <div key={i} className="px-3 py-2.5 mb-1">
-            <div className="flex items-center gap-2 mb-1">
-              <Skeleton className="w-10 h-3" />
-              <Skeleton className="w-12 h-3" />
-            </div>
-            <Skeleton className="w-full h-4" />
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-export function QAPage({
-  questions,
-  channelId,
-  onQuestionAnswered,
-  isLoading = false,
-}: QAPageProps) {
+export function QAPage({ questions, channelId, onQuestionAnswered, isLoading = false }: QAPageProps) {
   const [activeIdx, setActiveIdx] = useState(0)
   const [search, setSearch] = useState('')
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const contentRef = useRef<HTMLDivElement>(null)
-  const mainContentRef = useRef<HTMLDivElement>(null)
   const { announce } = useAnnounce()
 
   const filtered = search.trim()
-    ? questions.filter(
-        q =>
-          q.title?.toLowerCase().includes(search.toLowerCase()) ||
-          q.tags?.some(t => t.includes(search.toLowerCase()))
+    ? questions.filter(q =>
+        q.title?.toLowerCase().includes(search.toLowerCase()) ||
+        q.tags?.some(t => t.includes(search.toLowerCase()))
       )
     : questions
 
   const active = filtered[activeIdx]
 
-  useEffect(() => {
-    setActiveIdx(0)
-  }, [channelId])
+  useEffect(() => { setActiveIdx(0) }, [channelId])
 
   useEffect(() => {
-    if (active) {
-      onQuestionAnswered?.(active.id)
-    }
+    if (active) onQuestionAnswered?.(active.id)
   }, [activeIdx, active, onQuestionAnswered])
 
-  const go = useCallback(
-    (dir: 1 | -1) => {
-      setActiveIdx(i => Math.max(0, Math.min(filtered.length - 1, i + dir)))
-      setTimeout(() => {
-        mainContentRef.current?.focus()
-        announce(`Navigated ${dir === 1 ? 'forward' : 'back'}`)
-      }, 100)
-    },
-    [filtered.length, announce]
-  )
+  const go = useCallback((dir: 1 | -1) => {
+    setActiveIdx(i => Math.max(0, Math.min(filtered.length - 1, i + dir)))
+    setTimeout(() => {
+      contentRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
+      announce(`Question ${activeIdx + dir + 1} of ${filtered.length}`)
+    }, 50)
+  }, [filtered.length, activeIdx, announce])
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -421,275 +315,255 @@ export function QAPage({
 
   if (isLoading) {
     return (
-      <div className="flex flex-1 h-full overflow-hidden">
-        <SidebarSkeleton />
-        <div className="flex-1 flex flex-col overflow-hidden">
-          <div
-            className="flex items-center gap-2 px-4 border-b border-border bg-card/50"
-            style={{ height: 44 }}
-          >
-            <Skeleton className="w-8 h-8 rounded md:hidden" />
-            <Skeleton className="w-32 h-7 rounded" />
-            <Skeleton className="w-16 ml-auto h-4" />
-            <Skeleton className="w-7 h-7 rounded" />
-            <Skeleton className="w-7 h-7 rounded" />
-          </div>
-          <div className="flex-1 overflow-y-auto p-4 md:p-6">
-            <ContentSkeleton />
-          </div>
-        </div>
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ width: 28, height: 28, borderRadius: '50%', border: '2px solid var(--dp-border-0)', borderTopColor: 'var(--dp-blue)', animation: 'dp-spin 0.8s linear infinite' }} />
       </div>
     )
   }
 
   if (questions.length === 0) {
     return (
-      <Empty>
-        <EmptyMedia variant="icon">
-          <MessageSquare size={24} aria-hidden="true" />
-        </EmptyMedia>
-        <EmptyTitle>No questions available</EmptyTitle>
-        <EmptyDescription>
-          Check out the other sections or switch to a different channel to find study content.
-        </EmptyDescription>
-      </Empty>
+      <div className="dp-empty">
+        <div className="dp-empty-icon"><MessageSquare size={24} /></div>
+        <div className="dp-empty-title">No questions yet</div>
+        <div className="dp-empty-desc">Switch to a different channel or add more channels to get started.</div>
+      </div>
     )
   }
 
   return (
-    <div className="flex flex-1 h-full overflow-hidden">
-      <SkipLink targetId="qa-main-content">Skip to main content</SkipLink>
+    <div className="study-page">
+      <SkipLink targetId="qa-content">Skip to content</SkipLink>
       <LiveRegion />
-      {/* Sidebar */}
+
+      {/* Mobile overlay */}
       {sidebarOpen && (
-        <div
-          className="fixed inset-0 z-30 bg-black/60 md:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
+        <div className="mobile-overlay md:hidden" onClick={() => setSidebarOpen(false)} />
       )}
+
+      {/* Left panel */}
       <div
-        className={`sidebar flex-shrink-0 flex-col border-r border-border overflow-hidden bg-card ${sidebarOpen ? 'fixed left-0 top-0 h-full z-40 flex w-72' : 'hidden md:flex'}`}
-        style={{ width: 260 }}
+        className={`study-panel${sidebarOpen ? ' study-panel--mobile-open' : ''}`}
+        style={sidebarOpen ? {
+          position: 'fixed', top: 0, left: 0, height: '100%', zIndex: 40,
+          display: 'flex', width: 270,
+        } : {}}
       >
-        <div className="flex items-center gap-2 px-4 py-3 border-b border-border">
-          <BookOpen size={14} className="text-muted-foreground" aria-hidden="true" />
-          <span className="text-sm font-semibold text-foreground">Questions</span>
-          <span className="ml-auto text-[10px] font-bold bg-primary/15 text-primary px-1.5 rounded-full">
-            {filtered.length}
-          </span>
+        <div className="study-panel-header">
+          <BookOpen size={13} style={{ color: 'var(--dp-text-3)' }} />
+          <span className="study-panel-title">Questions</span>
+          <span className="study-panel-count">{filtered.length}</span>
+          {sidebarOpen && (
+            <button onClick={() => setSidebarOpen(false)} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--dp-text-3)' }}>
+              <X size={14} />
+            </button>
+          )}
         </div>
-        <div className="overflow-y-auto flex-1" role="list" aria-label="Question list">
+
+        {/* Search within panel */}
+        <div style={{ padding: '8px 8px 4px', flexShrink: 0 }}>
+          <div style={{ position: 'relative' }}>
+            <Search size={12} style={{ position: 'absolute', left: 9, top: '50%', transform: 'translateY(-50%)', color: 'var(--dp-text-3)', pointerEvents: 'none' }} />
+            <input
+              data-testid="qa-search"
+              value={search}
+              onChange={e => { setSearch(e.target.value); setActiveIdx(0) }}
+              placeholder="Filter questions..."
+              style={{
+                width: '100%', padding: '6px 10px 6px 28px', fontSize: 12,
+                background: 'var(--dp-bg-3)', border: '1px solid var(--dp-border-1)',
+                borderRadius: 'var(--dp-r-md)', color: 'var(--dp-text-0)', outline: 'none',
+              }}
+            />
+          </div>
+        </div>
+
+        <div className="study-panel-list" role="list">
           {filtered.map((q, i) => {
-            const displayNum = q.number ?? i + 1
             const diff = q.difficulty ?? 'unknown'
-            const hasDiagramOnly =
-              q.sections?.length > 0 && q.sections.every(s => s.type === 'diagram')
+            const diffColor = DIFF_CONFIG[diff]?.color ?? 'var(--dp-text-3)'
             return (
               <button
                 key={q.id ?? String(i)}
                 data-testid={`qa-sidebar-item-${q.id ?? i}`}
                 role="listitem"
+                className={`study-panel-item${i === activeIdx ? ' study-panel-item--active' : ''}`}
+                onClick={() => { setActiveIdx(i); setSidebarOpen(false) }}
                 aria-current={i === activeIdx ? 'true' : undefined}
-                aria-label={`Question ${displayNum}: ${q.title}`}
-                onClick={() => {
-                  setActiveIdx(i)
-                  setSidebarOpen(false)
-                }}
-                className="w-full text-left px-3 py-2.5 transition-colors hover:bg-muted/50 border-l-2"
-                style={{
-                  borderLeftColor: i === activeIdx ? 'hsl(var(--primary))' : 'transparent',
-                  background: i === activeIdx ? 'hsl(var(--primary) / 0.06)' : undefined,
-                }}
               >
-                <div className="flex items-center gap-2 mb-0.5">
-                  <span className="text-[10px] font-mono text-muted-foreground">#{displayNum}</span>
-                  <span
-                    className="text-[10px] font-semibold uppercase"
-                    style={{ color: DIFF_COLOR[diff] ?? 'hsl(var(--muted-foreground))' }}
-                  >
+                <div className="study-panel-item-meta">
+                  <span className="study-panel-item-num">#{q.number ?? i + 1}</span>
+                  <span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', color: diffColor }}>
                     {diff.slice(0, 3)}
                   </span>
-                  {hasDiagramOnly && (
-                    <span className="text-[9px] px-1 rounded bg-chart-4/20 text-chart-4">
-                      diagram
-                    </span>
-                  )}
                 </div>
-                <div className="text-xs text-foreground line-clamp-2 leading-snug">{q.title}</div>
+                <div className="study-panel-item-title">{q.title}</div>
               </button>
             )
           })}
         </div>
       </div>
 
-      {/* Main */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      {/* Main content */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
         {/* Toolbar */}
-        <div
-          className="flex items-center gap-2 px-3 border-b border-border bg-card/50"
-          style={{ height: 44 }}
-          role="toolbar"
-          aria-label="Question navigation"
-        >
+        <div className="study-toolbar" role="toolbar" aria-label="Question navigation">
           <button
             data-testid="qa-mob-menu"
-            aria-label="Open navigation menu"
-            className="mob-menu md:hidden items-center justify-center w-8 h-8 rounded hover:bg-muted transition-colors"
+            aria-label="Open question list"
             onClick={() => setSidebarOpen(true)}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              width: 32, height: 32, borderRadius: 'var(--dp-r-md)',
+              border: '1px solid var(--dp-border-1)', background: 'var(--dp-bg-2)',
+              color: 'var(--dp-text-2)', cursor: 'pointer',
+            }}
+            className="md:hidden"
           >
-            <Menu size={16} />
+            <Menu size={15} />
           </button>
-          <div className="relative flex-1 min-w-0">
-            <Search
-              size={12}
-              className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground"
-              aria-hidden="true"
-            />
-            <input
-              data-testid="qa-search"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              placeholder="Search questions..."
-              aria-label="Search questions"
-              className="w-full pl-7 pr-3 py-1.5 text-xs rounded-md border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-            />
+
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 6 }}>
+            {active?.difficulty && <DiffBadge level={active.difficulty} />}
+            {active?.votes != null && (
+              <span style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 11, color: 'var(--dp-text-3)' }}>
+                <ArrowUp size={11} />{active.votes}
+              </span>
+            )}
+            {active?.views && (
+              <span style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 11, color: 'var(--dp-text-3)' }}>
+                <Eye size={11} />{active.views}
+              </span>
+            )}
           </div>
-          <span className="text-xs text-muted-foreground ml-auto" aria-live="polite">
+
+          <span style={{ fontSize: 12, color: 'var(--dp-text-2)', whiteSpace: 'nowrap' }}>
             {activeIdx + 1} / {filtered.length}
           </span>
+
           <button
             onClick={() => go(-1)}
             disabled={activeIdx === 0}
             aria-label="Previous question"
-            className="w-7 h-7 rounded flex items-center justify-center hover:bg-muted disabled:opacity-30 transition-colors"
+            className="study-toolbar-nav"
           >
-            <ChevronLeft size={14} />
+            <ChevronLeft size={13} />
           </button>
           <button
             onClick={() => go(1)}
             disabled={activeIdx === filtered.length - 1}
             aria-label="Next question"
-            className="w-7 h-7 rounded flex items-center justify-center hover:bg-muted disabled:opacity-30 transition-colors"
+            className="study-toolbar-nav"
           >
-            <ChevronRight size={14} />
+            <ChevronRight size={13} />
           </button>
         </div>
 
         {/* Content */}
         <div
           ref={contentRef}
-          id="qa-main-content"
+          id="qa-content"
           tabIndex={-1}
-          className="flex-1 overflow-y-auto p-3 focus:outline-none"
+          style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: 16 }}
         >
           {active ? (
-            <div className="w-full space-y-4">
-              <h1 className="sr-only">{active.title}</h1>
-              {/* Question header */}
-              <div className="p-3 rounded-lg border border-border bg-card">
-                <h2 className="sr-only">Question {activeIdx + 1} Details</h2>
-                <div className="flex items-start gap-1.5 mb-1.5 flex-wrap">
-                  {active.difficulty && (
-                    <span
-                      className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-full"
-                      style={{
-                        background: (DIFF_COLOR[active.difficulty] ?? '#888') + '20',
-                        color: DIFF_COLOR[active.difficulty] ?? '#888',
-                      }}
-                    >
-                      {active.difficulty}
+            <>
+              {/* Question header card */}
+              <div style={{
+                background: 'var(--dp-glass-1)', border: '1px solid var(--dp-border-0)',
+                borderRadius: 'var(--dp-r-xl)', padding: '20px 22px',
+                backdropFilter: 'blur(10px)',
+              }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
+                  {active.difficulty && <DiffBadge level={active.difficulty} />}
+                  {(active.sections || []).map((s, i) => (
+                    <span key={i} style={{
+                      fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em',
+                      padding: '2px 7px', borderRadius: 'var(--dp-r-full)',
+                      background: 'var(--dp-bg-3)', color: 'var(--dp-text-3)',
+                      border: '1px solid var(--dp-border-1)',
+                    }}>{s.type}</span>
+                  ))}
+                </div>
+
+                <h1 style={{
+                  fontSize: 18, fontWeight: 700, color: 'var(--dp-text-0)',
+                  lineHeight: 1.45, marginBottom: 14, letterSpacing: '-0.2px',
+                }}>
+                  {active.title}
+                </h1>
+
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center' }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+                    {(active.tags || []).slice(0, 6).map(t => (
+                      <span key={t} style={{
+                        display: 'inline-flex', alignItems: 'center', gap: 3,
+                        fontSize: 10.5, padding: '2px 7px', borderRadius: 'var(--dp-r-xs)',
+                        background: 'var(--dp-bg-3)', color: 'var(--dp-text-2)',
+                        fontFamily: 'monospace', border: '1px solid var(--dp-border-1)',
+                      }}>
+                        <Tag size={8} />{t}
+                      </span>
+                    ))}
+                  </div>
+
+                  {active.askedAt && (
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--dp-text-3)', marginLeft: 'auto' }}>
+                      <Clock size={10} />{active.askedAt}
                     </span>
                   )}
-                  {(active.sections || []).map((s, i) => (
-                    <span
-                      key={i}
-                      className="text-[9px] font-semibold uppercase px-1 py-0.5 rounded-full"
-                      style={{
-                        background: (SECTION_COLORS[s.type] ?? '#888') + '15',
-                        color: SECTION_COLORS[s.type] ?? '#888',
-                      }}
-                    >
-                      {s.type}
-                    </span>
-                  ))}
-                </div>
-                <h1 className="text-base font-bold text-foreground mb-2">{active.title}</h1>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  {active.votes != null && <span>▲ {active.votes}</span>}
-                  {active.views && <span>👁 {active.views}</span>}
-                  {active.askedBy && <span>by {active.askedBy}</span>}
-                  {active.askedAt && <span>{active.askedAt}</span>}
-                </div>
-                <div className="flex flex-wrap gap-1 mt-2">
-                  {(active.tags || []).map(t => (
-                    <span
-                      key={t}
-                      className="text-[9px] px-1 py-0.5 rounded-sm bg-muted text-muted-foreground font-mono"
-                    >
-                      {t}
-                    </span>
-                  ))}
                 </div>
               </div>
 
-              {/* Sections */}
-              {(active.sections || []).length === 0 && (
-                <div className="p-4 rounded-lg border border-border bg-muted/20 text-sm text-muted-foreground text-center">
-                  No content available for this question.
-                </div>
-              )}
-              {(active.sections || []).every(s => s.type === 'diagram') &&
-                (active.sections || []).length > 0 && (
-                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-chart-4/10 border border-chart-4/30 text-xs text-chart-4">
-                    <span>📊</span>
-                    <span>This question is diagram-only — no written answer is available yet.</span>
+              {/* Answer sections */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                {(active.sections || []).map((s, i) => (
+                  <div key={i} style={{
+                    background: 'var(--dp-glass-1)', border: '1px solid var(--dp-border-0)',
+                    borderRadius: 'var(--dp-r-xl)', padding: '18px 20px',
+                    backdropFilter: 'blur(10px)',
+                  }}>
+                    <SectionBlock section={s} />
                   </div>
-                )}
-              {(active.sections || []).map((s, i) => (
-                <div key={i} className="mb-4">
-                  <SectionBlock section={s} />
-                </div>
-              ))}
+                ))}
+              </div>
 
-              {/* Bottom nav */}
-              <div className="flex items-center justify-between pt-1">
+              {/* Navigation bottom */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: 8, paddingBottom: 24 }}>
                 <button
                   onClick={() => go(-1)}
                   disabled={activeIdx === 0}
-                  data-testid="qa-prev-btn"
-                  aria-label="Previous question"
-                  className="flex items-center gap-1 px-2.5 py-1 rounded-md text-sm font-medium border border-border hover:bg-muted disabled:opacity-30 transition-colors"
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 6,
+                    padding: '8px 16px', borderRadius: 'var(--dp-r-md)',
+                    border: '1px solid var(--dp-border-1)', background: 'var(--dp-bg-2)',
+                    color: 'var(--dp-text-2)', fontSize: 13, cursor: 'pointer',
+                    opacity: activeIdx === 0 ? 0.4 : 1,
+                    transition: 'all var(--dp-dur-fast)',
+                  }}
                 >
-                  <ChevronLeft size={12} /> Previous
+                  <ChevronLeft size={14} /> Previous
                 </button>
-                <div className="flex gap-0.5">
-                  {filtered.slice(Math.max(0, activeIdx - 2), activeIdx + 3).map((_, i) => (
-                    <div
-                      key={i}
-                      className="w-1 h-1 rounded-full transition-colors"
-                      style={{
-                        background:
-                          i + Math.max(0, activeIdx - 2) === activeIdx
-                            ? 'hsl(var(--primary))'
-                            : 'hsl(var(--muted))',
-                      }}
-                    />
-                  ))}
-                </div>
                 <button
                   onClick={() => go(1)}
                   disabled={activeIdx === filtered.length - 1}
-                  data-testid="qa-next-btn"
-                  aria-label="Next question"
-                  className="flex items-center gap-1 px-2.5 py-1 rounded-md text-sm font-medium border border-border hover:bg-muted disabled:opacity-30 transition-colors"
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 6,
+                    padding: '8px 16px', borderRadius: 'var(--dp-r-md)',
+                    border: '1px solid var(--dp-blue-dim)', background: 'var(--dp-blue-dim)',
+                    color: 'var(--dp-blue)', fontSize: 13, cursor: 'pointer',
+                    opacity: activeIdx === filtered.length - 1 ? 0.4 : 1,
+                    transition: 'all var(--dp-dur-fast)',
+                  }}
                 >
-                  Next <ChevronRight size={12} />
+                  Next <ChevronRight size={14} />
                 </button>
               </div>
-            </div>
+            </>
           ) : (
-            <div className="flex flex-col items-center justify-center h-full text-center">
-              <p className="text-muted-foreground text-sm">No results for "{search}"</p>
+            <div className="dp-empty">
+              <div className="dp-empty-title">No results</div>
+              <div className="dp-empty-desc">Try a different search term.</div>
             </div>
           )}
         </div>

@@ -47,13 +47,27 @@ export default defineConfig({
       },
     },
   ],
-  webServer: {
-    command: 'cd /home/runner/workspace/artifacts/devprep && PORT=5174 pnpm dev',
-    url: 'http://localhost:5174',
-    reuseExistingServer: true,
-    timeout: 120000,
-    env: {
-      PORT: '5174',
+  webServer: [
+    {
+      command: '/nix/store/1xk3mgscq548ypyrgm2n5kwdii92w9ql-bun-1.3.6/bin/bun src/index.ts',
+      url: 'http://localhost:3001/api/health',
+      reuseExistingServer: true,
+      timeout: 120000,
+      cwd: '/home/runner/workspace/artifacts/devprep/server',
+      env: {
+        API_PORT: '3001',
+        DB_PATH: '/home/runner/workspace/data/devprep.db',
+      },
     },
-  },
+    {
+      command: 'pnpm dev',
+      url: 'http://localhost:5174',
+      reuseExistingServer: true,
+      timeout: 120000,
+      cwd: '/home/runner/workspace/artifacts/devprep',
+      env: {
+        PORT: '5174',
+      },
+    },
+  ],
 })

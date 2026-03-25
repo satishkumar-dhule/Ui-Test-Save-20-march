@@ -11,12 +11,14 @@
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
         "opencode-ai": "^1.2.27",
+        "pyright": "^1.1.408",
         "react": "^19.2.4",
         "react-dom": "^19.2.4",
         "tailwind-merge": "^3.5.0",
         "yaml-language-server": "",
       },
       "devDependencies": {
+        "@playwright/test": "^1.58.2",
         "@types/node": "^25.5.0",
         "prettier": "^3.8.1",
         "typescript": "~5.9.2",
@@ -2127,6 +2129,8 @@
     "puppeteer": ["puppeteer@24.40.0", "", { "dependencies": { "@puppeteer/browsers": "2.13.0", "chromium-bidi": "14.0.0", "cosmiconfig": "^9.0.0", "devtools-protocol": "0.0.1581282", "puppeteer-core": "24.40.0", "typed-query-selector": "^2.12.1" }, "bin": { "puppeteer": "lib/cjs/puppeteer/node/cli.js" } }, "sha512-IxQbDq93XHVVLWHrAkFP7F7iHvb9o0mgfsSIMlhHb+JM+JjM1V4v4MNSQfcRWJopx9dsNOr9adYv0U5fm9BJBQ=="],
 
     "puppeteer-core": ["puppeteer-core@24.40.0", "", { "dependencies": { "@puppeteer/browsers": "2.13.0", "chromium-bidi": "14.0.0", "debug": "^4.4.3", "devtools-protocol": "0.0.1581282", "typed-query-selector": "^2.12.1", "webdriver-bidi-protocol": "0.4.1", "ws": "^8.19.0" } }, "sha512-MWL3XbUCfVgGR0gRsidzT6oKJT2QydPLhMITU6HoVWiiv4gkb6gJi3pcdAa8q4HwjBTbqISOWVP4aJiiyUJvag=="],
+
+    "pyright": ["pyright@1.1.408", "", { "optionalDependencies": { "fsevents": "~2.3.3" }, "bin": { "pyright": "index.js", "pyright-langserver": "langserver.index.js" } }, "sha512-N61pxaLLCsPcUuPPHMNIrGoZgGBgrbjBX5UqkaT5UV8NVZdL7ExsO6N3ectv1DzAUsLOzdlyqoYtX76u8eF4YA=="],
 
     "qs": ["qs@6.15.0", "", { "dependencies": { "side-channel": "1.1.0" } }, "sha512-mAZTtNCeetKMH+pSjrb76NAM8V9a05I9aBZOHztWy/UqcJdQYNsf59vrRKWnojAT9Y+GbIvoTBC++CPHqpDBhQ=="],
 

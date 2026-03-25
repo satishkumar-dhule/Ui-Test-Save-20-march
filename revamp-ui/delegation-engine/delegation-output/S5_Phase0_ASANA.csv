@@ -1,0 +1,3 @@
+Name,Notes,Assignee,Projects,Tags,Section,Story Points
+M metrics plan for Phase 0,Define task time, task success rate, error rate, and adoption KPIs; define data collection method.,S5,PHASE 0 - Token & Foundation,Phase0;Metrics;Planning,Phase 0,3
+Accessibility baseline for new flows,Define WCAG targets; ensure keyboard navigation and focus order for onboarding and core components.,S5,Phase0;QA;Accessibility,Phase 0,3,

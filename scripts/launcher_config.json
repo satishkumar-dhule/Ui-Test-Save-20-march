@@ -1,0 +1,28 @@
+{
+  "apps": [
+    {
+      "name": "Firefox",
+      "cmd": "firefox",
+      "workspace": 1,
+      "geometry": "800x600+20+20"
+    },
+    {
+      "name": "Chromium",
+      "cmd": "chromium-browser",
+      "workspace": 1,
+      "geometry": "1200x800+10+10"
+    },
+    {
+      "name": "Code",
+      "cmd": "code",
+      "workspace": 1,
+      "geometry": "1400x900+200+50"
+    },
+    {
+      "name": "XTerm",
+      "cmd": "xterm",
+      "workspace": 4,
+      "geometry": "800x400+50+50"
+    }
+  ]
+}
