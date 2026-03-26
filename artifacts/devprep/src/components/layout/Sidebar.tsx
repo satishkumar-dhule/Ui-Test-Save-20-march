@@ -10,7 +10,6 @@ import {
   Mic2,
   ChevronRight,
   Plus,
-  Settings,
   Search,
   BookOpen,
   LayoutGrid,
@@ -39,7 +38,6 @@ interface SidebarProps {
   onChannelSelect: (id: string) => void
   onSectionChange: (section: Section) => void
   onBrowseChannels: () => void
-  onEditPinned: () => void
   onMobileClose: () => void
 }
 
@@ -53,7 +51,6 @@ export function Sidebar({
   onChannelSelect,
   onSectionChange,
   onBrowseChannels,
-  onEditPinned,
   onMobileClose,
 }: SidebarProps) {
   const [channelSearch, setChannelSearch] = useState('')
@@ -109,14 +106,6 @@ export function Sidebar({
         <div className="sidebar-section-header">
           <Pin size={10} aria-hidden="true" />
           <span>My Channels</span>
-          <button
-            className="sidebar-section-action"
-            onClick={onEditPinned}
-            aria-label="Edit pinned channels"
-            title="Edit channels"
-          >
-            <Settings size={11} aria-hidden="true" />
-          </button>
         </div>
 
         <div className="sidebar-channels" id="pinned-channels-list" role="list">

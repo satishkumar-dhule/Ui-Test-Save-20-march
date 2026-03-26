@@ -187,7 +187,6 @@ function App() {
           onChannelSelect={handleSwitchChannel}
           onSectionChange={setSection}
           onBrowseChannels={() => setShowChannelBrowser(true)}
-          onEditPinned={() => useContentStore.getState().setShowOnboarding(true)}
           onMobileClose={closeMobileSidebar}
         />
 
@@ -259,7 +258,7 @@ function SearchModalWrapper() {
   const [searchResults, setSearchResults] = useState<SearchResult[]>([])
   const [isSearchLoading, setIsSearchLoading] = useState(false)
 
-  const handleSearch = useCallback(async (query: string) => {
+  const handleSearch = useCallback((query: string) => {
     setSearchQuery(query)
     if (!query.trim()) {
       setSearchResults([])
@@ -267,20 +266,40 @@ function SearchModalWrapper() {
     }
     setIsSearchLoading(true)
     try {
-      const results = await searchContent(query)
-      const mapped: SearchResult[] = (results ?? []).map(r => ({
-        id: r.id,
-        type: r.content_type as SearchResult['type'],
-        title:
-          typeof r.data === 'object' && r.data !== null && 'title' in r.data
-            ? String((r.data as Record<string, unknown>).title)
-            : 'Untitled',
-        preview:
-          typeof r.data === 'object' && r.data !== null && 'preview' in r.data
-            ? String((r.data as Record<string, unknown>).preview)
-            : '',
-        ...(r.channel_id && { channelId: r.channel_id }),
-      }))
+      const results = searchContent(query)
+      const mapped: SearchResult[] = (results ?? []).slice(0, 50).map(r => {
+        const d = (r.data ?? {}) as Record<string, unknown>
+        const type = r.content_type as SearchResult['type']
+        // Extract title based on content type
+        const title: string = (() => {
+          if (type === 'flashcard') return String(d.front ?? 'Flashcard')
+          if (type === 'question') return String(d.title ?? 'Question')
+          if (type === 'coding') return String(d.title ?? 'Challenge')
+          if (type === 'exam') return String(d.question ?? 'Exam question').slice(0, 80)
+          if (type === 'voice') return String(d.prompt ?? 'Voice prompt').slice(0, 80)
+          return String(d.title ?? d.front ?? d.question ?? d.prompt ?? 'Untitled')
+        })()
+        // Extract preview (secondary text)
+        const preview: string = (() => {
+          if (type === 'flashcard') return String(d.back ?? d.hint ?? '').slice(0, 100)
+          if (type === 'question') {
+            const sections = d.sections as Array<{ type: string; content: string }> | undefined
+            const first = sections?.find(s => s.type === 'text')?.content ?? ''
+            return first.slice(0, 100)
+          }
+          if (type === 'coding') return String(d.description ?? '').slice(0, 100)
+          if (type === 'exam') return String(d.explanation ?? '').slice(0, 100)
+          if (type === 'voice') return String(d.domain ?? d.type ?? '').slice(0, 100)
+          return ''
+        })()
+        return {
+          id: r.id,
+          type,
+          title,
+          preview,
+          ...(r.channel_id && { channelId: r.channel_id }),
+        }
+      })
       setSearchResults(mapped)
     } catch {
       setSearchResults([])

@@ -4,6 +4,7 @@ import { useContentStore, useFilteredContent } from '@/stores/contentStore'
 import { useChannels } from '@/hooks/useChannels'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { Spinner } from '@/components/ui/spinner'
+import { StatsPage } from '@/pages/StatsPage'
 
 const QAPage = lazy(() => import('@/pages/QAPage').then(m => ({ default: m.QAPage })))
 const FlashcardsPage = lazy(() =>
@@ -93,6 +94,7 @@ export function StudyContent({
               onVoicePractice={onVoicePractice}
             />
           )}
+          {section === 'stats' && <StatsPage />}
         </Suspense>
       </ErrorBoundary>
     </main>
