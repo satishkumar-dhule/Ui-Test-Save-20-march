@@ -6,7 +6,6 @@ import { examQuestions as staticExam } from '@/data/exam'
 import { voicePrompts as staticVoice } from '@/data/voicePractice'
 import { codingChallenges as staticCoding } from '@/data/coding'
 import { useGeneratedContent } from '@/hooks/useGeneratedContent'
-import { searchContentScored } from '@/services/dbClient'
 import { useMergeContent } from '@/hooks/useMergeContent'
 import { useAnalytics } from '@/hooks/useAnalytics'
 import { AppProviders } from '@/components/app/AppProviders'
@@ -242,7 +241,25 @@ function App() {
         <SearchModalWrapperMemo />
 
         {loading && (
-          <div style={{ position: 'fixed', bottom: 20, right: 20, zIndex: 9999, display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px', borderRadius: 'var(--dp-r-lg)', background: 'var(--dp-glass-2)', border: '1px solid var(--dp-border-0)', boxShadow: 'var(--dp-shadow-lg)', backdropFilter: 'blur(16px)', fontSize: 12.5, color: 'var(--dp-text-2)' }}>
+          <div
+            style={{
+              position: 'fixed',
+              bottom: 20,
+              right: 20,
+              zIndex: 9999,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '8px 14px',
+              borderRadius: 'var(--dp-r-lg)',
+              background: 'var(--dp-glass-2)',
+              border: '1px solid var(--dp-border-0)',
+              boxShadow: 'var(--dp-shadow-lg)',
+              backdropFilter: 'blur(16px)',
+              fontSize: 12.5,
+              color: 'var(--dp-text-2)',
+            }}
+          >
             <Spinner className="size-3" />
             Syncing content…
           </div>
@@ -267,144 +284,146 @@ function SearchModalWrapper() {
     }
     setIsSearchLoading(true)
     try {
-      // 1. Search DB-generated content
-      const results = searchContentScored(query)
-      const mapped: SearchResult[] = (results ?? []).map(r => {
-        const d = (r.data ?? {}) as Record<string, unknown>
-        const type = r.content_type as SearchResult['type']
-        const title: string = (() => {
-          if (type === 'flashcard') return String(d.front ?? 'Flashcard')
-          if (type === 'question') return String(d.title ?? 'Question')
-          if (type === 'coding') return String(d.title ?? 'Challenge')
-          if (type === 'exam') return String(d.question ?? 'Exam question').slice(0, 100)
-          if (type === 'voice') return String(d.prompt ?? 'Voice prompt').slice(0, 100)
-          return String(d.title ?? d.front ?? d.question ?? d.prompt ?? 'Untitled')
-        })()
-        const preview: string = (() => {
-          if (type === 'flashcard') return String(d.back ?? d.hint ?? '').slice(0, 120)
-          if (type === 'question') {
-            const sections = d.sections as Array<{ type: string; content: string }> | undefined
-            const first = sections?.find(s => s.type === 'text')?.content ?? ''
-            return first.slice(0, 120)
-          }
-          if (type === 'coding') return String(d.description ?? '').slice(0, 120)
-          if (type === 'exam') return String(d.explanation ?? '').slice(0, 120)
-          if (type === 'voice') return String(d.domain ?? d.type ?? '').slice(0, 120)
-          return ''
-        })()
-        return {
-          id: r.id,
-          type,
-          title,
-          preview,
-          score: r.searchScore,
-          matchedIn: r.matchedIn,
-          ...(r.channel_id && { channelId: r.channel_id }),
-        }
-      })
-
-      // 2. Search static data
-      const terms = query.toLowerCase().split(/\s+/).filter(t => t.length > 1)
-      const dbIds = new Set(mapped.map(r => r.id))
+      const terms = query
+        .toLowerCase()
+        .split(/\s+/)
+        .filter(t => t.length > 1)
 
       function scoreText(text: string): number {
         const lc = text.toLowerCase()
         return terms.reduce((acc, t) => acc + (lc.includes(t) ? 1 : 0), 0)
       }
 
-      const staticResults: SearchResult[] = []
+      // Search the SAME data source as display: mergedContent from the store.
+      // This ensures search results always match what the user sees.
+      const { mergedContent } = useContentStore.getState()
+      const seenIds = new Set<string>()
+      const results: SearchResult[] = []
 
-      for (const q of staticQuestions) {
-        if (dbIds.has(q.id)) continue
-        const titleScore = scoreText(q.title) * 3
-        const tagScore = q.tags ? q.tags.reduce((a, t) => a + scoreText(t), 0) : 0
-        const total = titleScore + tagScore
-        if (total === 0) continue
-        const firstSection = q.sections?.find(s => s.type === 'short') as { content?: string } | undefined
-        staticResults.push({
-          id: q.id,
-          type: 'question',
-          title: q.title,
-          preview: firstSection?.content?.slice(0, 120) ?? '',
+      function addResult(
+        id: string,
+        type: SearchResult['type'],
+        title: string,
+        preview: string,
+        titleScore: number,
+        bodyScore: number,
+        channelId?: string,
+        tags?: string[]
+      ) {
+        if (seenIds.has(id)) return
+        const tagScore = tags ? tags.reduce((a, t) => a + scoreText(t), 0) : 0
+        const total = titleScore + bodyScore + tagScore
+        if (total === 0) return
+        seenIds.add(id)
+        results.push({
+          id,
+          type,
+          title: title.slice(0, 200),
+          preview: preview.slice(0, 120),
           score: total,
-          matchedIn: titleScore > 0 ? 'title' : 'body',
-          ...(q.channelId && { channelId: q.channelId }),
+          matchedIn:
+            titleScore > 0 && bodyScore + tagScore > 0 ? 'both' : titleScore > 0 ? 'title' : 'body',
+          ...(channelId && { channelId }),
         })
       }
 
-      for (const f of staticFlashcards) {
-        if (dbIds.has(f.id)) continue
-        const frontScore = scoreText(f.front) * 3
-        const backScore = scoreText(f.back)
-        const tagScore = f.tags ? f.tags.reduce((a, t) => a + scoreText(t), 0) : 0
-        const total = frontScore + backScore + tagScore
-        if (total === 0) continue
-        staticResults.push({
-          id: f.id,
-          type: 'flashcard',
-          title: f.front,
-          preview: f.back.slice(0, 120),
-          score: total,
-          matchedIn: frontScore > 0 ? 'title' : 'body',
-          ...(f.channelId && { channelId: f.channelId }),
-        })
+      // 1. Search questions (from mergedContent = API data OR static fallback)
+      for (const q of mergedContent.questions) {
+        const d = q as unknown as Record<string, unknown>
+        const title = String(d.title ?? '')
+        const titleScore = scoreText(title) * 3
+        const sections = d.sections as Array<{ type: string; content: string }> | undefined
+        const bodyText = sections?.map(s => s.content).join(' ') ?? ''
+        const bodyScore = scoreText(bodyText)
+        addResult(
+          String(d.id),
+          'question',
+          title,
+          bodyText.slice(0, 120),
+          titleScore,
+          bodyScore,
+          d.channelId as string | undefined,
+          d.tags as string[] | undefined
+        )
       }
 
-      for (const e of staticExam) {
-        if (dbIds.has(e.id)) continue
-        const qScore = scoreText(e.question) * 3
-        const total = qScore
-        if (total === 0) continue
-        staticResults.push({
-          id: e.id,
-          type: 'exam',
-          title: e.question.slice(0, 100),
-          preview: e.explanation?.slice(0, 120) ?? '',
-          score: total,
-          matchedIn: 'title',
-          channelId: e.channelId,
-        })
+      // 2. Search flashcards
+      for (const f of mergedContent.flashcards) {
+        const d = f as unknown as Record<string, unknown>
+        const front = String(d.front ?? '')
+        const back = String(d.back ?? '')
+        const titleScore = scoreText(front) * 3
+        const bodyScore = scoreText(back)
+        addResult(
+          String(d.id),
+          'flashcard',
+          front,
+          back.slice(0, 120),
+          titleScore,
+          bodyScore,
+          d.channelId as string | undefined,
+          d.tags as string[] | undefined
+        )
       }
 
-      for (const v of staticVoice) {
-        if (dbIds.has(v.id)) continue
-        const pScore = scoreText(v.prompt) * 3
-        const domainScore = v.domain ? scoreText(v.domain) : 0
-        const total = pScore + domainScore
-        if (total === 0) continue
-        staticResults.push({
-          id: v.id,
-          type: 'voice',
-          title: v.prompt.slice(0, 100),
-          preview: v.domain ?? v.type ?? '',
-          score: total,
-          matchedIn: 'title',
-          channelId: v.channelId,
-        })
+      // 3. Search exam questions
+      for (const e of mergedContent.exam) {
+        const d = e as unknown as Record<string, unknown>
+        const question = String(d.question ?? '')
+        const qScore = scoreText(question) * 3
+        const explanation = String(d.explanation ?? '')
+        const bodyScore = scoreText(explanation)
+        addResult(
+          String(d.id),
+          'exam',
+          question.slice(0, 100),
+          explanation.slice(0, 120),
+          qScore,
+          bodyScore,
+          d.channelId as string | undefined
+        )
       }
 
-      for (const c of staticCoding) {
-        if (dbIds.has(c.id)) continue
-        const titleScore = scoreText(c.title) * 3
-        const descScore = scoreText(c.description ?? '')
-        const total = titleScore + descScore
-        if (total === 0) continue
-        staticResults.push({
-          id: c.id,
-          type: 'coding',
-          title: c.title,
-          preview: c.description?.slice(0, 120) ?? '',
-          score: total,
-          matchedIn: titleScore > 0 ? 'title' : 'body',
-        })
+      // 4. Search voice prompts
+      for (const v of mergedContent.voice) {
+        const d = v as unknown as Record<string, unknown>
+        const prompt = String(d.prompt ?? '')
+        const pScore = scoreText(prompt) * 3
+        const domain = String(d.domain ?? '')
+        const bodyScore = scoreText(domain)
+        addResult(
+          String(d.id),
+          'voice',
+          prompt.slice(0, 100),
+          domain || (d.type as string) || '',
+          pScore,
+          bodyScore,
+          d.channelId as string | undefined
+        )
       }
 
-      // 3. Merge and sort
-      const combined = [...mapped, ...staticResults]
-        .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
-        .slice(0, 80)
+      // 5. Search coding challenges
+      for (const c of mergedContent.coding) {
+        const d = c as unknown as Record<string, unknown>
+        const title = String(d.title ?? '')
+        const titleScore = scoreText(title) * 3
+        const desc = String(d.description ?? '')
+        const bodyScore = scoreText(desc)
+        addResult(
+          String(d.id),
+          'coding',
+          title,
+          desc.slice(0, 120),
+          titleScore,
+          bodyScore,
+          d.channelId as string | undefined,
+          d.tags as string[] | undefined
+        )
+      }
 
-      setSearchResults(combined)
+      // Sort by score descending, cap at 80
+      const sorted = results.sort((a, b) => (b.score ?? 0) - (a.score ?? 0)).slice(0, 80)
+      setSearchResults(sorted)
     } catch {
       setSearchResults([])
     } finally {
@@ -412,19 +431,22 @@ function SearchModalWrapper() {
     }
   }, [])
 
-  const handleSearch = useCallback((query: string) => {
-    setSearchQuery(query)
-    if (debounceRef.current) clearTimeout(debounceRef.current)
-    if (!query.trim()) {
-      setSearchResults([])
-      setIsSearchLoading(false)
-      return
-    }
-    setIsSearchLoading(true)
-    debounceRef.current = setTimeout(() => {
-      runSearch(query)
-    }, 150)
-  }, [runSearch])
+  const handleSearch = useCallback(
+    (query: string) => {
+      setSearchQuery(query)
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+      if (!query.trim()) {
+        setSearchResults([])
+        setIsSearchLoading(false)
+        return
+      }
+      setIsSearchLoading(true)
+      debounceRef.current = setTimeout(() => {
+        runSearch(query)
+      }, 150)
+    },
+    [runSearch]
+  )
 
   const handleClose = useCallback(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current)

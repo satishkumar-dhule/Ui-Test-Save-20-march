@@ -13,15 +13,24 @@ import {
   Clock,
   ChevronRight,
   Zap,
-  BookOpen,
-  Star,
-  TrendingUp,
   ArrowRight,
+  SearchX,
+  Command,
+  ArrowUpRight,
+  Hash,
+  CornerDownLeft,
+  ArrowUp,
+  ArrowDown,
+  Sparkles,
+  Trash2,
+  History,
+  LayoutGrid,
+  FolderOpen,
 } from 'lucide-react'
 import type { SearchResult, SearchResultType } from '@/types/search'
 
 const RECENT_SEARCHES_KEY = 'devprep-recent-searches'
-const MAX_RECENT = 6
+const MAX_RECENT = 8
 
 function getRecentSearches(): string[] {
   try {
@@ -47,6 +56,12 @@ function removeRecentSearch(query: string) {
   } catch {}
 }
 
+function clearAllRecentSearches() {
+  try {
+    localStorage.removeItem(RECENT_SEARCHES_KEY)
+  } catch {}
+}
+
 function highlightText(text: string, query: string): React.ReactNode {
   if (!query.trim()) return text
   const terms = query
@@ -55,19 +70,20 @@ function highlightText(text: string, query: string): React.ReactNode {
     .filter(t => t.length > 1)
   if (terms.length === 0) return text
 
-  const pattern = new RegExp(`(${terms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'gi')
+  const pattern = new RegExp(
+    `(${terms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`,
+    'gi'
+  )
   const parts = text.split(pattern)
 
   return parts.map((part, i) =>
     pattern.test(part) ? (
       <mark
         key={i}
+        className="rounded-[2px] px-0.5 font-bold"
         style={{
-          background: 'var(--dp-blue)22',
-          color: 'var(--dp-blue)',
-          borderRadius: 3,
-          padding: '0 2px',
-          fontWeight: 700,
+          background: 'color-mix(in srgb, var(--search-accent) 12%, transparent)',
+          color: 'var(--search-accent)',
         }}
       >
         {part}
@@ -80,23 +96,34 @@ function highlightText(text: string, query: string): React.ReactNode {
 
 const TYPE_CONFIG: Record<
   SearchResultType,
-  { label: string; icon: React.FC<{ size?: number }> ; color: string; bg: string }
+  {
+    label: string
+    icon: React.FC<{ size?: number; className?: string }>
+    color: string
+    bg: string
+  }
 > = {
-  flashcard: { label: 'Flashcard', icon: FileText, color: '#3fb950', bg: '#3fb95018' },
-  question: { label: 'Question', icon: ClipboardList, color: '#388bfd', bg: '#388bfd18' },
-  coding: { label: 'Coding', icon: Code, color: '#f7df1e', bg: '#f7df1e18' },
-  voice: { label: 'Voice', icon: Mic, color: '#bc8cff', bg: '#bc8cff18' },
-  exam: { label: 'Exam', icon: Layers, color: '#ff7b72', bg: '#ff7b7218' },
+  flashcard: { label: 'Flashcard', icon: FileText, color: '#22c55e', bg: 'rgba(34,197,94,0.1)' },
+  question: {
+    label: 'Question',
+    icon: ClipboardList,
+    color: '#3b82f6',
+    bg: 'rgba(59,130,246,0.1)',
+  },
+  coding: { label: 'Coding', icon: Code, color: '#eab308', bg: 'rgba(234,179,8,0.1)' },
+  voice: { label: 'Voice', icon: Mic, color: '#a855f7', bg: 'rgba(168,85,247,0.1)' },
+  exam: { label: 'Exam', icon: Layers, color: '#ef4444', bg: 'rgba(239,68,68,0.1)' },
 }
 
 const SECTION_QUICK_ACTIONS = [
-  { label: 'Browse Flashcards', icon: FileText, section: 'flashcards', color: '#3fb950' },
-  { label: 'Practice Questions', icon: ClipboardList, section: 'qa', color: '#388bfd' },
-  { label: 'Coding Challenges', icon: Code, section: 'coding', color: '#f7df1e' },
-  { label: 'Voice Practice', icon: Mic, section: 'voice', color: '#bc8cff' },
-  { label: 'Mock Exam', icon: Layers, section: 'exam', color: '#ff7b72' },
-  { label: 'Statistics', icon: TrendingUp, section: 'stats', color: '#39d3f4' },
+  { label: 'Browse Flashcards', icon: FileText, section: 'flashcards', color: '#22c55e' },
+  { label: 'Practice Questions', icon: ClipboardList, section: 'qa', color: '#3b82f6' },
+  { label: 'Coding Challenges', icon: Code, section: 'coding', color: '#eab308' },
+  { label: 'Voice Practice', icon: Mic, section: 'voice', color: '#a855f7' },
+  { label: 'Mock Exam', icon: Layers, section: 'exam', color: '#ef4444' },
 ]
+
+const FILTER_TYPES: SearchResultType[] = ['flashcard', 'question', 'coding', 'voice', 'exam']
 
 type FilterType = 'all' | SearchResultType
 
@@ -116,129 +143,92 @@ interface ResultItemProps {
   result: SearchResult
   query: string
   isActive: boolean
+  index: number
   onSelect: () => void
   onHover: () => void
 }
 
-const ResultItem = React.memo<ResultItemProps>(({ result, query, isActive, onSelect, onHover }) => {
-  const cfg = TYPE_CONFIG[result.type]
-  const Icon = cfg.icon
+const ResultItem = React.memo<ResultItemProps>(
+  ({ result, query, isActive, index, onSelect, onHover }) => {
+    const cfg = TYPE_CONFIG[result.type]
+    const Icon = cfg.icon
 
-  return (
-    <button
-      className="search-result-item"
-      data-active={isActive}
-      onClick={onSelect}
-      onMouseEnter={onHover}
-      role="option"
-      aria-selected={isActive}
-      data-testid="search-result"
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 12,
-        width: '100%',
-        padding: '10px 16px',
-        background: isActive ? 'var(--dp-bg-2)' : 'transparent',
-        border: 'none',
-        cursor: 'pointer',
-        textAlign: 'left',
-        transition: 'background 0.1s',
-        borderRadius: 0,
-      }}
-    >
-      <span
+    return (
+      <button
+        className="group flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors duration-100 outline-none focus-visible:ring-2 focus-visible:ring-inset"
         style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: 32,
-          height: 32,
-          borderRadius: 8,
-          background: cfg.bg,
-          color: cfg.color,
-          flexShrink: 0,
+          background: isActive ? 'var(--search-hover-bg)' : 'transparent',
+          borderRadius: 0,
+          ['--tw-ring-color' as string]: cfg.color,
         }}
-        aria-hidden="true"
+        onClick={onSelect}
+        onMouseEnter={onHover}
+        role="option"
+        aria-selected={isActive}
+        data-testid="search-result"
       >
-        <Icon size={15} />
-      </span>
-
-      <span style={{ flex: 1, minWidth: 0 }}>
         <span
-          data-testid="search-result-title"
-          style={{
-            display: 'block',
-            fontSize: 13,
-            fontWeight: 600,
-            color: 'var(--dp-text-0)',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-          }}
+          className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg transition-transform duration-150"
+          style={{ background: cfg.bg, color: cfg.color }}
+          aria-hidden="true"
         >
-          {highlightText(result.title, query)}
+          <Icon size={16} />
         </span>
-        {result.preview && (
+
+        <span className="min-w-0 flex-1">
           <span
-            data-testid="search-result-preview"
-            style={{
-              display: 'block',
-              fontSize: 11,
-              color: 'var(--dp-text-3)',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-              marginTop: 2,
-            }}
+            data-testid="search-result-title"
+            className="block truncate text-[13px] font-semibold"
+            style={{ color: 'var(--search-text-primary)' }}
           >
-            {highlightText(result.preview, query)}
+            {highlightText(result.title, query)}
+          </span>
+          {result.preview && (
+            <span
+              data-testid="search-result-preview"
+              className="mt-0.5 block truncate text-[11px] leading-relaxed"
+              style={{ color: 'var(--search-text-tertiary)' }}
+            >
+              {highlightText(result.preview, query)}
+            </span>
+          )}
+        </span>
+
+        {result.channelId && (
+          <span
+            className="hidden flex-shrink-0 items-center gap-1 text-[10px] font-medium sm:flex"
+            style={{ color: 'var(--search-text-tertiary)' }}
+          >
+            <FolderOpen size={10} className="opacity-60" />
+            {result.channelId}
           </span>
         )}
-      </span>
 
-      <span
-        data-testid="search-result-type"
-        style={{
-          fontSize: 10,
-          fontWeight: 700,
-          color: cfg.color,
-          background: cfg.bg,
-          border: `1px solid ${cfg.color}33`,
-          borderRadius: 4,
-          padding: '2px 6px',
-          flexShrink: 0,
-          letterSpacing: '0.04em',
-          textTransform: 'uppercase',
-        }}
-      >
-        {cfg.label}
-      </span>
-
-      {result.channelId && (
         <span
+          data-testid="search-result-type"
+          className="flex-shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider"
           style={{
-            fontSize: 10,
-            color: 'var(--dp-text-4)',
-            flexShrink: 0,
-            maxWidth: 80,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
+            color: cfg.color,
+            background: cfg.bg,
+            border: `1px solid ${cfg.color}22`,
           }}
         >
-          {result.channelId}
+          {cfg.label}
         </span>
-      )}
 
-      {isActive && (
-        <span style={{ color: 'var(--dp-text-4)', flexShrink: 0 }} aria-hidden="true">
-          <ChevronRight size={12} />
-        </span>
-      )}
-    </button>
-  )
-})
+        {isActive && (
+          <span
+            className="flex-shrink-0 opacity-40"
+            style={{ color: 'var(--search-text-primary)' }}
+            aria-hidden="true"
+          >
+            <CornerDownLeft size={11} />
+          </span>
+        )}
+      </button>
+    )
+  }
+)
 ResultItem.displayName = 'ResultItem'
 
 export function SearchModal({
@@ -257,28 +247,49 @@ export function SearchModal({
   const [activeIndex, setActiveIndex] = React.useState(0)
   const [activeFilter, setActiveFilter] = React.useState<FilterType>('all')
   const [recentSearches, setRecentSearches] = React.useState<string[]>([])
+  const [mounted, setMounted] = React.useState(false)
+  const [exiting, setExiting] = React.useState(false)
 
   React.useEffect(() => {
     if (isOpen) {
       setRecentSearches(getRecentSearches())
+      setMounted(true)
+      setExiting(false)
+    } else if (mounted) {
+      setExiting(true)
+      const timer = setTimeout(() => {
+        setMounted(false)
+        setExiting(false)
+      }, 200)
+      return () => clearTimeout(timer)
     }
   }, [isOpen])
 
   React.useEffect(() => {
     if (!isOpen) return
-    const timer = setTimeout(() => inputRef.current?.focus(), 50)
+    const timer = setTimeout(() => inputRef.current?.focus(), 60)
     return () => clearTimeout(timer)
   }, [isOpen])
 
   React.useEffect(() => {
     setActiveIndex(0)
-  }, [results])
+  }, [results, activeFilter])
 
   React.useEffect(() => {
     if (!isOpen) {
       setActiveFilter('all')
     }
   }, [isOpen])
+
+  // Scroll active item into view
+  React.useEffect(() => {
+    const list = listRef.current
+    if (!list) return
+    const activeEl = list.querySelector('[aria-selected="true"]') as HTMLElement | null
+    if (activeEl) {
+      activeEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+    }
+  }, [activeIndex])
 
   const filteredResults = React.useMemo(() => {
     if (activeFilter === 'all') return results
@@ -292,6 +303,19 @@ export function SearchModal({
     }
     return counts
   }, [results])
+
+  // Group results by type when filter is 'all' and we have results
+  const groupedResults = React.useMemo(() => {
+    if (activeFilter !== 'all') return null
+    const groups: { type: SearchResultType; label: string; results: SearchResult[] }[] = []
+    for (const type of FILTER_TYPES) {
+      const items = filteredResults.filter(r => r.type === type)
+      if (items.length > 0) {
+        groups.push({ type, label: TYPE_CONFIG[type].label, results: items })
+      }
+    }
+    return groups
+  }, [filteredResults, activeFilter])
 
   const activeItem = filteredResults[activeIndex] ?? null
 
@@ -318,8 +342,20 @@ export function SearchModal({
         else onClose()
         return
       }
+      // Tab to cycle filters
+      if (e.key === 'Tab' && filteredResults.length > 0) {
+        e.preventDefault()
+        const filters: FilterType[] = ['all', ...FILTER_TYPES.filter(t => (typeCounts[t] ?? 0) > 0)]
+        const currentIdx = filters.indexOf(activeFilter)
+        const nextIdx = e.shiftKey
+          ? (currentIdx - 1 + filters.length) % filters.length
+          : (currentIdx + 1) % filters.length
+        setActiveFilter(filters[nextIdx])
+        setActiveIndex(0)
+        return
+      }
     },
-    [onClose, filteredResults.length, activeItem, onSelect, query]
+    [onClose, filteredResults.length, activeItem, onSelect, query, activeFilter, typeCounts]
   )
 
   const handleInputChange = React.useCallback(
@@ -352,14 +388,16 @@ export function SearchModal({
     [onSearch]
   )
 
-  const handleRemoveRecent = React.useCallback(
-    (e: React.MouseEvent, q: string) => {
-      e.stopPropagation()
-      removeRecentSearch(q)
-      setRecentSearches(prev => prev.filter(r => r !== q))
-    },
-    []
-  )
+  const handleRemoveRecent = React.useCallback((e: React.MouseEvent, q: string) => {
+    e.stopPropagation()
+    removeRecentSearch(q)
+    setRecentSearches(prev => prev.filter(r => r !== q))
+  }, [])
+
+  const handleClearAllRecent = React.useCallback(() => {
+    clearAllRecentSearches()
+    setRecentSearches([])
+  }, [])
 
   const handleNavigate = React.useCallback(
     (section: string) => {
@@ -385,27 +423,24 @@ export function SearchModal({
     return () => document.removeEventListener('keydown', handler)
   }, [isOpen, onClose])
 
-  if (!isOpen) return null
+  if (!mounted) return null
 
   const showEmpty = query.trim() === ''
   const hasResults = filteredResults.length > 0
   const totalResults = results.length
+  const isExiting = exiting
 
   return createPortal(
     <div
+      className="fixed inset-0 z-[9999] flex items-start justify-center px-4"
       style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 9999,
-        display: 'flex',
-        alignItems: 'flex-start',
-        justifyContent: 'center',
         paddingTop: 'clamp(40px, 10vh, 120px)',
-        paddingLeft: 16,
-        paddingRight: 16,
-        background: 'rgba(0,0,0,0.55)',
-        backdropFilter: 'blur(4px)',
-        WebkitBackdropFilter: 'blur(4px)',
+        background: 'rgba(0,0,0,0.6)',
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
+        animation: isExiting
+          ? 'searchFadeOut 150ms ease-in forwards'
+          : 'searchFadeIn 150ms ease-out',
       }}
       onClick={handleBackdropClick}
       data-testid="search-modal"
@@ -414,34 +449,33 @@ export function SearchModal({
       aria-label="Search"
     >
       <div
+        className="flex w-full max-w-[620px] flex-col overflow-hidden rounded-2xl border shadow-2xl"
         style={{
-          width: '100%',
-          maxWidth: 640,
-          background: 'var(--dp-bg-0)',
-          border: '1px solid var(--dp-border-1)',
-          borderRadius: 14,
-          boxShadow: '0 24px 64px rgba(0,0,0,0.5)',
-          overflow: 'hidden',
-          display: 'flex',
-          flexDirection: 'column',
-          maxHeight: 'min(640px, 80dvh)',
+          background: 'var(--search-bg)',
+          borderColor: 'var(--search-border)',
+          boxShadow:
+            '0 0 0 1px rgba(0,0,0,0.05), 0 24px 80px rgba(0,0,0,0.5), 0 0 120px rgba(99,102,241,0.06)',
+          maxHeight: 'min(560px, 75dvh)',
+          animation: isExiting
+            ? 'searchModalOut 150ms ease-in forwards'
+            : 'searchModalIn 200ms cubic-bezier(0.16, 1, 0.3, 1)',
         }}
         onClick={e => e.stopPropagation()}
         onKeyDown={handleKeyDown}
       >
         {/* Search Input */}
         <div
+          className="flex items-center gap-3 border-b px-4"
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-            padding: '12px 16px',
-            borderBottom: '1px solid var(--dp-border-1)',
+            borderColor: 'var(--search-border)',
+            paddingTop: '14px',
+            paddingBottom: '14px',
           }}
         >
           <Search
-            size={17}
-            style={{ color: 'var(--dp-text-3)', flexShrink: 0 }}
+            size={18}
+            className="flex-shrink-0"
+            style={{ color: 'var(--search-text-tertiary)' }}
             aria-hidden="true"
           />
           <input
@@ -454,14 +488,10 @@ export function SearchModal({
             aria-label="Search content"
             aria-autocomplete="list"
             aria-expanded={hasResults}
+            className="flex-1 bg-transparent text-[15px] font-medium outline-none placeholder:font-normal"
             style={{
-              flex: 1,
-              background: 'transparent',
-              border: 'none',
-              outline: 'none',
-              fontSize: 15,
-              color: 'var(--dp-text-0)',
-              caretColor: 'var(--dp-blue)',
+              color: 'var(--search-text-primary)',
+              caretColor: 'var(--search-accent)',
             }}
           />
           {query && (
@@ -469,87 +499,63 @@ export function SearchModal({
               data-testid="search-clear-button"
               onClick={handleClear}
               aria-label="Clear search"
+              className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md transition-colors duration-100 hover:brightness-125"
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: 'var(--dp-bg-3)',
-                border: 'none',
-                borderRadius: 6,
-                width: 24,
-                height: 24,
-                cursor: 'pointer',
-                color: 'var(--dp-text-3)',
-                flexShrink: 0,
+                background: 'var(--search-chip-bg)',
+                color: 'var(--search-text-tertiary)',
               }}
             >
-              <X size={13} aria-hidden="true" />
+              <X size={12} aria-hidden="true" />
             </button>
           )}
-          <button
-            onClick={onClose}
-            aria-label="Close search"
+          <kbd
+            className="flex h-6 flex-shrink-0 items-center gap-0.5 rounded-md border px-1.5 text-[10px] font-semibold"
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: 'var(--dp-bg-3)',
-              border: '1px solid var(--dp-border-1)',
-              borderRadius: 6,
-              padding: '2px 6px',
-              cursor: 'pointer',
-              color: 'var(--dp-text-3)',
-              fontSize: 11,
-              fontWeight: 600,
-              letterSpacing: '0.02em',
-              flexShrink: 0,
+              background: 'var(--search-chip-bg)',
+              borderColor: 'var(--search-border)',
+              color: 'var(--search-text-tertiary)',
             }}
           >
-            esc
-          </button>
+            ESC
+          </kbd>
         </div>
 
-        {/* Type Filter Tabs — only shown when results exist */}
-        {!showEmpty && (
+        {/* Type Filter Chips */}
+        {!showEmpty && totalResults > 0 && (
           <div
+            className="flex gap-1.5 border-b px-3 py-2"
             style={{
-              display: 'flex',
-              gap: 4,
-              padding: '8px 12px',
-              borderBottom: '1px solid var(--dp-border-1)',
+              borderColor: 'var(--search-border)',
               overflowX: 'auto',
               scrollbarWidth: 'none',
             }}
           >
             <button
-              onClick={() => { setActiveFilter('all'); setActiveIndex(0) }}
+              onClick={() => {
+                setActiveFilter('all')
+                setActiveIndex(0)
+              }}
+              className="flex flex-shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-all duration-150"
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 5,
-                padding: '3px 10px',
-                borderRadius: 20,
-                border: '1px solid',
-                borderColor: activeFilter === 'all' ? 'var(--dp-blue)' : 'var(--dp-border-1)',
-                background: activeFilter === 'all' ? 'var(--dp-blue)18' : 'transparent',
-                color: activeFilter === 'all' ? 'var(--dp-blue)' : 'var(--dp-text-3)',
-                fontSize: 11,
-                fontWeight: 600,
-                cursor: 'pointer',
-                flexShrink: 0,
-                transition: 'all 0.15s',
+                borderColor:
+                  activeFilter === 'all' ? 'var(--search-accent)' : 'var(--search-border)',
+                background:
+                  activeFilter === 'all'
+                    ? 'color-mix(in srgb, var(--search-accent) 12%, transparent)'
+                    : 'transparent',
+                color:
+                  activeFilter === 'all' ? 'var(--search-accent)' : 'var(--search-text-tertiary)',
               }}
             >
+              <LayoutGrid size={11} />
               All
               {totalResults > 0 && (
                 <span
+                  className="rounded-full px-1 py-px text-[10px] font-bold"
                   style={{
-                    background: activeFilter === 'all' ? 'var(--dp-blue)' : 'var(--dp-bg-3)',
-                    color: activeFilter === 'all' ? '#fff' : 'var(--dp-text-3)',
-                    borderRadius: 10,
-                    padding: '0 5px',
-                    fontSize: 10,
-                    fontWeight: 700,
+                    background:
+                      activeFilter === 'all' ? 'var(--search-accent)' : 'var(--search-chip-bg)',
+                    color: activeFilter === 'all' ? '#fff' : 'var(--search-text-tertiary)',
                   }}
                 >
                   {totalResults}
@@ -557,7 +563,7 @@ export function SearchModal({
               )}
             </button>
 
-            {(Object.keys(TYPE_CONFIG) as SearchResultType[]).map(type => {
+            {FILTER_TYPES.map(type => {
               const cfg = TYPE_CONFIG[type]
               const count = typeCounts[type] ?? 0
               if (count === 0) return null
@@ -566,34 +572,24 @@ export function SearchModal({
               return (
                 <button
                   key={type}
-                  onClick={() => { setActiveFilter(type); setActiveIndex(0) }}
+                  onClick={() => {
+                    setActiveFilter(type)
+                    setActiveIndex(0)
+                  }}
+                  className="flex flex-shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-all duration-150"
                   style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 5,
-                    padding: '3px 10px',
-                    borderRadius: 20,
-                    border: '1px solid',
-                    borderColor: isActive ? cfg.color : 'var(--dp-border-1)',
+                    borderColor: isActive ? cfg.color : 'var(--search-border)',
                     background: isActive ? cfg.bg : 'transparent',
-                    color: isActive ? cfg.color : 'var(--dp-text-3)',
-                    fontSize: 11,
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    flexShrink: 0,
-                    transition: 'all 0.15s',
+                    color: isActive ? cfg.color : 'var(--search-text-tertiary)',
                   }}
                 >
                   <Icon size={11} />
                   {cfg.label}
                   <span
+                    className="rounded-full px-1 py-px text-[10px] font-bold"
                     style={{
-                      background: isActive ? cfg.color : 'var(--dp-bg-3)',
-                      color: isActive ? '#fff' : 'var(--dp-text-3)',
-                      borderRadius: 10,
-                      padding: '0 5px',
-                      fontSize: 10,
-                      fontWeight: 700,
+                      background: isActive ? cfg.color : 'var(--search-chip-bg)',
+                      color: isActive ? '#fff' : 'var(--search-text-tertiary)',
                     }}
                   >
                     {count}
@@ -612,152 +608,154 @@ export function SearchModal({
           role="listbox"
           aria-label="Search results"
           aria-live="polite"
-          style={{
-            flex: 1,
-            overflowY: 'auto',
-            overscrollBehavior: 'contain',
-          }}
+          className="flex-1 overscroll-contain"
+          style={{ overflowY: 'auto' }}
         >
           {/* Empty query state */}
           {showEmpty && (
-            <div style={{ padding: '8px 0 4px' }}>
+            <div className="pb-2 pt-1">
               {/* Recent searches */}
               {recentSearches.length > 0 && (
-                <div>
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 6,
-                      padding: '6px 16px 4px',
-                      fontSize: 10,
-                      fontWeight: 700,
-                      color: 'var(--dp-text-4)',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.08em',
-                    }}
-                  >
-                    <Clock size={10} aria-hidden="true" />
-                    Recent Searches
+                <div className="mb-1">
+                  <div className="flex items-center justify-between px-4 pb-1.5 pt-2">
+                    <span
+                      className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest"
+                      style={{ color: 'var(--search-text-tertiary)' }}
+                    >
+                      <History size={11} aria-hidden="true" />
+                      Recent
+                    </span>
+                    <button
+                      onClick={handleClearAllRecent}
+                      className="flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium transition-colors duration-100"
+                      style={{ color: 'var(--search-text-tertiary)' }}
+                      aria-label="Clear all recent searches"
+                    >
+                      <Trash2 size={10} aria-hidden="true" />
+                      Clear
+                    </button>
                   </div>
                   {recentSearches.map(q => (
                     <button
                       key={q}
                       onClick={() => handleRecentSearch(q)}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 10,
-                        width: '100%',
-                        padding: '8px 16px',
-                        background: 'transparent',
-                        border: 'none',
-                        cursor: 'pointer',
-                        textAlign: 'left',
-                        color: 'var(--dp-text-2)',
-                        fontSize: 13,
-                        transition: 'background 0.1s',
-                      }}
+                      className="group flex w-full items-center gap-3 px-4 py-2 text-left transition-colors duration-100"
+                      style={{ color: 'var(--search-text-secondary)' }}
                       onMouseEnter={e => {
-                        ;(e.currentTarget as HTMLElement).style.background = 'var(--dp-bg-2)'
+                        ;(e.currentTarget as HTMLElement).style.background =
+                          'var(--search-hover-bg)'
                       }}
                       onMouseLeave={e => {
                         ;(e.currentTarget as HTMLElement).style.background = 'transparent'
                       }}
                     >
-                      <Clock size={13} style={{ color: 'var(--dp-text-4)', flexShrink: 0 }} aria-hidden="true" />
-                      <span style={{ flex: 1 }}>{q}</span>
+                      <Clock
+                        size={13}
+                        className="flex-shrink-0 opacity-40"
+                        style={{ color: 'var(--search-text-tertiary)' }}
+                        aria-hidden="true"
+                      />
+                      <span className="flex-1 truncate text-[13px]">{q}</span>
                       <span
                         onClick={e => handleRemoveRecent(e, q)}
                         role="button"
                         aria-label={`Remove "${q}" from recent searches`}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          color: 'var(--dp-text-4)',
-                          padding: 4,
-                          borderRadius: 4,
-                        }}
+                        className="flex items-center rounded p-1 opacity-0 transition-opacity duration-100 group-hover:opacity-100"
+                        style={{ color: 'var(--search-text-tertiary)' }}
                       >
                         <X size={11} aria-hidden="true" />
                       </span>
                     </button>
                   ))}
                   <div
-                    style={{
-                      height: 1,
-                      background: 'var(--dp-border-1)',
-                      margin: '8px 16px',
-                    }}
+                    className="mx-4 mt-1.5"
+                    style={{ height: 1, background: 'var(--search-border)' }}
                   />
                 </div>
               )}
 
               {/* Quick navigate */}
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  padding: '6px 16px 4px',
-                  fontSize: 10,
-                  fontWeight: 700,
-                  color: 'var(--dp-text-4)',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.08em',
-                }}
-              >
-                <Zap size={10} aria-hidden="true" />
-                Quick Navigate
+              <div className="px-4 pb-1.5 pt-2">
+                <span
+                  className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest"
+                  style={{ color: 'var(--search-text-tertiary)' }}
+                >
+                  <Sparkles size={11} aria-hidden="true" />
+                  Quick Actions
+                </span>
               </div>
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(2, 1fr)',
-                  gap: 4,
-                  padding: '4px 12px 12px',
-                }}
-              >
+              <div className="grid grid-cols-2 gap-1.5 px-3 pb-3">
                 {SECTION_QUICK_ACTIONS.map(action => {
                   const Icon = action.icon
                   return (
                     <button
                       key={action.section}
                       onClick={() => handleNavigate(action.section)}
+                      className="flex items-center gap-2.5 rounded-xl border px-3 py-2.5 text-left text-[12px] font-medium transition-all duration-150"
                       style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 8,
-                        padding: '8px 12px',
-                        background: 'var(--dp-bg-1)',
-                        border: '1px solid var(--dp-border-1)',
-                        borderRadius: 8,
-                        cursor: 'pointer',
-                        textAlign: 'left',
-                        color: 'var(--dp-text-2)',
-                        fontSize: 12,
-                        fontWeight: 500,
-                        transition: 'all 0.15s',
+                        background: 'var(--search-chip-bg)',
+                        borderColor: 'var(--search-border)',
+                        color: 'var(--search-text-secondary)',
                       }}
                       onMouseEnter={e => {
                         const el = e.currentTarget as HTMLElement
-                        el.style.background = 'var(--dp-bg-2)'
                         el.style.borderColor = `${action.color}44`
                         el.style.color = action.color
+                        el.style.background = `color-mix(in srgb, ${action.color} 6%, var(--search-chip-bg))`
                       }}
                       onMouseLeave={e => {
                         const el = e.currentTarget as HTMLElement
-                        el.style.background = 'var(--dp-bg-1)'
-                        el.style.borderColor = 'var(--dp-border-1)'
-                        el.style.color = 'var(--dp-text-2)'
+                        el.style.borderColor = 'var(--search-border)'
+                        el.style.color = 'var(--search-text-secondary)'
+                        el.style.background = 'var(--search-chip-bg)'
                       }}
                     >
-                      <Icon size={13} style={{ color: action.color }} aria-hidden="true" />
-                      {action.label}
+                      <Icon
+                        size={14}
+                        style={{ color: action.color, flexShrink: 0 }}
+                        aria-hidden="true"
+                      />
+                      <span className="truncate">{action.label}</span>
                     </button>
                   )
                 })}
               </div>
+
+              {/* Shortcut hints */}
+              {recentSearches.length === 0 && (
+                <div
+                  className="mx-4 mb-3 flex items-center justify-center gap-4 rounded-xl py-3"
+                  style={{ background: 'var(--search-chip-bg)' }}
+                >
+                  {[
+                    { keys: ['↑', '↓'], label: 'Navigate' },
+                    { keys: ['↵'], label: 'Select' },
+                    { keys: ['Tab'], label: 'Filter' },
+                    { keys: ['Esc'], label: 'Close' },
+                  ].map(({ keys, label }) => (
+                    <span
+                      key={label}
+                      className="flex items-center gap-1.5 text-[11px]"
+                      style={{ color: 'var(--search-text-tertiary)' }}
+                    >
+                      {keys.map(k => (
+                        <kbd
+                          key={k}
+                          className="inline-flex h-5 min-w-[20px] items-center justify-center rounded border px-1 text-[10px] font-semibold"
+                          style={{
+                            background: 'var(--search-bg)',
+                            borderColor: 'var(--search-border)',
+                            color: 'var(--search-text-secondary)',
+                          }}
+                        >
+                          {k}
+                        </kbd>
+                      ))}
+                      {label}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
@@ -767,27 +765,29 @@ export function SearchModal({
               data-testid="search-loading"
               role="status"
               aria-live="polite"
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '40px 16px',
-                gap: 12,
-              }}
+              className="flex flex-col items-center justify-center gap-3 py-12"
             >
-              <div
-                style={{
-                  width: 20,
-                  height: 20,
-                  border: '2px solid var(--dp-border-1)',
-                  borderTopColor: 'var(--dp-blue)',
-                  borderRadius: '50%',
-                  animation: 'spin 0.7s linear infinite',
-                }}
-                aria-hidden="true"
-              />
-              <span style={{ fontSize: 13, color: 'var(--dp-text-3)' }}>Searching...</span>
+              <div className="relative h-8 w-8">
+                <div
+                  className="absolute inset-0 rounded-full border-2"
+                  style={{
+                    borderColor: 'var(--search-border)',
+                  }}
+                />
+                <div
+                  className="absolute inset-0 rounded-full border-2 border-transparent"
+                  style={{
+                    borderTopColor: 'var(--search-accent)',
+                    animation: 'spin 0.7s linear infinite',
+                  }}
+                />
+              </div>
+              <span
+                className="text-[13px] font-medium"
+                style={{ color: 'var(--search-text-tertiary)' }}
+              >
+                Searching...
+              </span>
             </div>
           )}
 
@@ -796,79 +796,115 @@ export function SearchModal({
             <div
               data-testid="search-empty-state"
               role="status"
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                padding: '40px 16px',
-                gap: 8,
-              }}
+              className="flex flex-col items-center px-6 py-10"
             >
               <div
-                style={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: '50%',
-                  background: 'var(--dp-bg-2)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
+                className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl"
+                style={{ background: 'var(--search-chip-bg)' }}
               >
-                <Search size={22} style={{ color: 'var(--dp-text-4)' }} aria-hidden="true" />
+                <SearchX
+                  size={24}
+                  style={{ color: 'var(--search-text-tertiary)' }}
+                  aria-hidden="true"
+                />
               </div>
-              <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--dp-text-1)', margin: 0 }}>
+              <p
+                className="mb-1 text-[14px] font-semibold"
+                style={{ color: 'var(--search-text-primary)' }}
+              >
                 No results for &ldquo;{query}&rdquo;
               </p>
-              <p style={{ fontSize: 12, color: 'var(--dp-text-4)', margin: 0, textAlign: 'center' }}>
-                Try different keywords or check the spelling
+              <p
+                className="mb-4 max-w-[280px] text-center text-[12px] leading-relaxed"
+                style={{ color: 'var(--search-text-tertiary)' }}
+              >
+                Try different keywords, check the spelling, or search all content types
               </p>
               {activeFilter !== 'all' && (
                 <button
                   onClick={() => setActiveFilter('all')}
+                  className="flex items-center gap-1.5 rounded-lg border px-3.5 py-1.5 text-[12px] font-semibold transition-colors duration-100"
                   style={{
-                    marginTop: 8,
-                    padding: '6px 14px',
-                    border: '1px solid var(--dp-border-1)',
-                    borderRadius: 8,
-                    background: 'transparent',
-                    color: 'var(--dp-blue)',
-                    fontSize: 12,
-                    fontWeight: 600,
-                    cursor: 'pointer',
+                    borderColor: 'var(--search-border)',
+                    color: 'var(--search-accent)',
+                  }}
+                  onMouseEnter={e => {
+                    ;(e.currentTarget as HTMLElement).style.background = 'var(--search-chip-bg)'
+                  }}
+                  onMouseLeave={e => {
+                    ;(e.currentTarget as HTMLElement).style.background = 'transparent'
                   }}
                 >
+                  <LayoutGrid size={12} />
                   Search all types
                 </button>
               )}
             </div>
           )}
 
-          {/* Results */}
-          {!showEmpty && !isLoading && hasResults && (
-            <div style={{ padding: '4px 0' }}>
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '4px 16px 6px',
-                }}
-              >
+          {/* Results — Grouped by type when filter is 'all' */}
+          {!showEmpty && !isLoading && hasResults && activeFilter === 'all' && groupedResults && (
+            <div className="pb-1 pt-0.5">
+              {groupedResults.map((group, groupIdx) => {
+                const cfg = TYPE_CONFIG[group.type]
+                const GroupIcon = cfg.icon
+                let globalIndex = 0
+                for (let i = 0; i < groupIdx; i++) {
+                  globalIndex += groupedResults[i].results.length
+                }
+
+                return (
+                  <div key={group.type}>
+                    <div className="flex items-center gap-2 px-4 pb-1 pt-3">
+                      <GroupIcon
+                        size={12}
+                        style={{ color: cfg.color }}
+                        className="opacity-70"
+                        aria-hidden="true"
+                      />
+                      <span
+                        className="text-[10px] font-bold uppercase tracking-widest"
+                        style={{ color: 'var(--search-text-tertiary)' }}
+                      >
+                        {cfg.label}s
+                      </span>
+                      <span
+                        className="text-[10px] font-medium"
+                        style={{ color: 'var(--search-text-tertiary)' }}
+                      >
+                        {group.results.length}
+                      </span>
+                    </div>
+                    {group.results.map((result, idx) => {
+                      const itemIndex = globalIndex + idx
+                      return (
+                        <ResultItem
+                          key={result.id}
+                          result={result}
+                          query={query}
+                          isActive={itemIndex === activeIndex}
+                          index={itemIndex}
+                          onSelect={() => handleSelectResult(result)}
+                          onHover={() => setActiveIndex(itemIndex)}
+                        />
+                      )
+                    })}
+                  </div>
+                )
+              })}
+            </div>
+          )}
+
+          {/* Results — Flat list when a specific filter is active */}
+          {!showEmpty && !isLoading && hasResults && activeFilter !== 'all' && (
+            <div className="pb-1 pt-0.5">
+              <div className="flex items-center justify-between px-4 pb-1 pt-2">
                 <span
-                  style={{
-                    fontSize: 10,
-                    fontWeight: 700,
-                    color: 'var(--dp-text-4)',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.08em',
-                  }}
+                  className="text-[10px] font-bold uppercase tracking-widest"
+                  style={{ color: 'var(--search-text-tertiary)' }}
                 >
-                  {filteredResults.length} result{filteredResults.length !== 1 ? 's' : ''}
-                  {activeFilter !== 'all' && ` · ${TYPE_CONFIG[activeFilter].label}s`}
-                </span>
-                <span style={{ fontSize: 10, color: 'var(--dp-text-4)' }}>
-                  sorted by relevance
+                  {filteredResults.length} {TYPE_CONFIG[activeFilter].label}
+                  {filteredResults.length !== 1 ? 's' : ''}
                 </span>
               </div>
               {filteredResults.map((result, idx) => (
@@ -877,6 +913,7 @@ export function SearchModal({
                   result={result}
                   query={query}
                   isActive={idx === activeIndex}
+                  index={idx}
                   onSelect={() => handleSelectResult(result)}
                   onHover={() => setActiveIndex(idx)}
                 />
@@ -885,67 +922,67 @@ export function SearchModal({
           )}
         </div>
 
-        {/* Footer — keyboard hints */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '8px 14px',
-            borderTop: '1px solid var(--dp-border-1)',
-            background: 'var(--dp-bg-1)',
-            flexShrink: 0,
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            {[
-              { keys: ['↑', '↓'], label: 'navigate' },
-              { keys: ['↵'], label: 'select' },
-              { keys: ['esc'], label: 'close' },
-            ].map(({ keys, label }) => (
-              <span
-                key={label}
-                style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--dp-text-4)' }}
-              >
-                {keys.map(k => (
-                  <kbd
-                    key={k}
-                    style={{
-                      background: 'var(--dp-bg-3)',
-                      border: '1px solid var(--dp-border-1)',
-                      borderRadius: 4,
-                      padding: '1px 5px',
-                      fontSize: 10,
-                      fontFamily: 'inherit',
-                      fontWeight: 600,
-                    }}
-                  >
-                    {k}
-                  </kbd>
-                ))}
-                <span>{label}</span>
-              </span>
-            ))}
-          </div>
-
-          <span
+        {/* Footer */}
+        {!showEmpty && hasResults && (
+          <div
+            className="flex flex-shrink-0 items-center justify-between border-t px-4 py-2"
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 4,
-              fontSize: 11,
-              color: 'var(--dp-text-4)',
+              borderColor: 'var(--search-border)',
+              background: 'var(--search-chip-bg)',
             }}
           >
-            <Zap size={10} style={{ color: 'var(--dp-blue)' }} aria-hidden="true" />
-            DevPrep
-          </span>
-        </div>
+            <div className="flex items-center gap-3">
+              {[
+                { keys: ['↑', '↓'], label: 'navigate' },
+                { keys: ['↵'], label: 'open' },
+                { keys: ['Tab'], label: 'filter' },
+                { keys: ['Esc'], label: 'close' },
+              ].map(({ keys, label }) => (
+                <span
+                  key={label}
+                  className="flex items-center gap-1 text-[10px]"
+                  style={{ color: 'var(--search-text-tertiary)' }}
+                >
+                  {keys.map(k => (
+                    <kbd
+                      key={k}
+                      className="inline-flex h-4 min-w-[16px] items-center justify-center rounded border px-1 text-[9px] font-semibold"
+                      style={{
+                        background: 'var(--search-bg)',
+                        borderColor: 'var(--search-border)',
+                      }}
+                    >
+                      {k}
+                    </kbd>
+                  ))}
+                  {label}
+                </span>
+              ))}
+            </div>
+
+            <span
+              className="flex items-center gap-1 text-[10px] font-medium"
+              style={{ color: 'var(--search-text-tertiary)' }}
+            >
+              <Zap size={9} style={{ color: 'var(--search-accent)' }} aria-hidden="true" />
+              DevPrep
+            </span>
+          </div>
+        )}
       </div>
 
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
-        .search-result-item:hover { background: var(--dp-bg-2) !important; }
+        @keyframes searchFadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes searchFadeOut { from { opacity: 1; } to { opacity: 0; } }
+        @keyframes searchModalIn {
+          from { opacity: 0; transform: scale(0.96) translateY(-8px); }
+          to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        @keyframes searchModalOut {
+          from { opacity: 1; transform: scale(1) translateY(0); }
+          to { opacity: 0; transform: scale(0.97) translateY(-4px); }
+        }
       `}</style>
     </div>,
     document.body

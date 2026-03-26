@@ -1,27 +1,31 @@
 import { useMemo } from 'react'
 
 /**
- * DB-first content selector.
+ * Content merger that combines static and generated (API) content.
  *
- * Rule: the database (devprep.db via sql.js) is the single source of truth for
- * all content. Static data files are a fallback used only when the DB has not
- * yet loaded or is genuinely empty for this content type.
- *
- * - If generatedContent (DB) has items → return DB content exclusively.
- * - If generatedContent is empty / undefined → return staticContent (fallback).
- *
- * This replaces the previous "static + DB unique items" merge strategy to
- * prevent stale or reduced static data from appearing alongside richer DB content.
+ * Strategy:
+ * - Generated (API) content takes priority for items with the same ID.
+ * - Static content is included for any items whose IDs don't appear in generated content.
+ * - This ensures channels without API content still show their static fallback,
+ *   while channels with API content get the richer generated data.
  */
 export function useMergeContent<T extends { id: string }>(
   staticContent: T[],
   generatedContent: T[] | undefined
 ): T[] {
   return useMemo(() => {
-    if (generatedContent && generatedContent.length > 0) {
+    // If no generated content at all, return static
+    if (!generatedContent || generatedContent.length === 0) {
+      return staticContent
+    }
+    // If no static content, return generated
+    if (staticContent.length === 0) {
       return generatedContent
     }
-    return staticContent
+    // Merge: generated items first, then static items not already present
+    const genIds = new Set(generatedContent.map(item => item.id))
+    const uniqueStatic = staticContent.filter(item => !genIds.has(item.id))
+    return [...generatedContent, ...uniqueStatic]
   }, [staticContent, generatedContent])
 }
 

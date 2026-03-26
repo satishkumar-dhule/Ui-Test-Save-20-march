@@ -48,7 +48,7 @@ function saveCache(data: GeneratedContentMap) {
   }
 }
 
-const memoryCache = new Map<string, GeneratedContentMap>()
+const memoryCache = new Map<string, { ts: number; data: GeneratedContentMap }>()
 let fetchPromise: Promise<void> | null = null
 
 interface UseGeneratedContentResult {
@@ -130,7 +130,7 @@ function getUserFriendlyErrorMessage(errors: Array<{ type: string; message: stri
 export function useGeneratedContent(): UseGeneratedContentResult {
   const [generated, setGenerated] = useState<GeneratedContentMap>(() => {
     const cached = loadCache()
-    if (cached) memoryCache.set(CACHE_KEY, cached)
+    if (cached) memoryCache.set(CACHE_KEY, { ts: Date.now(), data: cached })
     return cached ?? {}
   })
   const [loading, setLoading] = useState(() => !loadCache())
@@ -165,7 +165,7 @@ export function useGeneratedContent(): UseGeneratedContentResult {
       .then(({ data, parseErrors: errors }) => {
         setGenerated(data)
         saveCache(data)
-        memoryCache.set(CACHE_KEY, data)
+        memoryCache.set(CACHE_KEY, { ts: Date.now(), data })
         setParseErrors(errors)
         if (errors.length > 0) {
           setError(getUserFriendlyErrorMessage(errors))
@@ -188,7 +188,8 @@ export function useGeneratedContent(): UseGeneratedContentResult {
   }, [])
 
   useEffect(() => {
-    if (memoryCache.has(CACHE_KEY)) return
+    const cached = memoryCache.get(CACHE_KEY)
+    if (cached && Date.now() - cached.ts < CACHE_TTL_MS) return
     fetchContent()
 
     return () => {

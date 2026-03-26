@@ -333,6 +333,91 @@ function initializeDatabase(): void {
         }
       },
     },
+    {
+      id: '20260326_01_sync_missing_content',
+      up: () => {
+        // Sync records from generated_content that are missing in contents.
+        // This catches records written by external processes after the initial migration.
+        const missingRows = db
+          .prepare(
+            `SELECT gc.* FROM generated_content gc
+             LEFT JOIN contents c ON gc.id = c.id
+             WHERE c.id IS NULL`
+          )
+          .all() as any[]
+        if (missingRows.length === 0) {
+          console.log('[Migration] No missing records to sync')
+          return
+        }
+
+        const insertContent = db.prepare(`
+          INSERT OR IGNORE INTO contents
+            (id, channel_id, content_type, difficulty, tags, status, quality_score, embedding_id, data, created_at, updated_at, generated_by, generation_time_ms)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `)
+        const insertTag = db.prepare(
+          'INSERT OR IGNORE INTO content_tags (content_id, tag) VALUES (?, ?)'
+        )
+
+        const syncAll = db.transaction(() => {
+          for (const row of missingRows) {
+            let parsed: any = {}
+            try {
+              parsed = JSON.parse(row.data)
+            } catch {
+              /* keep empty */
+            }
+
+            let difficulty = 'intermediate'
+            if (
+              parsed.difficulty &&
+              ['beginner', 'intermediate', 'advanced', 'easy', 'medium', 'hard'].includes(
+                parsed.difficulty
+              )
+            ) {
+              difficulty = parsed.difficulty
+            }
+
+            let tags: string[] = []
+            if (Array.isArray(parsed.tags) && parsed.tags.length > 0) {
+              tags = parsed.tags.slice(0, 5)
+            } else if (row.channel_id) {
+              tags = [row.channel_id]
+            }
+
+            let status = row.status || 'pending'
+            if (!['pending', 'approved', 'published', 'rejected'].includes(status)) {
+              status = 'pending'
+            }
+
+            insertContent.run(
+              row.id,
+              row.channel_id,
+              row.content_type,
+              difficulty,
+              JSON.stringify(tags),
+              status,
+              row.quality_score ?? 0,
+              row.embedding_id ?? null,
+              row.data,
+              row.created_at,
+              row.updated_at,
+              row.generated_by ?? null,
+              row.generation_time_ms ?? null
+            )
+
+            for (const tag of tags) {
+              insertTag.run(row.id, tag)
+            }
+          }
+        })
+
+        syncAll()
+        console.log(
+          `[Migration] Synced ${missingRows.length} missing records from generated_content -> contents`
+        )
+      },
+    },
   ]
 
   const now = Math.floor(Date.now() / 1000)
