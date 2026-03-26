@@ -1700,7 +1700,11 @@ input:focus:not(:focus-visible) {
 @media (max-width: 640px) {
   .topbar-search {
     min-width: unset;
-    max-width: 120px;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    justify-content: center;
+    border-radius: var(--dp-r-full);
   }
   .topbar-search-label {
     display: none;
@@ -1708,7 +1712,19 @@ input:focus:not(:focus-visible) {
   .topbar-search-kbd {
     display: none;
   }
+  .topbar-breadcrumb-home-item {
+    display: none;
+  }
   .topbar-breadcrumb-channel {
-    max-width: 80px;
+    max-width: 100px;
+  }
+  .topbar-breadcrumb-list {
+    overflow: hidden;
+  }
+}
+
+@media (max-width: 400px) {
+  .topbar-breadcrumb-channel-item {
+    display: none;
   }
 }

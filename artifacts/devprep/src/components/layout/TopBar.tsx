@@ -42,7 +42,7 @@ export function TopBar({
 
       <nav className="topbar-breadcrumb" aria-label="Breadcrumb">
         <ol className="topbar-breadcrumb-list" aria-label="Current location">
-          <li className="topbar-breadcrumb-item">
+          <li className="topbar-breadcrumb-item topbar-breadcrumb-home-item">
             <span
               style={{
                 display: 'flex',
@@ -51,6 +51,7 @@ export function TopBar({
                 fontSize: 13,
                 fontWeight: 700,
                 color: 'var(--dp-text-2)',
+                whiteSpace: 'nowrap',
               }}
             >
               <Zap size={13} style={{ color: 'var(--dp-blue)' }} aria-hidden="true" />
@@ -60,10 +61,10 @@ export function TopBar({
 
           {currentChannel && (
             <>
-              <li className="topbar-breadcrumb-separator" aria-hidden="true">
+              <li className="topbar-breadcrumb-separator topbar-breadcrumb-home-item" aria-hidden="true">
                 <ChevronRight size={11} />
               </li>
-              <li className="topbar-breadcrumb-item">
+              <li className="topbar-breadcrumb-item topbar-breadcrumb-channel-item">
                 <span
                   className="topbar-channel-emoji"
                   style={{ color: currentChannel.color }}
@@ -76,11 +77,11 @@ export function TopBar({
             </>
           )}
 
-          <li className="topbar-breadcrumb-separator" aria-hidden="true">
+          <li className="topbar-breadcrumb-separator topbar-breadcrumb-channel-item" aria-hidden="true">
             <ChevronRight size={11} />
           </li>
 
-          <li className="topbar-breadcrumb-item">
+          <li className="topbar-breadcrumb-item" style={{ flexShrink: 0 }}>
             <span
               className="topbar-breadcrumb-section"
               aria-current="page"
@@ -92,6 +93,7 @@ export function TopBar({
                 fontSize: 12,
                 fontWeight: 700,
                 border: `1px solid ${sectionInfo.color}33`,
+                whiteSpace: 'nowrap',
               }}
             >
               {sectionInfo.label}
@@ -99,8 +101,6 @@ export function TopBar({
           </li>
         </ol>
       </nav>
-
-      <div style={{ flex: 1 }} />
 
       <button
         className="topbar-search"

@@ -267,8 +267,9 @@ function SearchModalWrapper() {
     }
     setIsSearchLoading(true)
     try {
+      // 1. Search DB-generated content
       const results = searchContentScored(query)
-      const mapped: SearchResult[] = (results ?? []).slice(0, 60).map(r => {
+      const mapped: SearchResult[] = (results ?? []).map(r => {
         const d = (r.data ?? {}) as Record<string, unknown>
         const type = r.content_type as SearchResult['type']
         const title: string = (() => {
@@ -301,7 +302,109 @@ function SearchModalWrapper() {
           ...(r.channel_id && { channelId: r.channel_id }),
         }
       })
-      setSearchResults(mapped)
+
+      // 2. Search static data
+      const terms = query.toLowerCase().split(/\s+/).filter(t => t.length > 1)
+      const dbIds = new Set(mapped.map(r => r.id))
+
+      function scoreText(text: string): number {
+        const lc = text.toLowerCase()
+        return terms.reduce((acc, t) => acc + (lc.includes(t) ? 1 : 0), 0)
+      }
+
+      const staticResults: SearchResult[] = []
+
+      for (const q of staticQuestions) {
+        if (dbIds.has(q.id)) continue
+        const titleScore = scoreText(q.title) * 3
+        const tagScore = q.tags ? q.tags.reduce((a, t) => a + scoreText(t), 0) : 0
+        const total = titleScore + tagScore
+        if (total === 0) continue
+        const firstSection = q.sections?.find(s => s.type === 'short') as { content?: string } | undefined
+        staticResults.push({
+          id: q.id,
+          type: 'question',
+          title: q.title,
+          preview: firstSection?.content?.slice(0, 120) ?? '',
+          score: total,
+          matchedIn: titleScore > 0 ? 'title' : 'body',
+          ...(q.channelId && { channelId: q.channelId }),
+        })
+      }
+
+      for (const f of staticFlashcards) {
+        if (dbIds.has(f.id)) continue
+        const frontScore = scoreText(f.front) * 3
+        const backScore = scoreText(f.back)
+        const tagScore = f.tags ? f.tags.reduce((a, t) => a + scoreText(t), 0) : 0
+        const total = frontScore + backScore + tagScore
+        if (total === 0) continue
+        staticResults.push({
+          id: f.id,
+          type: 'flashcard',
+          title: f.front,
+          preview: f.back.slice(0, 120),
+          score: total,
+          matchedIn: frontScore > 0 ? 'title' : 'body',
+          ...(f.channelId && { channelId: f.channelId }),
+        })
+      }
+
+      for (const e of staticExam) {
+        if (dbIds.has(e.id)) continue
+        const qScore = scoreText(e.question) * 3
+        const total = qScore
+        if (total === 0) continue
+        staticResults.push({
+          id: e.id,
+          type: 'exam',
+          title: e.question.slice(0, 100),
+          preview: e.explanation?.slice(0, 120) ?? '',
+          score: total,
+          matchedIn: 'title',
+          channelId: e.channelId,
+        })
+      }
+
+      for (const v of staticVoice) {
+        if (dbIds.has(v.id)) continue
+        const pScore = scoreText(v.prompt) * 3
+        const domainScore = v.domain ? scoreText(v.domain) : 0
+        const total = pScore + domainScore
+        if (total === 0) continue
+        staticResults.push({
+          id: v.id,
+          type: 'voice',
+          title: v.prompt.slice(0, 100),
+          preview: v.domain ?? v.type ?? '',
+          score: total,
+          matchedIn: 'title',
+          channelId: v.channelId,
+        })
+      }
+
+      for (const c of staticCoding) {
+        if (dbIds.has(c.id)) continue
+        const titleScore = scoreText(c.title) * 3
+        const descScore = scoreText(c.description ?? '')
+        const total = titleScore + descScore
+        if (total === 0) continue
+        staticResults.push({
+          id: c.id,
+          type: 'coding',
+          title: c.title,
+          preview: c.description?.slice(0, 120) ?? '',
+          score: total,
+          matchedIn: titleScore > 0 ? 'title' : 'body',
+        })
+      }
+
+      // 3. Merge and sort
+      const combined = [...mapped, ...staticResults]
+        .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
+        .slice(0, 80)
+
+      setSearchResults(combined)
     } catch {
       setSearchResults([])
     } finally {
