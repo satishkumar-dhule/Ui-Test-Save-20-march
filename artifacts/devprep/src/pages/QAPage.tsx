@@ -367,8 +367,9 @@ export function QAPage({ questions, channelId, onQuestionAnswered, isLoading = f
       <div
         className={`study-panel${sidebarOpen ? ' study-panel--mobile-open' : ''}`}
         style={sidebarOpen ? {
-          position: 'fixed', top: 0, left: 0, height: '100%', zIndex: 40,
+          position: 'fixed', top: 0, left: 0, height: '100%', zIndex: 50,
           display: 'flex', width: 270,
+          background: 'var(--dp-bg-0)',
         } : {}}
       >
         <div className="study-panel-header">
