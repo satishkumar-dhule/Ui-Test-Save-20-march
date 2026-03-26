@@ -103,21 +103,18 @@ export function CodingPage({ challenges, channelId, onCodingUpdate, isLoading = 
   const [showHint, setShowHint] = useState(false)
   const [showSolution, setShowSolution] = useState(false)
   const [runResult, setRunResult] = useState<null | { ok: boolean; output: string }>(null)
-  const [statuses, setStatuses] = useState<Record<string, 'not_started' | 'in_progress' | 'completed'>>({})
+  const [statuses, setStatuses] = useState<Record<string, 'not_started' | 'in_progress' | 'completed'>>(
+    () => progressApi.loadSync().coding as Record<string, 'not_started' | 'in_progress' | 'completed'>
+  )
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [running, setRunning] = useState(false)
   const { announce } = useAnnounce()
 
   const challenge = challenges[activeIdx]
 
-  useEffect(() => { setActiveIdx(0) }, [channelId])
-
   useEffect(() => {
-    progressApi.load(channelId).then(data => {
-      if (data.coding && Object.keys(data.coding).length > 0) {
-        setStatuses(data.coding as Record<string, 'not_started' | 'in_progress' | 'completed'>)
-      }
-    }).catch(() => {})
+    setActiveIdx(0)
+    setStatuses(progressApi.loadSync().coding as Record<string, 'not_started' | 'in_progress' | 'completed'>)
   }, [channelId])
 
   useEffect(() => {

@@ -31,15 +31,13 @@ export function VoicePracticePage({ prompts, channelId, onVoicePractice }: Voice
   const [transcript, setTranscript] = useState('')
   const [rating, setRating] = useState(0)
   const [keyPointsOpen, setKeyPointsOpen] = useState(false)
-  const [ratings, setRatings] = useState<Record<string, number>>({})
+  const [ratings, setRatings] = useState<Record<string, number>>(
+    () => progressApi.loadSync().voice as Record<string, number>
+  )
   const [srSupported, setSrSupported] = useState(true)
 
   useEffect(() => {
-    progressApi.load(channelId).then(data => {
-      if (data.voice && Object.keys(data.voice).length > 0) {
-        setRatings(data.voice as Record<string, number>)
-      }
-    }).catch(() => {})
+    setRatings(progressApi.loadSync().voice as Record<string, number>)
   }, [channelId])
 
   const timerRef = useRef<NodeJS.Timeout | null>(null)

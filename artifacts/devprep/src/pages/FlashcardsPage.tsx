@@ -23,7 +23,9 @@ interface FlashcardsPageProps {
 }
 
 export function FlashcardsPage({ flashcards, categories, channelId, onFlashcardUpdate, isLoading = false }: FlashcardsPageProps) {
-  const [statuses, setStatuses] = useState<Record<string, CardStatus>>({})
+  const [statuses, setStatuses] = useState<Record<string, CardStatus>>(() =>
+    progressApi.loadSync().flashcards as Record<string, CardStatus>
+  )
   const [activeIdx, setActiveIdx] = useState(0)
   const [flipped, setFlipped] = useState(false)
   const [shuffle, setShuffle] = useState(false)
@@ -35,15 +37,8 @@ export function FlashcardsPage({ flashcards, categories, channelId, onFlashcardU
   useEffect(() => {
     setActiveIdx(0); setFlipped(false); setFilterCat('All')
     setOrder(flashcards.map((_, i) => i))
+    setStatuses(progressApi.loadSync().flashcards as Record<string, CardStatus>)
   }, [channelId, flashcards])
-
-  useEffect(() => {
-    progressApi.load(channelId).then(data => {
-      if (data.flashcards && Object.keys(data.flashcards).length > 0) {
-        setStatuses(data.flashcards as Record<string, CardStatus>)
-      }
-    }).catch(() => {})
-  }, [channelId])
 
   const filtered = filterCat === 'All' ? flashcards : flashcards.filter(f => f.category === filterCat)
   const orderedCards = order.map(i => flashcards[i]).filter(Boolean).filter(f => filterCat === 'All' || f.category === filterCat)

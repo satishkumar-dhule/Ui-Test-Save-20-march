@@ -146,6 +146,24 @@ export function MockExamPage({ questions, channelId, onExamComplete }: MockExamP
           </ul>
         </div>
 
+        {(() => {
+          const hist = progressApi.loadSync().exams[channelId]
+          if (!hist) return null
+          const histPct = hist.total > 0 ? Math.round((hist.score / hist.total) * 100) : 0
+          const histDate = new Date(hist.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+          return (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 18px', borderRadius: 'var(--dp-r-lg)', background: hist.passed ? 'rgba(63,185,80,0.06)' : 'rgba(255,123,114,0.06)', border: `1px solid ${hist.passed ? 'rgba(63,185,80,0.25)' : 'rgba(255,123,114,0.25)'}`, maxWidth: 420, width: '100%' }}>
+              <div style={{ fontSize: 22 }}>{hist.passed ? '✅' : '❌'}</div>
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--dp-text-2)', marginBottom: 2 }}>Last Attempt · {histDate}</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: hist.passed ? '#3fb950' : '#ff7b72' }}>
+                  {histPct}% — {hist.score}/{hist.total} correct · {hist.passed ? 'Passed' : 'Did not pass'}
+                </div>
+              </div>
+            </div>
+          )
+        })()}
+
         <button
           onClick={startExam}
           style={{
@@ -157,7 +175,7 @@ export function MockExamPage({ questions, channelId, onExamComplete }: MockExamP
             transition: 'all var(--dp-dur-base)', letterSpacing: '-0.2px',
           }}
         >
-          <Zap size={16} /> Start Exam
+          <Zap size={16} /> {progressApi.loadSync().exams[channelId] ? 'Retake Exam' : 'Start Exam'}
         </button>
       </div>
     )

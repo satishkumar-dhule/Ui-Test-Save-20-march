@@ -92,6 +92,8 @@ async function queryAllContentFromApi(signal?: AbortSignal): Promise<QueryResult
       const data = record.data as Record<string, unknown>
       if (data && typeof data === 'object') {
         data.channelId = channelId
+        const tags = Array.isArray(record.tags) ? record.tags : []
+        data.tags = tags
         if (type === 'question') {
           if (!data.id) {
             data.id = `gen-${channelId}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
