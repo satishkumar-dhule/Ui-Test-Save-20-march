@@ -412,6 +412,12 @@ export default defineConfig({
         target: 'http://localhost:3001',
         changeOrigin: true,
         ws: true,
+        onError(_err, _req, res) {
+          if ('writeHead' in res && typeof res.writeHead === 'function') {
+            res.writeHead(503, { 'Content-Type': 'application/json' })
+            res.end(JSON.stringify({ ok: false, error: 'API server not available', data: [] }))
+          }
+        },
       },
       '/ws': {
         target: 'ws://localhost:3001',

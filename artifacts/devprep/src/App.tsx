@@ -191,7 +191,7 @@ function App() {
 
         {isMobileSidebarOpen && (
           <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 md:hidden"
             onClick={closeMobileSidebar}
           />
         )}
@@ -246,7 +246,7 @@ function App() {
               position: 'fixed',
               bottom: 20,
               right: 20,
-              zIndex: 9999,
+              zIndex: 60,
               display: 'flex',
               alignItems: 'center',
               gap: 8,

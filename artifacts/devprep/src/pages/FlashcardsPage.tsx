@@ -592,10 +592,18 @@ export function FlashcardsPage({
               className={`flip-card${flipped ? ' flipped' : ''}`}
               style={{ width: '100%', maxWidth: 560, minHeight: 300 }}
             >
-              <button
+              <div
                 className="flip-card-inner"
                 style={{ minHeight: 300, display: 'block' }}
                 onClick={handleFlip}
+                onKeyDown={(e) => {
+                  if (e.key === ' ' || e.key === 'Enter') {
+                    e.preventDefault()
+                    handleFlip()
+                  }
+                }}
+                tabIndex={0}
+                role="button"
                 data-testid="flashcard-flip"
                 aria-label={flipped ? 'Show question' : 'Show answer'}
                 aria-pressed={flipped}
@@ -707,7 +715,7 @@ export function FlashcardsPage({
                     )}
                   </div>
                 </div>
-              </button>
+              </div>
             </div>
 
             {/* Action buttons */}

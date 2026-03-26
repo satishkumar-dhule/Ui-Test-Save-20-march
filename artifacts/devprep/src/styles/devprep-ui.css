@@ -168,7 +168,7 @@
 /* ── SIDEBAR ────────────────────────────────────────────────────────────── */
 .sidebar {
   position: relative;
-  z-index: 10;
+  z-index: 20;
   width: var(--dp-sidebar-width);
   height: 100%;
   flex-shrink: 0;
@@ -686,7 +686,7 @@
   -webkit-backdrop-filter: blur(20px);
   flex-shrink: 0;
   position: relative;
-  z-index: 5;
+  z-index: 20;
 }
 
 /* ── Left cluster ── */

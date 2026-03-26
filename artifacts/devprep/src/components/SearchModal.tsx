@@ -485,7 +485,7 @@ export function SearchModal({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[9999] flex items-start justify-center px-4"
+      className="fixed inset-0 z-[100] flex items-start justify-center px-4"
       style={{
         paddingTop: 'clamp(48px, 10vh, 120px)',
         background: 'rgba(0,0,0,0.55)',

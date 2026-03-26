@@ -249,7 +249,7 @@ export function CodingPage({ challengeId }: CodingPageProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="flex flex-col lg:flex-row h-[calc(100vh-4rem)]">
+      <div className="flex flex-col lg:flex-row h-[calc(100dvh-4rem)] min-h-0 overflow-hidden">
         {/* Left Panel - Problem Description */}
         <div className="w-full lg:w-1/2 flex flex-col border-r border-border overflow-hidden">
           {/* Header */}
@@ -488,7 +488,7 @@ export function CodingPage({ challengeId }: CodingPageProps) {
           </div>
 
           {/* Code Editor */}
-          <div className="flex-1 overflow-hidden">
+          <div className="flex-1 overflow-hidden min-h-0">
             <textarea
               value={code}
               onChange={e => setCode(e.target.value)}
@@ -521,7 +521,7 @@ export function CodingPage({ challengeId }: CodingPageProps) {
 
           {/* Results Panel */}
           {testResults.length > 0 && (
-            <div className="flex-shrink-0 border-t border-border bg-card max-h-[40%] overflow-y-auto">
+            <div className="flex-shrink-0 border-t border-border bg-card max-h-[35vh] overflow-y-auto overscroll-contain relative z-10">
               <div className="p-3 border-b border-border">
                 <div className="flex items-center justify-between">
                   <Text className="font-semibold">Test Results</Text>

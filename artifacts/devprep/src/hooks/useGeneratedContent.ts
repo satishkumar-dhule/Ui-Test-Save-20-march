@@ -175,9 +175,17 @@ export function useGeneratedContent(): UseGeneratedContentResult {
         if (e instanceof RequestCancelledError) {
           return
         }
-        const message = e instanceof Error ? e.message : 'Failed to load content from server'
-        setError(message)
-        console.warn('[DevPrep] Generated content unavailable from API:', e)
+        const msg = e instanceof Error ? e.message : ''
+        // API server is optional — silently fall back to static content
+        const isNetworkError =
+          msg.includes('503') ||
+          msg.includes('Failed to fetch') ||
+          msg.includes('NetworkError') ||
+          msg.includes('API server not available')
+        if (!isNetworkError) {
+          setError(msg || 'Failed to load content from server')
+          console.warn('[DevPrep] Generated content unavailable from API:', e)
+        }
       })
       .finally(() => {
         setLoading(false)

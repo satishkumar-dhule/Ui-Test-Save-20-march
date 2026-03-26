@@ -332,6 +332,7 @@ export function CodingPage({
       progressApi.loadSync().coding as Record<string, 'not_started' | 'in_progress' | 'completed'>
   )
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [mobilePanel, setMobilePanel] = useState<'problem' | 'code'>('problem')
   const [running, setRunning] = useState(false)
   const [copied, setCopied] = useState(false)
   const { announce } = useAnnounce()
@@ -353,6 +354,7 @@ export function CodingPage({
     setOpenHints(new Set())
     setShowSolution(false)
     setRunResult(null)
+    setMobilePanel('problem')
   }, [activeIdx, lang, challenge])
 
   const go = useCallback(
@@ -508,7 +510,7 @@ export function CodingPage({
       {/* ── Sidebar overlay (mobile) ──────────────────────────────── */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-30 md:hidden"
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -520,7 +522,7 @@ export function CodingPage({
           transition-transform duration-300 ease-out
           ${
             sidebarOpen
-              ? 'fixed inset-y-0 left-0 z-40 w-[280px] translate-x-0 md:relative md:translate-x-0'
+              ? 'fixed inset-y-0 left-0 z-50 w-[280px] translate-x-0 md:relative md:translate-x-0'
               : 'hidden md:flex md:w-[240px] lg:w-[260px]'
           }
         `}
@@ -614,6 +616,28 @@ export function CodingPage({
             <Menu size={16} className="text-muted-foreground" />
           </button>
 
+          {/* Mobile panel switcher: Problem / Code */}
+          <div className="md:hidden flex items-center gap-0.5 bg-muted/60 rounded-lg p-0.5 border border-border/50" role="tablist" aria-label="Switch panel">
+            <button
+              role="tab"
+              aria-selected={mobilePanel === 'problem'}
+              onClick={() => setMobilePanel('problem')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-semibold transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 ${mobilePanel === 'problem' ? 'bg-background text-foreground shadow-sm border border-border/80' : 'text-muted-foreground hover:text-foreground border border-transparent'}`}
+            >
+              <BookOpen size={12} />
+              Problem
+            </button>
+            <button
+              role="tab"
+              aria-selected={mobilePanel === 'code'}
+              onClick={() => setMobilePanel('code')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-semibold transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 ${mobilePanel === 'code' ? 'bg-background text-foreground shadow-sm border border-border/80' : 'text-muted-foreground hover:text-foreground border border-transparent'}`}
+            >
+              <FileCode size={12} />
+              Code
+            </button>
+          </div>
+
           {/* Difficulty badge */}
           {challenge?.difficulty && (
             <div
@@ -697,9 +721,9 @@ export function CodingPage({
         </div>
 
         {/* ── Split pane ───────────────────────────────────────────── */}
-        <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
+        <div className="flex-1 flex flex-col md:flex-row overflow-hidden min-h-0">
           {/* ── Left: Problem description ───────────────────────────── */}
-          <div className="md:w-[42%] flex-shrink-0 flex flex-col border-b md:border-b-0 md:border-r border-border bg-background/50 overflow-hidden">
+          <div className={`${mobilePanel === 'code' ? 'hidden md:flex' : 'flex'} md:w-[42%] flex-shrink-0 flex-col border-b md:border-b-0 md:border-r border-border bg-background/50 overflow-hidden min-h-0 flex-1 md:flex-none`}>
             <div className="flex-1 overflow-y-auto">
               {/* Title + tags */}
               <div className="px-5 pt-5 pb-4 border-b border-border">
@@ -866,7 +890,7 @@ export function CodingPage({
           </div>
 
           {/* ── Right: Editor ───────────────────────────────────────── */}
-          <div className="flex-1 flex flex-col overflow-hidden min-w-0">
+          <div className={`${mobilePanel === 'problem' ? 'hidden md:flex' : 'flex'} flex-1 flex-col overflow-hidden min-w-0`}>
             {/* Editor chrome header */}
             <div className="flex items-center gap-2.5 px-3 h-[38px] border-b border-border bg-muted/40 flex-shrink-0">
               {/* Traffic lights */}
@@ -927,11 +951,11 @@ export function CodingPage({
 
               {/* Results area */}
               {(runResult || showSolution) && (
-                <div className="max-h-[200px] overflow-y-auto bg-[var(--dp-bg-0)]">
+                <div className="max-h-[35vh] overflow-y-auto bg-[var(--dp-bg-0)] flex-shrink-0 relative">
                   {/* Run result */}
                   {runResult && (
                     <div
-                      className={`mx-3 mt-2.5 mb-${showSolution ? '2.5' : '2.5'} rounded-lg border overflow-hidden transition-colors duration-200 ${
+                      className={`mx-3 mt-2.5 mb-2.5 rounded-lg border overflow-hidden transition-colors duration-200 ${
                         runResult.ok
                           ? 'border-green-500/30 bg-green-500/5'
                           : 'border-red-500/30 bg-red-500/5'
