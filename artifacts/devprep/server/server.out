@@ -1,0 +1,5 @@
+[API Server] Running on http://localhost:3001
+[API Server] WebSocket available at ws://localhost:3001
+[API Server] Database: /home/runner/workspace/data/devprep.db
+[API Server] Database watcher active
+[API Server] Cache: InMemoryRedis connected
