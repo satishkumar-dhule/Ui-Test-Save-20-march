@@ -6,6 +6,10 @@ export interface SearchResult {
   title: string
   preview: string
   channelId?: string
+  score?: number
+  matchedIn?: 'title' | 'body' | 'both'
+  tags?: string[]
+  difficulty?: string
 }
 
 export interface SearchGroup {

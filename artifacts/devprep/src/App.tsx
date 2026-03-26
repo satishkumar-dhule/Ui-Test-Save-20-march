@@ -6,7 +6,7 @@ import { examQuestions as staticExam } from '@/data/exam'
 import { voicePrompts as staticVoice } from '@/data/voicePractice'
 import { codingChallenges as staticCoding } from '@/data/coding'
 import { useGeneratedContent } from '@/hooks/useGeneratedContent'
-import { searchContent } from '@/services/dbClient'
+import { searchContentScored } from '@/services/dbClient'
 import { useMergeContent } from '@/hooks/useMergeContent'
 import { useAnalytics } from '@/hooks/useAnalytics'
 import { AppProviders } from '@/components/app/AppProviders'
@@ -257,39 +257,38 @@ function SearchModalWrapper() {
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<SearchResult[]>([])
   const [isSearchLoading, setIsSearchLoading] = useState(false)
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const handleSearch = useCallback((query: string) => {
-    setSearchQuery(query)
+  const runSearch = useCallback((query: string) => {
     if (!query.trim()) {
       setSearchResults([])
+      setIsSearchLoading(false)
       return
     }
     setIsSearchLoading(true)
     try {
-      const results = searchContent(query)
-      const mapped: SearchResult[] = (results ?? []).slice(0, 50).map(r => {
+      const results = searchContentScored(query)
+      const mapped: SearchResult[] = (results ?? []).slice(0, 60).map(r => {
         const d = (r.data ?? {}) as Record<string, unknown>
         const type = r.content_type as SearchResult['type']
-        // Extract title based on content type
         const title: string = (() => {
           if (type === 'flashcard') return String(d.front ?? 'Flashcard')
           if (type === 'question') return String(d.title ?? 'Question')
           if (type === 'coding') return String(d.title ?? 'Challenge')
-          if (type === 'exam') return String(d.question ?? 'Exam question').slice(0, 80)
-          if (type === 'voice') return String(d.prompt ?? 'Voice prompt').slice(0, 80)
+          if (type === 'exam') return String(d.question ?? 'Exam question').slice(0, 100)
+          if (type === 'voice') return String(d.prompt ?? 'Voice prompt').slice(0, 100)
           return String(d.title ?? d.front ?? d.question ?? d.prompt ?? 'Untitled')
         })()
-        // Extract preview (secondary text)
         const preview: string = (() => {
-          if (type === 'flashcard') return String(d.back ?? d.hint ?? '').slice(0, 100)
+          if (type === 'flashcard') return String(d.back ?? d.hint ?? '').slice(0, 120)
           if (type === 'question') {
             const sections = d.sections as Array<{ type: string; content: string }> | undefined
             const first = sections?.find(s => s.type === 'text')?.content ?? ''
-            return first.slice(0, 100)
+            return first.slice(0, 120)
           }
-          if (type === 'coding') return String(d.description ?? '').slice(0, 100)
-          if (type === 'exam') return String(d.explanation ?? '').slice(0, 100)
-          if (type === 'voice') return String(d.domain ?? d.type ?? '').slice(0, 100)
+          if (type === 'coding') return String(d.description ?? '').slice(0, 120)
+          if (type === 'exam') return String(d.explanation ?? '').slice(0, 120)
+          if (type === 'voice') return String(d.domain ?? d.type ?? '').slice(0, 120)
           return ''
         })()
         return {
@@ -297,6 +296,8 @@ function SearchModalWrapper() {
           type,
           title,
           preview,
+          score: r.searchScore,
+          matchedIn: r.matchedIn,
           ...(r.channel_id && { channelId: r.channel_id }),
         }
       })
@@ -308,10 +309,26 @@ function SearchModalWrapper() {
     }
   }, [])
 
+  const handleSearch = useCallback((query: string) => {
+    setSearchQuery(query)
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    if (!query.trim()) {
+      setSearchResults([])
+      setIsSearchLoading(false)
+      return
+    }
+    setIsSearchLoading(true)
+    debounceRef.current = setTimeout(() => {
+      runSearch(query)
+    }, 150)
+  }, [runSearch])
+
   const handleClose = useCallback(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
     setIsSearchOpen(false)
     setSearchQuery('')
     setSearchResults([])
+    setIsSearchLoading(false)
   }, [setIsSearchOpen])
 
   const handleSelect = useCallback(
@@ -325,8 +342,14 @@ function SearchModalWrapper() {
   )
 
   const handleClear = useCallback(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
     setSearchQuery('')
     setSearchResults([])
+    setIsSearchLoading(false)
+  }, [])
+
+  const handleNavigate = useCallback((section: string) => {
+    useContentStore.getState().setSection(section as Section)
   }, [])
 
   return (
@@ -340,6 +363,7 @@ function SearchModalWrapper() {
         isLoading={isSearchLoading}
         query={searchQuery}
         onSelect={handleSelect}
+        onNavigate={handleNavigate}
       />
     </Suspense>
   )

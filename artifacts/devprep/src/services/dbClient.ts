@@ -686,28 +686,97 @@ export function getContentByTags(tags: string[]): ContentRecord[] {
   return results
 }
 
+export interface ScoredContentRecord extends ContentRecord {
+  searchScore: number
+  matchedIn: 'title' | 'body' | 'both'
+}
+
+function getTitleText(data: Record<string, unknown>, type: string): string {
+  if (type === 'flashcard') return String(data.front ?? '')
+  if (type === 'question') return String(data.title ?? '')
+  if (type === 'coding') return String(data.title ?? '')
+  if (type === 'exam') return String(data.question ?? '')
+  if (type === 'voice') return String(data.prompt ?? '')
+  return String(data.title ?? data.front ?? data.question ?? data.prompt ?? '')
+}
+
+function scoreRecord(
+  data: Record<string, unknown>,
+  type: string,
+  terms: string[]
+): { score: number; matchedIn: 'title' | 'body' | 'both' } | null {
+  const titleText = getTitleText(data, type).toLowerCase()
+  const bodyText = JSON.stringify(data).toLowerCase()
+
+  let titleScore = 0
+  let bodyScore = 0
+  let titleMatches = 0
+  let bodyMatches = 0
+
+  for (const term of terms) {
+    const inTitle = titleText.includes(term)
+    const inBody = bodyText.includes(term)
+    if (!inTitle && !inBody) return null
+    if (inTitle) {
+      titleMatches++
+      if (titleText === term) titleScore += 8
+      else if (titleText.startsWith(term)) titleScore += 6
+      else if (titleText.includes(` ${term}`)) titleScore += 5
+      else titleScore += 4
+    }
+    if (inBody && !inTitle) {
+      bodyMatches++
+      bodyScore += 1
+    }
+  }
+
+  const score = titleScore + bodyScore
+  const matchedIn =
+    titleMatches > 0 && bodyMatches > 0
+      ? 'both'
+      : titleMatches > 0
+        ? 'title'
+        : 'body'
+
+  return { score, matchedIn }
+}
+
 export function searchContent(query: string): ContentRecord[] {
+  return searchContentScored(query)
+}
+
+export function searchContentScored(query: string): ScoredContentRecord[] {
   if (!db || !query.trim()) return []
-  const lowerQuery = query.toLowerCase()
+  const terms = query
+    .toLowerCase()
+    .split(/\s+/)
+    .filter(t => t.length > 0)
+
   const stmt = db.prepare(
     "SELECT * FROM generated_content WHERE status IN ('published', 'approved')"
   )
   stmt.bind([])
-  const results: ContentRecord[] = []
+  const scored: ScoredContentRecord[] = []
+
   while (stmt.step()) {
     const row = stmt.getAsObject()
     try {
       const data = typeof row.data === 'string' ? JSON.parse(row.data) : row.data
-      const searchableText = JSON.stringify(data).toLowerCase()
-      if (searchableText.includes(lowerQuery)) {
-        results.push(parseRecord(row))
+      const result = scoreRecord(data as Record<string, unknown>, String(row.content_type), terms)
+      if (result) {
+        scored.push({
+          ...parseRecord(row),
+          searchScore: result.score,
+          matchedIn: result.matchedIn,
+        })
       }
     } catch {
       continue
     }
   }
+
   stmt.free()
-  return results
+  return scored.sort((a, b) => b.searchScore - a.searchScore)
 }
 
 export function getAllContent(): ContentRecord[] {

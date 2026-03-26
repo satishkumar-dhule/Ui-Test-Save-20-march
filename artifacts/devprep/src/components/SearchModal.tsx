@@ -1,18 +1,104 @@
 'use client'
 
 import * as React from 'react'
+import { createPortal } from 'react-dom'
 import {
-  CommandDialog,
-  CommandInput,
-  CommandList,
-  CommandEmpty,
-  CommandGroup,
-  CommandItem,
-} from '@/components/ui/command'
-import { Badge } from '@/components/ui/badge'
-import { Spinner } from '@/components/ui/spinner'
-import { Search, FileText, Code, Mic, ClipboardList, Layers, X } from 'lucide-react'
+  Search,
+  FileText,
+  Code,
+  Mic,
+  ClipboardList,
+  Layers,
+  X,
+  Clock,
+  ChevronRight,
+  Zap,
+  BookOpen,
+  Star,
+  TrendingUp,
+  ArrowRight,
+} from 'lucide-react'
 import type { SearchResult, SearchResultType } from '@/types/search'
+
+const RECENT_SEARCHES_KEY = 'devprep-recent-searches'
+const MAX_RECENT = 6
+
+function getRecentSearches(): string[] {
+  try {
+    return JSON.parse(localStorage.getItem(RECENT_SEARCHES_KEY) ?? '[]')
+  } catch {
+    return []
+  }
+}
+
+function saveRecentSearch(query: string) {
+  if (!query.trim()) return
+  try {
+    const prev = getRecentSearches()
+    const next = [query, ...prev.filter(q => q !== query)].slice(0, MAX_RECENT)
+    localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(next))
+  } catch {}
+}
+
+function removeRecentSearch(query: string) {
+  try {
+    const prev = getRecentSearches()
+    localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(prev.filter(q => q !== query)))
+  } catch {}
+}
+
+function highlightText(text: string, query: string): React.ReactNode {
+  if (!query.trim()) return text
+  const terms = query
+    .toLowerCase()
+    .split(/\s+/)
+    .filter(t => t.length > 1)
+  if (terms.length === 0) return text
+
+  const pattern = new RegExp(`(${terms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'gi')
+  const parts = text.split(pattern)
+
+  return parts.map((part, i) =>
+    pattern.test(part) ? (
+      <mark
+        key={i}
+        style={{
+          background: 'var(--dp-blue)22',
+          color: 'var(--dp-blue)',
+          borderRadius: 3,
+          padding: '0 2px',
+          fontWeight: 700,
+        }}
+      >
+        {part}
+      </mark>
+    ) : (
+      part
+    )
+  )
+}
+
+const TYPE_CONFIG: Record<
+  SearchResultType,
+  { label: string; icon: React.FC<{ size?: number }> ; color: string; bg: string }
+> = {
+  flashcard: { label: 'Flashcard', icon: FileText, color: '#3fb950', bg: '#3fb95018' },
+  question: { label: 'Question', icon: ClipboardList, color: '#388bfd', bg: '#388bfd18' },
+  coding: { label: 'Coding', icon: Code, color: '#f7df1e', bg: '#f7df1e18' },
+  voice: { label: 'Voice', icon: Mic, color: '#bc8cff', bg: '#bc8cff18' },
+  exam: { label: 'Exam', icon: Layers, color: '#ff7b72', bg: '#ff7b7218' },
+}
+
+const SECTION_QUICK_ACTIONS = [
+  { label: 'Browse Flashcards', icon: FileText, section: 'flashcards', color: '#3fb950' },
+  { label: 'Practice Questions', icon: ClipboardList, section: 'qa', color: '#388bfd' },
+  { label: 'Coding Challenges', icon: Code, section: 'coding', color: '#f7df1e' },
+  { label: 'Voice Practice', icon: Mic, section: 'voice', color: '#bc8cff' },
+  { label: 'Mock Exam', icon: Layers, section: 'exam', color: '#ff7b72' },
+  { label: 'Statistics', icon: TrendingUp, section: 'stats', color: '#39d3f4' },
+]
+
+type FilterType = 'all' | SearchResultType
 
 interface SearchModalProps {
   isOpen: boolean
@@ -23,234 +109,137 @@ interface SearchModalProps {
   isLoading: boolean
   query?: string
   onSelect?: (result: SearchResult) => void
+  onNavigate?: (section: string) => void
 }
 
-const typeIcons: Record<SearchResultType, React.ReactNode> = {
-  flashcard: <FileText className="h-4 w-4 text-secondary opacity-70" aria-hidden="true" />,
-  question: <ClipboardList className="h-4 w-4 text-secondary opacity-70" aria-hidden="true" />,
-  coding: <Code className="h-4 w-4 text-secondary opacity-70" aria-hidden="true" />,
-  voice: <Mic className="h-4 w-4 text-secondary opacity-70" aria-hidden="true" />,
-  exam: <Layers className="h-4 w-4 text-secondary opacity-70" aria-hidden="true" />,
-}
-
-const typeLabels: Record<SearchResultType, string> = {
-  flashcard: 'Flashcard',
-  question: 'Question',
-  coding: 'Coding',
-  voice: 'Voice',
-  exam: 'Exam',
-}
-
-const typeColors: Record<SearchResultType, 'default' | 'secondary' | 'outline'> = {
-  flashcard: 'default',
-  question: 'secondary',
-  coding: 'outline',
-  voice: 'secondary',
-  exam: 'default',
-}
-
-function groupResultsByType(results: SearchResult[]): Record<string, SearchResult[]> {
-  return results.reduce(
-    (acc, result) => {
-      const key = result.type
-      if (!acc[key]) {
-        acc[key] = []
-      }
-      acc[key].push(result)
-      return acc
-    },
-    {} as Record<string, SearchResult[]>
-  )
-}
-
-function createResultIndexMap(results: SearchResult[]): Map<string, number> {
-  const map = new Map<string, number>()
-  results.forEach((result, index) => {
-    map.set(result.id, index)
-  })
-  return map
-}
-
-const PERFORMANCE_THRESHOLD_MS = 16
-
-interface SearchResultItemProps {
+interface ResultItemProps {
   result: SearchResult
-  globalIndex: number
+  query: string
   isActive: boolean
-  onSelect: (result: SearchResult) => void
-  onClose: () => void
-  onHover: (index: number) => void
-  hasExternalSelect: boolean
+  onSelect: () => void
+  onHover: () => void
 }
 
-const SearchResultItem = React.memo<SearchResultItemProps>(
-  ({ result, globalIndex, isActive, onSelect, onClose, onHover, hasExternalSelect }) => {
-    const handleSelect = React.useCallback(() => {
-      if (hasExternalSelect) {
-        onSelect(result)
-      } else {
-        onClose()
-      }
-    }, [result, onSelect, onClose, hasExternalSelect])
+const ResultItem = React.memo<ResultItemProps>(({ result, query, isActive, onSelect, onHover }) => {
+  const cfg = TYPE_CONFIG[result.type]
+  const Icon = cfg.icon
 
-    return (
-      <CommandItem
-        id={`search-option-${globalIndex}`}
-        value={`${result.type}-${result.id}`}
-        data-testid="search-result"
-        role="option"
-        aria-selected={isActive}
-        onSelect={handleSelect}
-        onMouseEnter={() => onHover(globalIndex)}
-        className="flex items-start gap-3 py-3 cursor-pointer"
+  return (
+    <button
+      className="search-result-item"
+      data-active={isActive}
+      onClick={onSelect}
+      onMouseEnter={onHover}
+      role="option"
+      aria-selected={isActive}
+      data-testid="search-result"
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+        width: '100%',
+        padding: '10px 16px',
+        background: isActive ? 'var(--dp-bg-2)' : 'transparent',
+        border: 'none',
+        cursor: 'pointer',
+        textAlign: 'left',
+        transition: 'background 0.1s',
+        borderRadius: 0,
+      }}
+    >
+      <span
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: 32,
+          height: 32,
+          borderRadius: 8,
+          background: cfg.bg,
+          color: cfg.color,
+          flexShrink: 0,
+        }}
+        aria-hidden="true"
       >
-        <div
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted"
-          aria-hidden="true"
+        <Icon size={15} />
+      </span>
+
+      <span style={{ flex: 1, minWidth: 0 }}>
+        <span
+          data-testid="search-result-title"
+          style={{
+            display: 'block',
+            fontSize: 13,
+            fontWeight: 600,
+            color: 'var(--dp-text-0)',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
         >
-          {typeIcons[result.type]}
-        </div>
-        <div className="flex flex-col gap-1 min-w-0 flex-1">
-          <span data-testid="search-result-title" className="text-sm font-medium truncate">
-            {result.title}
-          </span>
+          {highlightText(result.title, query)}
+        </span>
+        {result.preview && (
           <span
             data-testid="search-result-preview"
-            className="text-xs text-muted-foreground truncate"
+            style={{
+              display: 'block',
+              fontSize: 11,
+              color: 'var(--dp-text-3)',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              marginTop: 2,
+            }}
           >
-            {result.preview}
+            {highlightText(result.preview, query)}
           </span>
-        </div>
-        <Badge
-          data-testid="search-result-type"
-          variant={typeColors[result.type]}
-          className="shrink-0 text-xs"
+        )}
+      </span>
+
+      <span
+        data-testid="search-result-type"
+        style={{
+          fontSize: 10,
+          fontWeight: 700,
+          color: cfg.color,
+          background: cfg.bg,
+          border: `1px solid ${cfg.color}33`,
+          borderRadius: 4,
+          padding: '2px 6px',
+          flexShrink: 0,
+          letterSpacing: '0.04em',
+          textTransform: 'uppercase',
+        }}
+      >
+        {cfg.label}
+      </span>
+
+      {result.channelId && (
+        <span
+          style={{
+            fontSize: 10,
+            color: 'var(--dp-text-4)',
+            flexShrink: 0,
+            maxWidth: 80,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
         >
-          {typeLabels[result.type]}
-        </Badge>
-      </CommandItem>
-    )
-  }
-)
+          {result.channelId}
+        </span>
+      )}
 
-SearchResultItem.displayName = 'SearchResultItem'
-
-interface SearchResultGroupProps {
-  type: string
-  items: SearchResult[]
-  resultIndexMap: Map<string, number>
-  activeIndex: number
-  onSelect: (result: SearchResult) => void
-  onClose: () => void
-  onHover: (index: number) => void
-  hasExternalSelect: boolean
-}
-
-const SearchResultGroup = React.memo<SearchResultGroupProps>(
-  ({ type, items, resultIndexMap, activeIndex, onSelect, onClose, onHover, hasExternalSelect }) => (
-    <CommandGroup
-      heading={
-        <div className="flex items-center gap-2">
-          {typeIcons[type as SearchResultType]}
-          <span>{typeLabels[type as SearchResultType]}s</span>
-          <Badge variant="secondary" className="text-xs">
-            {items.length}
-          </Badge>
-        </div>
-      }
-    >
-      {items.map(result => (
-        <SearchResultItem
-          key={result.id}
-          result={result}
-          globalIndex={resultIndexMap.get(result.id) ?? -1}
-          isActive={resultIndexMap.get(result.id) === activeIndex}
-          onSelect={onSelect}
-          onClose={onClose}
-          onHover={onHover}
-          hasExternalSelect={hasExternalSelect}
-        />
-      ))}
-    </CommandGroup>
+      {isActive && (
+        <span style={{ color: 'var(--dp-text-4)', flexShrink: 0 }} aria-hidden="true">
+          <ChevronRight size={12} />
+        </span>
+      )}
+    </button>
   )
-)
-
-SearchResultGroup.displayName = 'SearchResultGroup'
-
-interface SearchResultsContentProps {
-  results: SearchResult[]
-  groupedResults: Record<string, SearchResult[]>
-  resultIndexMap: Map<string, number>
-  activeIndex: number
-  isLoading: boolean
-  onSelect: ((result: SearchResult) => void) | undefined
-  onClose: () => void
-  onHover: (index: number) => void
-}
-
-const SearchResultsContent = React.memo<SearchResultsContentProps>(
-  ({
-    results,
-    groupedResults,
-    resultIndexMap,
-    activeIndex,
-    isLoading,
-    onSelect,
-    onClose,
-    onHover,
-  }) => {
-    if (isLoading) {
-      return (
-        <div
-          data-testid="search-loading"
-          className="flex items-center justify-center py-8"
-          role="status"
-          aria-live="polite"
-        >
-          <Spinner className="h-6 w-6" aria-hidden="true" />
-          <span className="ml-2 text-sm text-muted-foreground">Searching...</span>
-        </div>
-      )
-    }
-
-    if (results.length === 0) {
-      return (
-        <CommandEmpty>
-          <div data-testid="search-empty-state" className="py-6 text-center" role="status">
-            <Search
-              className="mx-auto h-12 w-12 text-secondary opacity-70 drop-shadow-sm"
-              aria-hidden="true"
-            />
-            <p className="mt-4 text-sm text-muted-foreground">
-              No results found. Try a different search term.
-            </p>
-            <p className="mt-2 text-xs text-muted-foreground">Press Escape to close</p>
-          </div>
-        </CommandEmpty>
-      )
-    }
-
-    return (
-      <>
-        {Object.entries(groupedResults).map(([type, items]) => (
-          <SearchResultGroup
-            key={type}
-            type={type}
-            items={items}
-            resultIndexMap={resultIndexMap}
-            activeIndex={activeIndex}
-            onSelect={onSelect ?? (() => {})}
-            onClose={onClose}
-            onHover={onHover}
-            hasExternalSelect={!!onSelect}
-          />
-        ))}
-      </>
-    )
-  }
-)
-
-SearchResultsContent.displayName = 'SearchResultsContent'
+})
+ResultItem.displayName = 'ResultItem'
 
 export function SearchModal({
   isOpen,
@@ -261,39 +250,50 @@ export function SearchModal({
   isLoading,
   query = '',
   onSelect,
+  onNavigate,
 }: SearchModalProps) {
   const inputRef = React.useRef<HTMLInputElement>(null)
   const listRef = React.useRef<HTMLDivElement>(null)
-  const renderStartRef = React.useRef<number>(0)
-  const searchCountRef = React.useRef<number>(0)
-  const isClosingRef = React.useRef<boolean>(false)
-
-  const prevResultsRef = React.useRef<SearchResult[]>([])
-
   const [activeIndex, setActiveIndex] = React.useState(0)
+  const [activeFilter, setActiveFilter] = React.useState<FilterType>('all')
+  const [recentSearches, setRecentSearches] = React.useState<string[]>([])
 
   React.useEffect(() => {
-    const prevIds = prevResultsRef.current.map(r => r.id).join(',')
-    const currIds = results.map(r => r.id).join(',')
-    if (prevIds !== currIds || results.length !== prevResultsRef.current.length) {
-      prevResultsRef.current = results
-      setActiveIndex(0)
+    if (isOpen) {
+      setRecentSearches(getRecentSearches())
     }
+  }, [isOpen])
+
+  React.useEffect(() => {
+    if (!isOpen) return
+    const timer = setTimeout(() => inputRef.current?.focus(), 50)
+    return () => clearTimeout(timer)
+  }, [isOpen])
+
+  React.useEffect(() => {
+    setActiveIndex(0)
   }, [results])
 
   React.useEffect(() => {
-    if (!isOpen) return
-    const focusTimeout = setTimeout(() => inputRef.current?.focus(), 50)
-    return () => clearTimeout(focusTimeout)
-  }, [isOpen])
-
-  React.useEffect(() => {
-    if (!isOpen) return
-    const previousActiveElement = document.activeElement as HTMLElement
-    return () => {
-      previousActiveElement?.focus()
+    if (!isOpen) {
+      setActiveFilter('all')
     }
   }, [isOpen])
+
+  const filteredResults = React.useMemo(() => {
+    if (activeFilter === 'all') return results
+    return results.filter(r => r.type === activeFilter)
+  }, [results, activeFilter])
+
+  const typeCounts = React.useMemo(() => {
+    const counts: Partial<Record<SearchResultType, number>> = {}
+    for (const r of results) {
+      counts[r.type] = (counts[r.type] ?? 0) + 1
+    }
+    return counts
+  }, [results])
+
+  const activeItem = filteredResults[activeIndex] ?? null
 
   const handleKeyDown = React.useCallback(
     (e: React.KeyboardEvent) => {
@@ -303,189 +303,651 @@ export function SearchModal({
       }
       if (e.key === 'ArrowDown') {
         e.preventDefault()
-        setActiveIndex(prev => Math.min(prev + 1, results.length - 1))
+        setActiveIndex(prev => Math.min(prev + 1, filteredResults.length - 1))
+        return
       }
       if (e.key === 'ArrowUp') {
         e.preventDefault()
         setActiveIndex(prev => Math.max(prev - 1, 0))
+        return
+      }
+      if (e.key === 'Enter' && activeItem) {
+        e.preventDefault()
+        if (query.trim()) saveRecentSearch(query.trim())
+        if (onSelect) onSelect(activeItem)
+        else onClose()
+        return
       }
     },
-    [onClose, results.length]
+    [onClose, filteredResults.length, activeItem, onSelect, query]
   )
 
-  const handleOpenChange = React.useCallback(
-    (open: boolean) => {
-      if (isClosingRef.current) return
-      if (!open) {
-        isClosingRef.current = true
-        onClose()
-        setTimeout(() => {
-          isClosingRef.current = false
-        }, 100)
-      }
+  const handleInputChange = React.useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      onSearch(e.target.value)
+    },
+    [onSearch]
+  )
+
+  const handleClear = React.useCallback(() => {
+    onSearch('')
+    if (onClear) onClear()
+    inputRef.current?.focus()
+  }, [onSearch, onClear])
+
+  const handleSelectResult = React.useCallback(
+    (result: SearchResult) => {
+      if (query.trim()) saveRecentSearch(query.trim())
+      if (onSelect) onSelect(result)
+      else onClose()
+    },
+    [onSelect, onClose, query]
+  )
+
+  const handleRecentSearch = React.useCallback(
+    (q: string) => {
+      onSearch(q)
+      inputRef.current?.focus()
+    },
+    [onSearch]
+  )
+
+  const handleRemoveRecent = React.useCallback(
+    (e: React.MouseEvent, q: string) => {
+      e.stopPropagation()
+      removeRecentSearch(q)
+      setRecentSearches(prev => prev.filter(r => r !== q))
+    },
+    []
+  )
+
+  const handleNavigate = React.useCallback(
+    (section: string) => {
+      if (onNavigate) onNavigate(section)
+      onClose()
+    },
+    [onNavigate, onClose]
+  )
+
+  const handleBackdropClick = React.useCallback(
+    (e: React.MouseEvent) => {
+      if (e.target === e.currentTarget) onClose()
     },
     [onClose]
   )
 
-  const handleClear = React.useCallback(() => {
-    if (onClear) {
-      onClear()
-    }
-    onSearch('')
-  }, [onClear, onSearch])
-
-  const handleSelectResult = React.useCallback(
-    (result: SearchResult) => {
-      if (onSelect) {
-        onSelect(result)
-      } else {
-        onClose()
-      }
-    },
-    [onSelect, onClose]
-  )
-
-  const handleHover = React.useCallback((index: number) => {
-    setActiveIndex(index)
-  }, [])
-
-  const groupedResults = React.useMemo(() => {
-    // eslint-disable-next-line react-hooks/purity
-    const start = performance.now()
-    const grouped = groupResultsByType(results)
-    // eslint-disable-next-line react-hooks/purity
-    const duration = performance.now() - start
-    if (duration > PERFORMANCE_THRESHOLD_MS) {
-      console.warn(`[SearchModal] groupResultsByType exceeded threshold: ${duration.toFixed(2)}ms`)
-    }
-    return grouped
-  }, [results])
-
-  const resultIndexMap = React.useMemo(() => {
-    // eslint-disable-next-line react-hooks/purity
-    const start = performance.now()
-    const map = createResultIndexMap(results)
-    // eslint-disable-next-line react-hooks/purity
-    const duration = performance.now() - start
-    if (duration > PERFORMANCE_THRESHOLD_MS) {
-      console.warn(
-        `[SearchModal] createResultIndexMap exceeded threshold: ${duration.toFixed(2)}ms`
-      )
-    }
-    return map
-  }, [results])
-
   React.useEffect(() => {
-    searchCountRef.current += 1
-    if (isLoading) {
-      renderStartRef.current = performance.now()
-    } else if (renderStartRef.current > 0) {
-      const renderTime = performance.now() - renderStartRef.current
-      if (renderTime > PERFORMANCE_THRESHOLD_MS) {
-        console.warn(
-          `[SearchModal] Search render exceeded threshold: ${renderTime.toFixed(2)}ms for ${results.length} results`
-        )
-      }
+    if (!isOpen) return
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
     }
-  }, [isLoading, results.length])
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [isOpen, onClose])
 
-  return (
-    <CommandDialog
-      open={isOpen}
-      onOpenChange={handleOpenChange}
-      aria-modal="true"
-      aria-labelledby="search-dialog-title"
+  if (!isOpen) return null
+
+  const showEmpty = query.trim() === ''
+  const hasResults = filteredResults.length > 0
+  const totalResults = results.length
+
+  return createPortal(
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 9999,
+        display: 'flex',
+        alignItems: 'flex-start',
+        justifyContent: 'center',
+        paddingTop: 'clamp(40px, 10vh, 120px)',
+        paddingLeft: 16,
+        paddingRight: 16,
+        background: 'rgba(0,0,0,0.55)',
+        backdropFilter: 'blur(4px)',
+        WebkitBackdropFilter: 'blur(4px)',
+      }}
+      onClick={handleBackdropClick}
       data-testid="search-modal"
+      aria-modal="true"
+      role="dialog"
+      aria-label="Search"
     >
-      <div className="flex flex-col h-full max-h-[100dvh] sm:max-h-[600px]">
-        <h2 id="search-dialog-title" className="sr-only">
-          Search
-        </h2>
-
-        {/* Mobile Header */}
-        <div className="flex items-center justify-between p-4 border-b md:hidden">
-          <h3 id="search-modal-title" className="font-semibold text-lg">
-            Search
-          </h3>
-          <button
-            onClick={onClose}
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center text-muted-foreground hover:text-foreground rounded-lg touch-manipulation"
-            aria-label="Close search"
-          >
-            <X
-              className="h-6 w-6 text-secondary opacity-70 hover:opacity-100 transition-opacity drop-shadow-sm"
-              aria-hidden="true"
-            />
-          </button>
-        </div>
-
+      <div
+        style={{
+          width: '100%',
+          maxWidth: 640,
+          background: 'var(--dp-bg-0)',
+          border: '1px solid var(--dp-border-1)',
+          borderRadius: 14,
+          boxShadow: '0 24px 64px rgba(0,0,0,0.5)',
+          overflow: 'hidden',
+          display: 'flex',
+          flexDirection: 'column',
+          maxHeight: 'min(640px, 80dvh)',
+        }}
+        onClick={e => e.stopPropagation()}
+        onKeyDown={handleKeyDown}
+      >
         {/* Search Input */}
-        <div className="flex items-center border-b px-4 py-3 md:px-3 md:py-2">
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            padding: '12px 16px',
+            borderBottom: '1px solid var(--dp-border-1)',
+          }}
+        >
           <Search
-            className="mr-3 h-5 w-5 shrink-0 text-secondary opacity-70 md:mr-2 md:h-4 md:w-4"
+            size={17}
+            style={{ color: 'var(--dp-text-3)', flexShrink: 0 }}
             aria-hidden="true"
           />
           <input
             ref={inputRef}
             data-testid="search-input"
             type="text"
-            role="combobox"
-            placeholder="Search flashcards, questions, coding challenges..."
-            className="flex h-12 w-full rounded-md bg-transparent py-3 text-base md:text-sm outline-none placeholder:text-muted-foreground touch-manipulation"
+            placeholder="Search flashcards, questions, challenges..."
             value={query}
-            onChange={e => onSearch(e.target.value)}
-            onKeyDown={handleKeyDown}
+            onChange={handleInputChange}
             aria-label="Search content"
             aria-autocomplete="list"
-            aria-controls="search-results-listbox"
-            aria-expanded={results.length > 0}
-            aria-activedescendant={results.length > 0 ? `search-option-${activeIndex}` : undefined}
+            aria-expanded={hasResults}
+            style={{
+              flex: 1,
+              background: 'transparent',
+              border: 'none',
+              outline: 'none',
+              fontSize: 15,
+              color: 'var(--dp-text-0)',
+              caretColor: 'var(--dp-blue)',
+            }}
           />
           {query && (
             <button
               data-testid="search-clear-button"
               onClick={handleClear}
-              className="ml-3 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-sm opacity-70 hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-offset-2 touch-manipulation md:ml-2"
-              type="button"
               aria-label="Clear search"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'var(--dp-bg-3)',
+                border: 'none',
+                borderRadius: 6,
+                width: 24,
+                height: 24,
+                cursor: 'pointer',
+                color: 'var(--dp-text-3)',
+                flexShrink: 0,
+              }}
             >
-              <X
-                className="h-5 w-5 md:h-4 md:w-4 text-secondary opacity-70 hover:opacity-100 transition-opacity drop-shadow-sm"
-                aria-hidden="true"
-              />
+              <X size={13} aria-hidden="true" />
             </button>
           )}
+          <button
+            onClick={onClose}
+            aria-label="Close search"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: 'var(--dp-bg-3)',
+              border: '1px solid var(--dp-border-1)',
+              borderRadius: 6,
+              padding: '2px 6px',
+              cursor: 'pointer',
+              color: 'var(--dp-text-3)',
+              fontSize: 11,
+              fontWeight: 600,
+              letterSpacing: '0.02em',
+              flexShrink: 0,
+            }}
+          >
+            esc
+          </button>
         </div>
 
-        {/* Results */}
-        <CommandList
+        {/* Type Filter Tabs — only shown when results exist */}
+        {!showEmpty && (
+          <div
+            style={{
+              display: 'flex',
+              gap: 4,
+              padding: '8px 12px',
+              borderBottom: '1px solid var(--dp-border-1)',
+              overflowX: 'auto',
+              scrollbarWidth: 'none',
+            }}
+          >
+            <button
+              onClick={() => { setActiveFilter('all'); setActiveIndex(0) }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 5,
+                padding: '3px 10px',
+                borderRadius: 20,
+                border: '1px solid',
+                borderColor: activeFilter === 'all' ? 'var(--dp-blue)' : 'var(--dp-border-1)',
+                background: activeFilter === 'all' ? 'var(--dp-blue)18' : 'transparent',
+                color: activeFilter === 'all' ? 'var(--dp-blue)' : 'var(--dp-text-3)',
+                fontSize: 11,
+                fontWeight: 600,
+                cursor: 'pointer',
+                flexShrink: 0,
+                transition: 'all 0.15s',
+              }}
+            >
+              All
+              {totalResults > 0 && (
+                <span
+                  style={{
+                    background: activeFilter === 'all' ? 'var(--dp-blue)' : 'var(--dp-bg-3)',
+                    color: activeFilter === 'all' ? '#fff' : 'var(--dp-text-3)',
+                    borderRadius: 10,
+                    padding: '0 5px',
+                    fontSize: 10,
+                    fontWeight: 700,
+                  }}
+                >
+                  {totalResults}
+                </span>
+              )}
+            </button>
+
+            {(Object.keys(TYPE_CONFIG) as SearchResultType[]).map(type => {
+              const cfg = TYPE_CONFIG[type]
+              const count = typeCounts[type] ?? 0
+              if (count === 0) return null
+              const Icon = cfg.icon
+              const isActive = activeFilter === type
+              return (
+                <button
+                  key={type}
+                  onClick={() => { setActiveFilter(type); setActiveIndex(0) }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 5,
+                    padding: '3px 10px',
+                    borderRadius: 20,
+                    border: '1px solid',
+                    borderColor: isActive ? cfg.color : 'var(--dp-border-1)',
+                    background: isActive ? cfg.bg : 'transparent',
+                    color: isActive ? cfg.color : 'var(--dp-text-3)',
+                    fontSize: 11,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    flexShrink: 0,
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  <Icon size={11} />
+                  {cfg.label}
+                  <span
+                    style={{
+                      background: isActive ? cfg.color : 'var(--dp-bg-3)',
+                      color: isActive ? '#fff' : 'var(--dp-text-3)',
+                      borderRadius: 10,
+                      padding: '0 5px',
+                      fontSize: 10,
+                      fontWeight: 700,
+                    }}
+                  >
+                    {count}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+        )}
+
+        {/* Scrollable Content Area */}
+        <div
           ref={listRef}
           id="search-results-listbox"
           data-testid="search-results"
-          className="flex-1 overflow-y-auto max-h-[calc(100dvh-180px)] md:max-h-[400px]"
           role="listbox"
           aria-label="Search results"
           aria-live="polite"
+          style={{
+            flex: 1,
+            overflowY: 'auto',
+            overscrollBehavior: 'contain',
+          }}
         >
-          <SearchResultsContent
-            results={results}
-            groupedResults={groupedResults}
-            resultIndexMap={resultIndexMap}
-            activeIndex={activeIndex}
-            isLoading={isLoading}
-            onSelect={onSelect}
-            onClose={onClose}
-            onHover={handleHover}
-          />
-        </CommandList>
+          {/* Empty query state */}
+          {showEmpty && (
+            <div style={{ padding: '8px 0 4px' }}>
+              {/* Recent searches */}
+              {recentSearches.length > 0 && (
+                <div>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      padding: '6px 16px 4px',
+                      fontSize: 10,
+                      fontWeight: 700,
+                      color: 'var(--dp-text-4)',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.08em',
+                    }}
+                  >
+                    <Clock size={10} aria-hidden="true" />
+                    Recent Searches
+                  </div>
+                  {recentSearches.map(q => (
+                    <button
+                      key={q}
+                      onClick={() => handleRecentSearch(q)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 10,
+                        width: '100%',
+                        padding: '8px 16px',
+                        background: 'transparent',
+                        border: 'none',
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                        color: 'var(--dp-text-2)',
+                        fontSize: 13,
+                        transition: 'background 0.1s',
+                      }}
+                      onMouseEnter={e => {
+                        ;(e.currentTarget as HTMLElement).style.background = 'var(--dp-bg-2)'
+                      }}
+                      onMouseLeave={e => {
+                        ;(e.currentTarget as HTMLElement).style.background = 'transparent'
+                      }}
+                    >
+                      <Clock size={13} style={{ color: 'var(--dp-text-4)', flexShrink: 0 }} aria-hidden="true" />
+                      <span style={{ flex: 1 }}>{q}</span>
+                      <span
+                        onClick={e => handleRemoveRecent(e, q)}
+                        role="button"
+                        aria-label={`Remove "${q}" from recent searches`}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          color: 'var(--dp-text-4)',
+                          padding: 4,
+                          borderRadius: 4,
+                        }}
+                      >
+                        <X size={11} aria-hidden="true" />
+                      </span>
+                    </button>
+                  ))}
+                  <div
+                    style={{
+                      height: 1,
+                      background: 'var(--dp-border-1)',
+                      margin: '8px 16px',
+                    }}
+                  />
+                </div>
+              )}
 
-        {/* Mobile Footer with Keyboard Hint */}
-        <div className="p-4 border-t bg-muted/30 md:hidden">
-          <p className="text-sm text-muted-foreground text-center">
-            Tap a result to select • Press Escape to close
-          </p>
+              {/* Quick navigate */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '6px 16px 4px',
+                  fontSize: 10,
+                  fontWeight: 700,
+                  color: 'var(--dp-text-4)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.08em',
+                }}
+              >
+                <Zap size={10} aria-hidden="true" />
+                Quick Navigate
+              </div>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(2, 1fr)',
+                  gap: 4,
+                  padding: '4px 12px 12px',
+                }}
+              >
+                {SECTION_QUICK_ACTIONS.map(action => {
+                  const Icon = action.icon
+                  return (
+                    <button
+                      key={action.section}
+                      onClick={() => handleNavigate(action.section)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8,
+                        padding: '8px 12px',
+                        background: 'var(--dp-bg-1)',
+                        border: '1px solid var(--dp-border-1)',
+                        borderRadius: 8,
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                        color: 'var(--dp-text-2)',
+                        fontSize: 12,
+                        fontWeight: 500,
+                        transition: 'all 0.15s',
+                      }}
+                      onMouseEnter={e => {
+                        const el = e.currentTarget as HTMLElement
+                        el.style.background = 'var(--dp-bg-2)'
+                        el.style.borderColor = `${action.color}44`
+                        el.style.color = action.color
+                      }}
+                      onMouseLeave={e => {
+                        const el = e.currentTarget as HTMLElement
+                        el.style.background = 'var(--dp-bg-1)'
+                        el.style.borderColor = 'var(--dp-border-1)'
+                        el.style.color = 'var(--dp-text-2)'
+                      }}
+                    >
+                      <Icon size={13} style={{ color: action.color }} aria-hidden="true" />
+                      {action.label}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Loading state */}
+          {!showEmpty && isLoading && (
+            <div
+              data-testid="search-loading"
+              role="status"
+              aria-live="polite"
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '40px 16px',
+                gap: 12,
+              }}
+            >
+              <div
+                style={{
+                  width: 20,
+                  height: 20,
+                  border: '2px solid var(--dp-border-1)',
+                  borderTopColor: 'var(--dp-blue)',
+                  borderRadius: '50%',
+                  animation: 'spin 0.7s linear infinite',
+                }}
+                aria-hidden="true"
+              />
+              <span style={{ fontSize: 13, color: 'var(--dp-text-3)' }}>Searching...</span>
+            </div>
+          )}
+
+          {/* No results state */}
+          {!showEmpty && !isLoading && !hasResults && (
+            <div
+              data-testid="search-empty-state"
+              role="status"
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                padding: '40px 16px',
+                gap: 8,
+              }}
+            >
+              <div
+                style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: '50%',
+                  background: 'var(--dp-bg-2)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Search size={22} style={{ color: 'var(--dp-text-4)' }} aria-hidden="true" />
+              </div>
+              <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--dp-text-1)', margin: 0 }}>
+                No results for &ldquo;{query}&rdquo;
+              </p>
+              <p style={{ fontSize: 12, color: 'var(--dp-text-4)', margin: 0, textAlign: 'center' }}>
+                Try different keywords or check the spelling
+              </p>
+              {activeFilter !== 'all' && (
+                <button
+                  onClick={() => setActiveFilter('all')}
+                  style={{
+                    marginTop: 8,
+                    padding: '6px 14px',
+                    border: '1px solid var(--dp-border-1)',
+                    borderRadius: 8,
+                    background: 'transparent',
+                    color: 'var(--dp-blue)',
+                    fontSize: 12,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Search all types
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Results */}
+          {!showEmpty && !isLoading && hasResults && (
+            <div style={{ padding: '4px 0' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '4px 16px 6px',
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 700,
+                    color: 'var(--dp-text-4)',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.08em',
+                  }}
+                >
+                  {filteredResults.length} result{filteredResults.length !== 1 ? 's' : ''}
+                  {activeFilter !== 'all' && ` · ${TYPE_CONFIG[activeFilter].label}s`}
+                </span>
+                <span style={{ fontSize: 10, color: 'var(--dp-text-4)' }}>
+                  sorted by relevance
+                </span>
+              </div>
+              {filteredResults.map((result, idx) => (
+                <ResultItem
+                  key={result.id}
+                  result={result}
+                  query={query}
+                  isActive={idx === activeIndex}
+                  onSelect={() => handleSelectResult(result)}
+                  onHover={() => setActiveIndex(idx)}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Footer — keyboard hints */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '8px 14px',
+            borderTop: '1px solid var(--dp-border-1)',
+            background: 'var(--dp-bg-1)',
+            flexShrink: 0,
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            {[
+              { keys: ['↑', '↓'], label: 'navigate' },
+              { keys: ['↵'], label: 'select' },
+              { keys: ['esc'], label: 'close' },
+            ].map(({ keys, label }) => (
+              <span
+                key={label}
+                style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--dp-text-4)' }}
+              >
+                {keys.map(k => (
+                  <kbd
+                    key={k}
+                    style={{
+                      background: 'var(--dp-bg-3)',
+                      border: '1px solid var(--dp-border-1)',
+                      borderRadius: 4,
+                      padding: '1px 5px',
+                      fontSize: 10,
+                      fontFamily: 'inherit',
+                      fontWeight: 600,
+                    }}
+                  >
+                    {k}
+                  </kbd>
+                ))}
+                <span>{label}</span>
+              </span>
+            ))}
+          </div>
+
+          <span
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+              fontSize: 11,
+              color: 'var(--dp-text-4)',
+            }}
+          >
+            <Zap size={10} style={{ color: 'var(--dp-blue)' }} aria-hidden="true" />
+            DevPrep
+          </span>
         </div>
       </div>
-    </CommandDialog>
+
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .search-result-item:hover { background: var(--dp-bg-2) !important; }
+      `}</style>
+    </div>,
+    document.body
   )
 }
