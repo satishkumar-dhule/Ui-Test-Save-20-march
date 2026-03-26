@@ -434,11 +434,23 @@ function SearchModalWrapper() {
     setIsSearchLoading(false)
   }, [setIsSearchOpen])
 
+  const TYPE_TO_SECTION: Record<string, Section> = {
+    question: 'qa',
+    flashcard: 'flashcards',
+    exam: 'exam',
+    voice: 'voice',
+    coding: 'coding',
+  }
+
   const handleSelect = useCallback(
     (result: SearchResult) => {
       handleClose()
+      const store = useContentStore.getState()
       if ('channelId' in result && result.channelId) {
-        useContentStore.getState().switchChannel(result.channelId)
+        store.switchChannel(result.channelId)
+      }
+      if (result.type && TYPE_TO_SECTION[result.type]) {
+        store.setSection(TYPE_TO_SECTION[result.type])
       }
     },
     [handleClose]
