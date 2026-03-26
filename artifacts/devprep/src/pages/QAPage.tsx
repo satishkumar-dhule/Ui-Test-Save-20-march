@@ -19,6 +19,7 @@ import type { Question, AnswerSection } from '@/data/questions'
 import type { ReactElement } from 'react'
 import { sanitizeSVG } from '@/lib/security'
 import { Empty, EmptyMedia, EmptyTitle, EmptyDescription } from '@/components/ui/empty'
+import { progressApi } from '@/services/progressApi'
 
 const DIFF_CONFIG: Record<string, { label: string; color: string; bg: string; border: string }> = {
   beginner: { label: 'Beginner', color: '#3fb950', bg: 'rgba(63,185,80,0.1)', border: 'rgba(63,185,80,0.25)' },
@@ -278,6 +279,14 @@ export function QAPage({ questions, channelId, onQuestionAnswered, isLoading = f
   const [activeIdx, setActiveIdx] = useState(0)
   const [search, setSearch] = useState('')
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [viewed, setViewed] = useState<Record<string, boolean>>(
+    () => {
+      const data = progressApi.loadSync()
+      const out: Record<string, boolean> = {}
+      Object.entries(data.qa).forEach(([id, v]) => { if (v.answered) out[id] = true })
+      return out
+    }
+  )
   const contentRef = useRef<HTMLDivElement>(null)
   const { announce } = useAnnounce()
 
@@ -290,11 +299,24 @@ export function QAPage({ questions, channelId, onQuestionAnswered, isLoading = f
 
   const active = filtered[activeIdx]
 
-  useEffect(() => { setActiveIdx(0) }, [channelId])
+  useEffect(() => {
+    setActiveIdx(0)
+    const data = progressApi.loadSync()
+    const out: Record<string, boolean> = {}
+    Object.entries(data.qa).forEach(([id, v]) => { if (v.answered) out[id] = true })
+    setViewed(out)
+  }, [channelId])
 
   useEffect(() => {
-    if (active) onQuestionAnswered?.(active.id)
-  }, [activeIdx, active, onQuestionAnswered])
+    if (!active) return
+    onQuestionAnswered?.(active.id)
+    setViewed(prev => {
+      if (prev[active.id]) return prev
+      const next = { ...prev, [active.id]: true }
+      progressApi.saveQA(channelId, active.id, true, false)
+      return next
+    })
+  }, [activeIdx, active, channelId, onQuestionAnswered])
 
   const go = useCallback((dir: 1 | -1) => {
     setActiveIdx(i => Math.max(0, Math.min(filtered.length - 1, i + dir)))
@@ -396,6 +418,9 @@ export function QAPage({ questions, channelId, onQuestionAnswered, isLoading = f
                   <span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', color: diffColor }}>
                     {diff.slice(0, 3)}
                   </span>
+                  {viewed[q.id] && (
+                    <span title="Viewed" style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--dp-green)', flexShrink: 0, display: 'inline-block' }} />
+                  )}
                 </div>
                 <div className="study-panel-item-title">{q.title}</div>
               </button>

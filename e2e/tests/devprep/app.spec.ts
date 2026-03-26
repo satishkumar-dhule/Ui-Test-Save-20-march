@@ -13,7 +13,7 @@ test.describe("DevPrep App", () => {
   test("should select channels and proceed to main app", async ({ page }) => {
     await expect(page.getByTestId("onboarding-modal")).toBeVisible();
 
-    const jsCheckbox = page.getByTestId("channel-checkbox-javascript");
+    const jsCheckbox = page.getByTestId("onboarding-channel-javascript");
     await jsCheckbox.click();
 
     const startButton = page.getByRole("button", { name: /start learning/i });
@@ -92,7 +92,11 @@ test.describe("DevPrep App", () => {
     await page.getByTestId("channel-tab-react").click();
     await expect(page.getByTestId("channel-tab-react")).toHaveAttribute(
       "style",
-      /font-weight: 600/,
+      /color:.*#/,
+    );
+    await expect(page.getByTestId("channel-tab-javascript")).toHaveAttribute(
+      "style",
+      /hsl/,
     );
   });
 
@@ -133,7 +137,7 @@ test.describe("DevPrep App", () => {
     await page.reload();
 
     await page.getByTestId("section-tab-flashcards").click();
-    await expect(page.getByTestId("flashcards-page"))
+    await expect(page.getByTestId("flashcard-flip"))
       .toBeVisible({ timeout: 5000 })
       .catch(() => {});
   });
@@ -148,7 +152,7 @@ test.describe("DevPrep App", () => {
     await page.reload();
 
     await page.getByTestId("section-tab-coding").click();
-    await expect(page.getByTestId("coding-page"))
+    await expect(page.getByRole("button", { name: "Run Code" }))
       .toBeVisible({ timeout: 5000 })
       .catch(() => {});
   });
