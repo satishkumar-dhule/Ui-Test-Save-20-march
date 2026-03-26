@@ -40,6 +40,8 @@ import {
   Smartphone,
   Cpu,
   Terminal,
+  Award,
+  Pencil,
   type LucideIcon,
 } from 'lucide-react'
 
