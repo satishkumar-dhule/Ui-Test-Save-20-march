@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useAnnounce, SkipLink, LiveRegion } from '@/hooks/useAnnounce'
 import {
   Code2,
@@ -25,6 +25,8 @@ import {
   ListChecks,
   Copy,
   Check,
+  Circle,
+  ArrowRight,
 } from 'lucide-react'
 import type { CodingChallenge, Language } from '@/data/coding'
 import { progressApi } from '@/services/progressApi'
@@ -70,11 +72,21 @@ const LANGS: { id: Language; label: string; short: string; color: string }[] = [
   { id: 'python', label: 'Python', short: 'PY', color: '#3fb950' },
 ]
 
+const LANG_STYLE_MAP: Record<Language, { color: string }> = {
+  javascript: { color: '#f7df1e' },
+  typescript: { color: '#3178c6' },
+  python: { color: '#3fb950' },
+}
+
+const EMPTY_STYLE = {} as const
+
 const LANG_EXT: Record<Language, string> = {
   javascript: 'js',
   typescript: 'ts',
   python: 'py',
 }
+
+const CHALLENGE_BTN_STYLE = { width: 'calc(100% - 12px)' } as const
 
 /* ── Markdown renderer ───────────────────────────────────────────── */
 
@@ -114,7 +126,35 @@ function renderMd(text: string) {
 
 /* ── Code Editor ─────────────────────────────────────────────────── */
 
-function SimpleCodeEditor({
+const KEYWORDS: Record<Language, RegExp> = {
+  javascript:
+    /\b(const|let|var|function|return|if|else|for|while|do|switch|case|break|continue|new|this|class|extends|import|export|from|default|try|catch|finally|throw|typeof|instanceof|in|of|async|await|yield|true|false|null|undefined)\b/g,
+  typescript:
+    /\b(const|let|var|function|return|if|else|for|while|do|switch|case|break|continue|new|this|class|extends|import|export|from|default|try|catch|finally|throw|typeof|instanceof|in|of|async|await|yield|true|false|null|undefined|interface|type|enum|implements|readonly|as|keyof|infer)\b/g,
+  python:
+    /\b(def|class|return|if|elif|else|for|while|break|continue|pass|import|from|as|try|except|finally|raise|with|yield|lambda|True|False|None|and|or|not|is|in|global|nonlocal|assert|async|await|self)\b/g,
+}
+
+function highlightCode(code: string, language: Language): string {
+  const escaped = code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+
+  let result = escaped.replace(
+    /(["'`])(?:(?!\1|\\).|\\.)*\1/g,
+    '<span style="color:rgb(253,230,138)">$&</span>'
+  )
+  result = result.replace(
+    /(\/\/.*$|#.*$)/gm,
+    '<span style="color:rgb(148,163,184);font-style:italic">$&</span>'
+  )
+  result = result.replace(/\b(\d+\.?\d*)\b/g, '<span style="color:rgb(196,167,231)">$1</span>')
+  const kw = KEYWORDS[language]
+  result = result.replace(kw, '<span style="color:rgb(96,165,250);font-weight:500">$&</span>')
+  return result
+}
+
+const EDITOR_TAB_STYLE = { tabSize: 2, caretColor: '#3b82f6' } as const
+
+const SimpleCodeEditor = React.memo(function SimpleCodeEditor({
   value,
   onChange,
   language,
@@ -124,56 +164,81 @@ function SimpleCodeEditor({
   language: Language
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
-  const lineCount = value.split('\n').length
+  const highlightRef = useRef<HTMLPreElement>(null)
+  const lineCount = useMemo(() => value.split('\n').length, [value])
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Tab') {
-      e.preventDefault()
-      const el = e.currentTarget
-      const start = el.selectionStart
-      const end = el.selectionEnd
-      onChange(value.substring(0, start) + '  ' + value.substring(end))
-      requestAnimationFrame(() => {
-        if (textareaRef.current) {
-          textareaRef.current.selectionStart = start + 2
-          textareaRef.current.selectionEnd = start + 2
-        }
-      })
+  const handleScroll = useCallback(() => {
+    if (highlightRef.current && textareaRef.current) {
+      highlightRef.current.scrollTop = textareaRef.current.scrollTop
+      highlightRef.current.scrollLeft = textareaRef.current.scrollLeft
     }
-  }
+  }, [])
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      if (e.key === 'Tab') {
+        e.preventDefault()
+        const el = e.currentTarget
+        const start = el.selectionStart
+        const end = el.selectionEnd
+        onChange(value.substring(0, start) + '  ' + value.substring(end))
+        requestAnimationFrame(() => {
+          if (textareaRef.current) {
+            textareaRef.current.selectionStart = start + 2
+            textareaRef.current.selectionEnd = start + 2
+          }
+        })
+      }
+    },
+    [value, onChange]
+  )
+
+  const highlighted = useMemo(() => highlightCode(value, language), [value, language])
 
   return (
     <div className="flex flex-1 overflow-hidden bg-[var(--dp-bg-0)]">
       {/* Line numbers */}
       <div
-        className="hidden md:flex flex-col items-end pr-3 pt-[14px] pb-[14px] select-none min-w-[40px] bg-[var(--dp-bg-0)] border-r border-border/40"
+        className="hidden md:flex flex-col items-end pr-3 pt-[14px] pb-[14px] select-none min-w-[48px] bg-[var(--dp-bg-0)] border-r border-border/40"
         aria-hidden="true"
       >
         {Array.from({ length: lineCount }, (_, i) => (
-          <span key={i} className="text-[11px] leading-[1.65] font-mono text-muted-foreground/50">
+          <span
+            key={i}
+            className="text-[11px] leading-[1.65] font-mono text-muted-foreground/40 tabular-nums"
+          >
             {i + 1}
           </span>
         ))}
       </div>
 
-      {/* Textarea */}
-      <textarea
-        ref={textareaRef}
-        value={value}
-        onChange={e => onChange(e.target.value)}
-        onKeyDown={handleKeyDown}
-        spellCheck={false}
-        className="flex-1 min-h-[200px] font-mono text-[13px] leading-[1.65] p-3.5 bg-transparent text-foreground border-0 outline-none resize-none caret-blue-500"
-        style={{ tabSize: 2 }}
-        aria-label="Code editor"
-      />
+      {/* Highlighting overlay + textarea */}
+      <div className="relative flex-1 overflow-hidden">
+        <pre
+          ref={highlightRef}
+          className="absolute inset-0 font-mono text-[13px] leading-[1.65] p-3.5 overflow-hidden pointer-events-none whitespace-pre-wrap break-words text-transparent"
+          aria-hidden="true"
+          dangerouslySetInnerHTML={{ __html: highlighted + '\n' }}
+        />
+        <textarea
+          ref={textareaRef}
+          value={value}
+          onChange={e => onChange(e.target.value)}
+          onKeyDown={handleKeyDown}
+          onScroll={handleScroll}
+          spellCheck={false}
+          className="absolute inset-0 w-full h-full font-mono text-[13px] leading-[1.65] p-3.5 bg-transparent border-0 outline-none resize-none caret-blue-500 text-transparent focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 rounded"
+          style={EDITOR_TAB_STYLE}
+          aria-label="Code editor"
+        />
+      </div>
     </div>
   )
-}
+})
 
 /* ── Hint Accordion Item ─────────────────────────────────────────── */
 
-function HintItem({
+const HintItem = React.memo(function HintItem({
   index,
   hint,
   isOpen,
@@ -187,15 +252,21 @@ function HintItem({
   total: number
 }) {
   return (
-    <div className="border border-amber-500/20 rounded-lg overflow-hidden transition-all duration-200">
+    <div
+      className={`border rounded-lg overflow-hidden transition-colors duration-200 ${
+        isOpen
+          ? 'border-amber-500/30 bg-amber-500/5'
+          : 'border-amber-500/15 hover:border-amber-500/25'
+      }`}
+    >
       <button
         onClick={onToggle}
-        className="flex items-center w-full gap-2.5 px-3.5 py-2.5 text-left hover:bg-amber-500/5 transition-colors duration-150 cursor-pointer"
+        className="flex items-center w-full gap-2.5 px-3.5 py-3 text-left hover:bg-amber-500/5 transition-colors duration-150 cursor-pointer min-h-[44px] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 rounded-lg"
         aria-expanded={isOpen}
         aria-controls={`hint-${index}`}
       >
         <div
-          className={`flex items-center justify-center w-6 h-6 rounded-full text-[10px] font-bold transition-all duration-200 ${
+          className={`flex items-center justify-center w-7 h-7 rounded-full text-[10px] font-bold transition-colors duration-200 flex-shrink-0 ${
             isOpen ? 'bg-amber-500/20 text-amber-400' : 'bg-muted text-muted-foreground'
           }`}
         >
@@ -203,12 +274,12 @@ function HintItem({
         </div>
         <span
           className={`text-sm font-medium transition-colors duration-150 ${
-            isOpen ? 'text-amber-300' : 'text-muted-foreground'
+            isOpen ? 'text-amber-300' : 'text-foreground/70'
           }`}
         >
           Hint {index + 1} of {total}
         </span>
-        <div className="ml-auto">
+        <div className="ml-auto flex-shrink-0">
           {isOpen ? (
             <ChevronUp size={14} className="text-amber-400" />
           ) : (
@@ -218,7 +289,7 @@ function HintItem({
       </button>
       <div
         id={`hint-${index}`}
-        className="overflow-hidden transition-all duration-250 ease-out"
+        className="overflow-hidden transition-[max-height,opacity] duration-300 ease-out"
         style={{
           maxHeight: isOpen ? '200px' : '0px',
           opacity: isOpen ? 1 : 0,
@@ -228,7 +299,7 @@ function HintItem({
       </div>
     </div>
   )
-}
+})
 
 /* ── Main Component ──────────────────────────────────────────────── */
 
@@ -264,6 +335,7 @@ export function CodingPage({
   const [running, setRunning] = useState(false)
   const [copied, setCopied] = useState(false)
   const { announce } = useAnnounce()
+  const titleRef = useRef<HTMLHeadingElement>(null)
 
   const challenge = challenges[activeIdx]
 
@@ -285,20 +357,27 @@ export function CodingPage({
 
   const go = useCallback(
     (dir: 1 | -1) => {
-      setActiveIdx(i => Math.max(0, Math.min(challenges.length - 1, i + dir)))
+      setActiveIdx(i => {
+        const next = Math.max(0, Math.min(challenges.length - 1, i + dir))
+        requestAnimationFrame(() => titleRef.current?.focus())
+        return next
+      })
       setRunResult(null)
-      announce(`Challenge ${activeIdx + dir + 1} of ${challenges.length}`)
+      announce(`Navigating challenge`)
     },
-    [challenges.length, activeIdx, announce]
+    [challenges.length, announce]
   )
 
-  const markStatus = (id: string, status: 'not_started' | 'in_progress' | 'completed') => {
-    setStatuses(prev => ({ ...prev, [id]: status }))
-    onCodingUpdate?.(id, status)
-    progressApi.saveCoding(channelId, id, status)
-  }
+  const markStatus = useCallback(
+    (id: string, status: 'not_started' | 'in_progress' | 'completed') => {
+      setStatuses(prev => ({ ...prev, [id]: status }))
+      onCodingUpdate?.(id, status)
+      progressApi.saveCoding(channelId, id, status)
+    },
+    [channelId, onCodingUpdate]
+  )
 
-  const runCode = async () => {
+  const runCode = useCallback(async () => {
     if (!challenge) return
     setRunning(true)
     setRunResult(null)
@@ -313,6 +392,7 @@ export function CodingPage({
             'All tests passed!\n\nYour implementation is correct. Review the solution to compare approaches.',
         })
         markStatus(challenge.id, 'completed')
+        announce('All tests passed')
       } else {
         setRunResult({
           ok: false,
@@ -320,12 +400,14 @@ export function CodingPage({
             'No function detected.\n\nMake sure you implement the required function using:\n  • function keyword\n  • arrow function (=>)\n  • def (Python)',
         })
         markStatus(challenge.id, 'in_progress')
+        announce('No function detected. Check the output for details.')
       }
     } catch (e: any) {
       setRunResult({ ok: false, output: `Error: ${e.message}` })
+      announce(`Error: ${e.message}`)
     }
     setRunning(false)
-  }
+  }, [challenge, code, markStatus, announce])
 
   const handleCopySolution = useCallback(() => {
     if (!challenge?.solution?.[lang]) return
@@ -344,6 +426,14 @@ export function CodingPage({
     })
   }, [])
 
+  const handleEditorChange = useCallback(
+    (v: string) => {
+      setCode(v)
+      if (challenge) markStatus(challenge.id, 'in_progress')
+    },
+    [challenge, markStatus]
+  )
+
   const currentStatus = challenge ? statuses[challenge.id] || 'not_started' : 'not_started'
   const diff = challenge
     ? (DIFF_CONFIG[challenge.difficulty || 'easy'] ?? DIFF_CONFIG.easy)
@@ -354,8 +444,30 @@ export function CodingPage({
 
   if (isLoading) {
     return (
-      <div className="flex-1 flex items-center justify-center">
-        <div className="w-7 h-7 rounded-full border-2 border-border border-t-blue-500 animate-spin" />
+      <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
+        {/* Sidebar skeleton */}
+        <div className="hidden md:flex md:w-[240px] flex-col border-r border-border bg-muted/30 p-4 gap-3">
+          {Array.from({ length: 5 }, (_, i) => (
+            <div key={i} className="h-12 rounded-lg bg-muted/60 animate-pulse" />
+          ))}
+        </div>
+        {/* Editor skeleton */}
+        <div className="flex-1 flex flex-col">
+          <div className="flex items-center gap-2 px-4 py-2.5 border-b border-border bg-muted/20">
+            <div className="h-6 w-16 rounded-full bg-muted/60 animate-pulse" />
+            <div className="h-6 w-20 rounded-full bg-muted/60 animate-pulse" />
+            <div className="flex-1" />
+            <div className="h-6 w-12 rounded bg-muted/60 animate-pulse" />
+          </div>
+          <div className="flex-1 flex items-center justify-center">
+            <div
+              className="w-8 h-8 rounded-full border-2 border-border border-t-blue-500 animate-spin"
+              role="status"
+            >
+              <span className="sr-only">Loading…</span>
+            </div>
+          </div>
+        </div>
       </div>
     )
   }
@@ -364,16 +476,24 @@ export function CodingPage({
 
   if (challenges.length === 0) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center gap-4 p-8 text-center">
-        <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center">
-          <Code2 size={22} className="text-muted-foreground" />
+      <div className="flex-1 flex flex-col items-center justify-center gap-5 p-8 text-center">
+        <div className="w-16 h-16 rounded-2xl bg-muted/50 border border-border flex items-center justify-center">
+          <Code2 size={28} className="text-muted-foreground" />
         </div>
-        <div className="space-y-1">
+        <div className="space-y-2">
           <h3 className="text-lg font-semibold text-foreground">No coding challenges</h3>
-          <p className="text-sm text-muted-foreground max-w-[280px]">
-            Switch to a different channel to find coding challenges.
+          <p className="text-sm text-muted-foreground max-w-[300px] leading-relaxed">
+            This channel doesn't have any coding challenges yet. Try switching to a different
+            channel or generate new content.
           </p>
         </div>
+        <button
+          className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium transition-colors cursor-pointer"
+          onClick={() => window.history.back()}
+        >
+          <ArrowRight size={15} className="rotate-180" />
+          Browse channels
+        </button>
       </div>
     )
   }
@@ -416,7 +536,7 @@ export function CodingPage({
           </span>
           <button
             onClick={() => setSidebarOpen(false)}
-            className="md:hidden p-1 -mr-1 rounded hover:bg-muted cursor-pointer"
+            className="md:hidden flex items-center justify-center w-9 h-9 -mr-1 rounded-lg hover:bg-muted transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
             aria-label="Close sidebar"
           >
             <X size={15} className="text-muted-foreground" />
@@ -439,7 +559,8 @@ export function CodingPage({
                 }}
                 className={`
                   w-full text-left px-3.5 py-2.5 mx-1.5 my-0.5 rounded-lg
-                  transition-all duration-150 cursor-pointer group
+                  transition-colors duration-150 cursor-pointer group
+                  focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1
                   ${
                     isActive
                       ? 'bg-blue-500/10 border border-blue-500/20'
@@ -487,7 +608,7 @@ export function CodingPage({
           {/* Mobile sidebar toggle */}
           <button
             onClick={() => setSidebarOpen(true)}
-            className="md:hidden flex items-center justify-center w-9 h-9 rounded-lg border border-border bg-background hover:bg-muted transition-colors cursor-pointer"
+            className="md:hidden flex items-center justify-center w-11 h-11 rounded-lg border border-border bg-background hover:bg-muted transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
             aria-label="Open challenge list"
           >
             <Menu size={16} className="text-muted-foreground" />
@@ -531,14 +652,15 @@ export function CodingPage({
                 key={l.id}
                 onClick={() => setLang(l.id)}
                 className={`
-                  relative px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all duration-200 cursor-pointer
+                  relative px-2.5 min-h-[44px] flex items-center rounded-md text-[11px] font-semibold transition-colors duration-200 cursor-pointer
+                  focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1
                   ${
                     lang === l.id
                       ? 'bg-background text-foreground shadow-sm border border-border/80'
                       : 'text-muted-foreground hover:text-foreground border border-transparent'
                   }
                 `}
-                style={lang === l.id ? { color: l.color } : {}}
+                style={lang === l.id ? LANG_STYLE_MAP[l.id] : EMPTY_STYLE}
                 aria-pressed={lang === l.id}
                 aria-label={l.label}
               >
@@ -558,7 +680,7 @@ export function CodingPage({
             <button
               onClick={() => go(-1)}
               disabled={activeIdx === 0}
-              className="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-muted transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+              className="flex items-center justify-center w-11 h-11 rounded-lg hover:bg-muted transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
               aria-label="Previous challenge"
             >
               <ChevronLeft size={15} />
@@ -566,7 +688,7 @@ export function CodingPage({
             <button
               onClick={() => go(1)}
               disabled={activeIdx === challenges.length - 1}
-              className="flex items-center justify-center w-8 h-8 rounded-lg hover:bg-muted transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+              className="flex items-center justify-center w-11 h-11 rounded-lg hover:bg-muted transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
               aria-label="Next challenge"
             >
               <ChevronRight size={15} />
@@ -581,7 +703,11 @@ export function CodingPage({
             <div className="flex-1 overflow-y-auto">
               {/* Title + tags */}
               <div className="px-5 pt-5 pb-4 border-b border-border">
-                <h2 className="text-[17px] font-bold text-foreground tracking-tight leading-tight mb-3">
+                <h2
+                  ref={titleRef}
+                  tabIndex={-1}
+                  className="text-[17px] font-bold text-foreground tracking-tight leading-tight mb-3 outline-none"
+                >
                   {challenge?.title}
                 </h2>
                 {challenge?.tags && challenge.tags.length > 0 && (
@@ -700,7 +826,7 @@ export function CodingPage({
                         Approach
                       </span>
                     </div>
-                    <div className="text-[13px] text-foreground/80 leading-relaxed">
+                    <div className="text-[13px] text-foreground leading-relaxed">
                       {renderMd(challenge.approach)}
                     </div>
                   </div>
@@ -760,7 +886,7 @@ export function CodingPage({
                   setCode(starter)
                   setRunResult(null)
                 }}
-                className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                className="flex items-center gap-1 min-h-[44px] px-2 text-[11px] text-muted-foreground hover:text-foreground transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 rounded-lg"
                 aria-label="Reset code to starter"
               >
                 <RotateCcw size={11} />
@@ -769,14 +895,7 @@ export function CodingPage({
             </div>
 
             {/* Editor body */}
-            <SimpleCodeEditor
-              value={code}
-              onChange={v => {
-                setCode(v)
-                if (challenge) markStatus(challenge.id, 'in_progress')
-              }}
-              language={lang}
-            />
+            <SimpleCodeEditor value={code} onChange={handleEditorChange} language={lang} />
 
             {/* ── Actions + Results panel ───────────────────────────── */}
             <div className="flex-shrink-0 border-t border-border bg-muted/20">
@@ -785,7 +904,7 @@ export function CodingPage({
                 <button
                   onClick={runCode}
                   disabled={running}
-                  className="flex items-center gap-2 px-4 py-[7px] rounded-lg bg-green-600 hover:bg-green-500 text-white text-[13px] font-semibold transition-all duration-150 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer shadow-sm"
+                  className="flex items-center gap-2 px-4 min-h-[44px] rounded-lg bg-green-600 hover:bg-green-500 text-white text-[13px] font-semibold transition-colors duration-150 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer shadow-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
                   aria-label="Run code"
                 >
                   {running ? (
@@ -793,12 +912,12 @@ export function CodingPage({
                   ) : (
                     <Play size={13} fill="currentColor" />
                   )}
-                  {running ? 'Running...' : 'Run Code'}
+                  {running ? 'Running…' : 'Run Code'}
                 </button>
 
                 <button
                   onClick={() => setShowSolution(v => !v)}
-                  className="flex items-center gap-1.5 px-3 py-[7px] rounded-lg border border-border bg-background hover:bg-muted text-[12px] font-medium text-muted-foreground hover:text-foreground transition-all duration-150 cursor-pointer"
+                  className="flex items-center gap-1.5 px-3 min-h-[44px] rounded-lg border border-border bg-background hover:bg-muted text-[12px] font-medium text-muted-foreground hover:text-foreground transition-colors duration-150 cursor-pointer focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
                   aria-expanded={showSolution}
                 >
                   {showSolution ? <EyeOff size={13} /> : <Eye size={13} />}
@@ -812,7 +931,7 @@ export function CodingPage({
                   {/* Run result */}
                   {runResult && (
                     <div
-                      className={`mx-3 mt-2.5 mb-${showSolution ? '2.5' : '2.5'} rounded-lg border overflow-hidden transition-all duration-200 ${
+                      className={`mx-3 mt-2.5 mb-${showSolution ? '2.5' : '2.5'} rounded-lg border overflow-hidden transition-colors duration-200 ${
                         runResult.ok
                           ? 'border-green-500/30 bg-green-500/5'
                           : 'border-red-500/30 bg-red-500/5'
@@ -846,7 +965,7 @@ export function CodingPage({
                       </div>
                       <pre
                         className={`px-3 py-2 font-mono text-[12px] leading-relaxed whitespace-pre-wrap ${
-                          runResult.ok ? 'text-green-300' : 'text-red-300'
+                          runResult.ok ? 'text-green-200' : 'text-red-200'
                         }`}
                       >
                         {runResult.output}
@@ -864,14 +983,14 @@ export function CodingPage({
                         </span>
                         <button
                           onClick={handleCopySolution}
-                          className="ml-auto flex items-center gap-1 text-[10px] text-blue-400/70 hover:text-blue-300 transition-colors cursor-pointer"
+                          className="ml-auto flex items-center gap-1 min-h-[44px] px-2 text-[10px] text-blue-400/70 hover:text-blue-300 transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 rounded"
                           aria-label="Copy solution"
                         >
                           {copied ? <Check size={11} /> : <Copy size={11} />}
                           {copied ? 'Copied' : 'Copy'}
                         </button>
                       </div>
-                      <pre className="px-3 py-2.5 font-mono text-[12px] leading-[1.7] text-foreground/80 whitespace-pre-wrap">
+                      <pre className="px-3 py-2.5 font-mono text-[12px] leading-[1.7] text-foreground whitespace-pre-wrap">
                         {challenge.solution[lang]}
                       </pre>
                     </div>

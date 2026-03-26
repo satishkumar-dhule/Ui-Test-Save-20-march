@@ -208,7 +208,7 @@ export function Sidebar({
           <Search size={14} className="sidebar-search-icon" aria-hidden="true" />
           <input
             className="sidebar-search-input"
-            placeholder="Find channel..."
+            placeholder="Filter channels..."
             value={channelSearch}
             onChange={e => setChannelSearch(e.target.value)}
             aria-label="Search channels"
@@ -261,19 +261,10 @@ export function Sidebar({
                         style={{ color: isActive ? channel.color : undefined }}
                         aria-hidden="true"
                       >
-                        <Icon size={15} />
+                        <Icon size={15} strokeWidth={1.75} />
                       </span>
                       <span className="sidebar-channel-name">{channel.name}</span>
-                      {channel.type === 'cert' && (
-                        <span className="sidebar-channel-cert">{channel.certCode ?? 'CERT'}</span>
-                      )}
-                      {isActive && (
-                        <ChevronRight
-                          size={13}
-                          className="sidebar-channel-arrow"
-                          aria-hidden="true"
-                        />
-                      )}
+                      {isActive && <span className="sidebar-channel-dot" aria-hidden="true" />}
                     </button>
                   </div>
                 )
@@ -283,7 +274,9 @@ export function Sidebar({
               {certChannels.length > 0 && (
                 <>
                   <div className="sidebar-subsection-divider">
+                    <Award size={12} aria-hidden="true" />
                     <span>Certifications</span>
+                    <span className="sidebar-section-count">{certChannels.length}</span>
                   </div>
                   {certChannels.map(channel => {
                     const Icon = getChannelIcon(channel)
@@ -309,17 +302,11 @@ export function Sidebar({
                             style={{ color: isActive ? channel.color : undefined }}
                             aria-hidden="true"
                           >
-                            <Icon size={15} />
+                            <Icon size={15} strokeWidth={1.75} />
                           </span>
                           <span className="sidebar-channel-name">{channel.name}</span>
                           <span className="sidebar-channel-cert">{channel.certCode ?? 'CERT'}</span>
-                          {isActive && (
-                            <ChevronRight
-                              size={13}
-                              className="sidebar-channel-arrow"
-                              aria-hidden="true"
-                            />
-                          )}
+                          {isActive && <span className="sidebar-channel-dot" aria-hidden="true" />}
                         </button>
                       </div>
                     )
@@ -346,7 +333,7 @@ export function Sidebar({
               )}
 
               {filteredPinned.length === 0 && channelSearch && (
-                <p className="sidebar-empty">No channels match "{channelSearch}"</p>
+                <p className="sidebar-empty">No channels match &ldquo;{channelSearch}&rdquo;</p>
               )}
             </div>
 
@@ -412,10 +399,10 @@ export function Sidebar({
           <button
             className="sidebar-footer-btn"
             onClick={onBrowseChannels}
-            aria-label="Add channels"
+            aria-label="Edit tracks"
           >
-            <Plus size={14} aria-hidden="true" />
-            <span>Add channels</span>
+            <Pencil size={14} aria-hidden="true" />
+            <span>Edit tracks</span>
           </button>
         </div>
       </aside>
