@@ -65,6 +65,8 @@ export interface UseGeneratedContentOptions {
   prefetchOnMount?: boolean
 }
 
+export type UseOptimizedContentOptions = UseGeneratedContentOptions
+
 export interface UseGeneratedContentResult {
   generated: GeneratedContentMap
   loading: boolean
@@ -271,14 +273,12 @@ export function useGeneratedContent(): UseGeneratedContentResult {
       abortControllerRef.current.abort()
       abortControllerRef.current = null
     }
-    if (fetchPromise) {
-      fetchPromise = null
-    }
+    fetchPromiseRef.current = null
     setLoading(false)
   }, [])
 
   const fetchContent = useCallback(async (): Promise<void> => {
-    if (fetchPromise) return fetchPromise
+    if (fetchPromiseRef.current) return fetchPromiseRef.current
 
     if (abortControllerRef.current) {
       abortControllerRef.current.abort()
@@ -288,7 +288,7 @@ export function useGeneratedContent(): UseGeneratedContentResult {
     setLoading(true)
     setError(null)
 
-    fetchPromise = queryAllContentFromApi(abortControllerRef.current.signal)
+    fetchPromiseRef.current = queryAllContentFromApi(abortControllerRef.current.signal)
       .then(({ data, parseErrors: errors }) => {
         setGenerated(data)
         saveCache(data)
@@ -303,7 +303,6 @@ export function useGeneratedContent(): UseGeneratedContentResult {
           return
         }
         const msg = e instanceof Error ? e.message : ''
-        // API server is optional — silently fall back to static content
         const isNetworkError =
           msg.includes('503') ||
           msg.includes('Failed to fetch') ||
@@ -316,10 +315,10 @@ export function useGeneratedContent(): UseGeneratedContentResult {
       })
       .finally(() => {
         setLoading(false)
-        fetchPromise = null
+        fetchPromiseRef.current = null
       })
 
-    return fetchPromise
+    return fetchPromiseRef.current
   }, [])
 
   useEffect(() => {
@@ -338,7 +337,7 @@ export function useGeneratedContent(): UseGeneratedContentResult {
   const refresh = useCallback(() => {
     localStorage.removeItem(CACHE_KEY)
     memoryCache.delete(CACHE_KEY)
-    fetchPromise = null
+    fetchPromiseRef.current = null
     fetchContent()
   }, [fetchContent])
 

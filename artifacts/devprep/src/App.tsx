@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback, useState, useMemo, memo, lazy, Suspense } from 'react'
+import { useEffect, useRef, useCallback, useState, useMemo, memo, Suspense } from 'react'
 import { useChannels } from '@/hooks/useChannels'
 import { questions as staticQuestions } from '@/data/questions'
 import { flashcards as staticFlashcards } from '@/data/flashcards'
@@ -16,21 +16,13 @@ import { TopBar } from '@/components/layout/TopBar'
 import { StudyContent } from '@/components/layout/StudyContent'
 import { useContentStore, useSectionCounts } from '@/stores/contentStore'
 import { LazyWrapper } from '@/components/LazyWrapper'
+import { LazyChannelBrowser } from '@/utils/codeSplitter'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useQueryBackdoor } from '@/utils/queryBackdoor'
 import { BackdoorIndicator } from '@/components/debug/BackdoorIndicator'
-
-// Lazy load modals for code splitting
-const LazySearchModal = lazy(() =>
-  import('@/components/SearchModal').then(m => ({ default: m.SearchModal }))
-)
-const LazyChannelBrowser = lazy(() =>
-  import('@/components/layout/ChannelBrowser').then(m => ({ default: m.ChannelBrowser }))
-)
+import { SearchModalWrapperMemo } from '@/components/SearchModalWrapper'
 
 export type Section = 'qa' | 'flashcards' | 'exam' | 'voice' | 'coding' | 'stats'
-
-import { SearchModalWrapperMemo } from '@/components/SearchModalWrapper'
 
 const SidebarMemo = memo(Sidebar)
 const TopBarMemo = memo(TopBar)
@@ -270,7 +262,5 @@ function App() {
     </AppProviders>
   )
 }
-
-// Search functionality consolidated in SearchModalWrapper component
 
 export default memo(App)

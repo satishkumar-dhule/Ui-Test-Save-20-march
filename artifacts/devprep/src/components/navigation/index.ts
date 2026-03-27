@@ -6,7 +6,7 @@ export { SidebarItem } from './SidebarItem'
 export { SidebarGroup } from './SidebarGroup'
 export { GlobalSearch } from './GlobalSearch'
 export { SearchResults } from './SearchResults'
-export { SearchFilters } from './SearchFilters'
+export { SearchFiltersMemo as SearchFilters } from './SearchFilters'
 export {
   Breadcrumb,
   BreadcrumbItem,

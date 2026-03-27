@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback, memo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Sparkles,
@@ -28,6 +28,7 @@ interface LiveFeedProps {
   onFilterChange?: (filter: ContentFilter) => void
 }
 
+// Move icon map outside component - static reference
 const contentTypeIcons: Record<ContentType, React.ReactNode> = {
   question: <FileQuestion className="w-4 h-4 text-secondary opacity-70 drop-shadow-sm" />,
   flashcard: <Sparkles className="w-4 h-4 text-secondary opacity-70 drop-shadow-sm" />,
@@ -36,7 +37,8 @@ const contentTypeIcons: Record<ContentType, React.ReactNode> = {
   coding: <Code className="w-4 h-4" />,
 }
 
-function formatTimestamp(timestamp: number): string {
+// Move utility functions outside component
+const formatTimestamp = (timestamp: number): string => {
   const now = Date.now()
   const diff = now - timestamp
 
@@ -46,14 +48,15 @@ function formatTimestamp(timestamp: number): string {
   return new Date(timestamp).toLocaleDateString()
 }
 
-function getQualityColor(score: number): string {
+const getQualityColor = (score: number): string => {
   if (score >= 0.8) return 'text-emerald-400'
   if (score >= 0.6) return 'text-blue-400'
   if (score >= 0.4) return 'text-amber-400'
   return 'text-red-400'
 }
 
-export function LiveFeed({
+// Inner component with memo for performance
+function LiveFeedInner({
   items,
   loading = false,
   onItemClick,
@@ -65,6 +68,7 @@ export function LiveFeed({
   const [selectedChannel, setSelectedChannel] = useState<string | 'all'>('all')
   const [showFilters, setShowFilters] = useState(false)
 
+  // Memoize filtered items to prevent recalculation on every render
   const filteredItems = useMemo(() => {
     return items.filter(item => {
       if (selectedType !== 'all' && item.type !== selectedType) return false
@@ -74,31 +78,47 @@ export function LiveFeed({
     })
   }, [items, selectedType, selectedChannel, filter])
 
+  // Memoize unique channels to prevent recalculation
   const channels = useMemo(() => {
     const uniqueChannels = new Set(items.map(item => item.channelId))
     return Array.from(uniqueChannels).sort()
   }, [items])
 
-  const handleTypeChange = (type: ContentType | 'all') => {
-    setSelectedType(type)
-    onFilterChange?.({ ...filter, type: type === 'all' ? undefined : type })
-  }
+  // Memoize hasActiveFilters to avoid recalculation
+  const hasActiveFilters = selectedType !== 'all' || selectedChannel !== 'all'
 
-  const handleChannelChange = (channel: string | 'all') => {
-    setSelectedChannel(channel)
-    onFilterChange?.({
-      ...filter,
-      channelId: channel === 'all' ? undefined : channel,
-    })
-  }
+  // Callback handlers with useCallback for stable references
+  const handleTypeChange = useCallback(
+    (type: ContentType | 'all') => {
+      setSelectedType(type)
+      onFilterChange?.({ ...filter, type: type === 'all' ? undefined : type })
+    },
+    [filter, onFilterChange]
+  )
 
-  const clearFilters = () => {
+  const handleChannelChange = useCallback(
+    (channel: string | 'all') => {
+      setSelectedChannel(channel)
+      onFilterChange?.({
+        ...filter,
+        channelId: channel === 'all' ? undefined : channel,
+      })
+    },
+    [filter, onFilterChange]
+  )
+
+  const clearFilters = useCallback(() => {
     setSelectedType('all')
     setSelectedChannel('all')
     onFilterChange?.({})
-  }
+  }, [onFilterChange])
 
-  const hasActiveFilters = selectedType !== 'all' || selectedChannel !== 'all'
+  const handleItemClick = useCallback(
+    (item: GeneratedContentItem) => {
+      onItemClick?.(item)
+    },
+    [onItemClick]
+  )
 
   return (
     <div className="flex flex-col h-full">
@@ -257,7 +277,7 @@ export function LiveFeed({
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, x: -100 }}
                   transition={{ duration: 0.3, delay: index * 0.05 }}
-                  onClick={() => onItemClick?.(item)}
+                  onClick={() => handleItemClick(item)}
                   className={cn(
                     'group relative p-3 rounded-xl border transition-all cursor-pointer',
                     'bg-card/50 hover:bg-card border-border/50 hover:border-primary/30',
@@ -347,6 +367,19 @@ export function LiveFeed({
     </div>
   )
 }
+
+// Memoize LiveFeed for better performance
+export const LiveFeedMemo = memo(LiveFeedInner, (prevProps, nextProps) => {
+  // Custom comparison for complex prop comparisons
+  return (
+    prevProps.items === nextProps.items &&
+    prevProps.loading === nextProps.loading &&
+    prevProps.filter === nextProps.filter
+  )
+})
+
+// Export both versions for backward compatibility
+export { LiveFeedMemo as LiveFeed }
 
 export function LiveFeedSkeleton() {
   return (

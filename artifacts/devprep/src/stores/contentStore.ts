@@ -139,7 +139,13 @@ const initialState = {
   selectedChannelIds: [] as string[],
   section: 'qa' as Section,
   theme: 'dark' as const,
-  showOnboarding: true,
+  showOnboarding: (() => {
+    try {
+      return localStorage.getItem('devprep:onboarded') !== '1'
+    } catch {
+      return true
+    }
+  })(),
   showChannelBrowser: false,
   isMobileSidebarOpen: false,
   isSearchOpen: false,

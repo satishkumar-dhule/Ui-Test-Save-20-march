@@ -1,0 +1,41 @@
+No,Category,Guideline,Description,Do,Don't,Code Good,Code Bad,Severity,Docs URL
+1,Components,Use App Router,Next.js 13+ App Router for new projects,App Router with server components,Pages Router for new apps,app/page.tsx,pages/index.tsx,High,https://nextjs.org/docs/app
+2,Components,Use Server Components,Server components for data fetching,Server components by default,Client components everywhere,async function Page() { data },useEffect for data,High,
+3,Components,Use Server Actions,Server actions for mutations,Server actions for form submissions,API routes for everything,"'use server'; async function action() {}",POST /api/submit,High,https://nextjs.org/docs/app/building-your-application/data-fetching/server-actions
+4,Components,Use Suspense,Streaming with Suspense,Suspense boundaries,No suspense for loading,Suspense fallback={<Skeleton />},Blocking loading,Medium,
+5,Components,Use Next.js Image,Optimized images,next/image,img tags,next/image,img src=url,High,https://nextjs.org/docs/app/building-your-application/optimizing/images
+6,Components,Use Next.js Font,Font optimization,next/font,Google Fonts link,next/font/google,link rel=stylesheet,Medium,https://nextjs.org/docs/app/building-your-application/optimizing/fonts
+7,Components,Keep Server/Client split,Explicit client components,'use client' only where needed,use client everywhere,'use client',Mark whole app as client,High,
+8,Components,Use Layouts,Persistent layouts,RootLayout with children,No layout structure,export default function Layout({children}) {},No layout wrapper,Medium,
+9,Components,Use Route Groups,Route grouping,(folder),Route groups for layouts,(marketing)/page.tsx (auth)/page.tsx,No grouping,Low,https://nextjs.org/docs/app/building-your-application/routing/route-groups
+10,Components,Use Dynamic Routes,Dynamic segments,[id]/page.tsx,Hardcoded routes,params.id for dynamic,Hardcoded paths,Medium,https://nextjs.org/docs/app/building-your-application/routing/dynamic-routes
+11,Components,Use Intercepting Routes,Modal preserves context,intercepting routes,No modal routing,@modal/(.)photos/[id],Normal routing,Low,https://nextjs.org/docs/app/building-your-application/routing/intercepting-and-parallel-routes
+12,Components,Use Parallel Routes,Multiple slots,Parallel routes @slot,Single slot per page,slots in layout,No parallel routes,Low,
+13,Styling,Use Tailwind CSS,Utility-first styling,Tailwind classes,Styled components,className="text-lg font-bold",styled.div,High,https://tailwindcss.com/
+14,Styling,Use CSS Modules,Scoped CSS,Modules.css,Global CSS,.module.css,globals.css,Medium,
+15,Styling,Use Server CSS,Server components CSS,Server component styles,Client CSS everywhere,import './styles.css',useState for styles,Medium,
+16,Data,Use fetch with caching,Native fetch caching,fetch(url, { next: { revalidate: 3600 } }),No caching,fetch with revalidate,No cache headers,Medium,
+17,Data,Use React Cache,Data deduplication,cache() for shared requests,Multiple fetch for same data,cache(fetchData),fetch in each component,Medium,https://nextjs.org/docs/app/building-your-application/data-fetching/caching
+18,Data,Use Streaming,Streaming with loaders,await for critical data,No streaming,await waitFor CriticalData,<Suspense>,Medium,
+19,Data,Use useDeferredValue,Defer non-critical,useDeferredValue for lists,No deferral,deferredValue for search,Immediate filter,Medium,
+20,Data,Use Prefetching,Link prefetch,prefetch for navigation,<Link prefetch href=/page>,No prefetch,Low,https://nextjs.org/docs/app/building-your-application/routing/linking-and-navigating
+21,Performance,Use bundle analyzer,Visualize bundle,@next/bundle-analyzer,No analysis,ANALYZE=true next build,Blind builds,Low,https://github.com/vercel/next.js/tree/canary/packages/next-bundle-analyzer
+22,Performance,Use dynamic imports,Code splitting,dynamic() for heavy,No code splitting,dynamic(() => importHeavy),import Heavy,Medium,
+23,Performance,Use middleware,Edge middleware,Middleware for redirects,Bare redirects,middleware.ts,Server redirects only,Medium,https://nextjs.org/docs/app/building-your-application/routing/middleware
+24,Performance,Use Edge Runtime,Edge functions,Edge runtime for API,Node.js everywhere,export const runtime = 'edge',No runtime config,Medium,
+25,Performance,Use Image sizes,Responsive images,sizes prop for images,No sizes,sizes="(max-w:768px) 100vw 50vw",No sizes attr,Medium,
+26,Performance,Use Script component,Third-party scripts,next/script,Regular script tags,next/script strategy=lazy-onload,script in head,Medium,https://nextjs.org/docs/app/building-your-application/optimizing/scripts
+27,SEO,Use Metadata API,SEO metadata,generateMetadata,No metadata,export const metadata = { title: },No metadata,High,https://nextjs.org/docs/app/building-your-application/optimizing/metadata
+28,SEO,Use Open Graph,Social sharing,Open Graph tags,No OG,og:image,No social cards,Medium,https://nextjs.org/docs/app/building-your-application/optimizing/metadata#opengraph
+29,SEO,Use JSON-LD,Structured data,JSON-LD scripts,No structured,application/ld+json script,No schema,Medium,https://developers.google.com/search/docs/advanced/structured-data/intro-structured-data
+30,SEO,Use sitemaps,sitemap.xml,next-sitemap,Sitemaps in robots.txt,sitemap.xml,No sitemap,Low,https://nextjs.org/docs/app/building-your-application/seo
+31,Accessibility,Use Semantic HTML,HTML5 semantics,header nav main section,div soup,header nav main footer,div everywhere,High,
+32,Accessibility,Use ARIA correctly,Accessible patterns,Proper roles and labels,Missing a11y,role=navigation,No roles,High,https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA
+33,Accessibility,Use Skip Link,Skip to content,Skip link for keyboard,No skip,Skip to main content,No skip link,High,
+34,Accessibility,Use Lang attribute,Document language,html lang=en,No lang,lang attribute,No html lang,Low,
+35,Testing,Use Playwright,E2E testing,Playwright for E2E,Cypress for new,playwright test,Cypress,Medium,https://playwright.dev/
+36,Testing,Use Vitest,Unit testing,Vitest for unit,No vitest,Vitest,Jest default,Low,https://vitest.dev/
+37,Deployment,Use Vercel,Zero-config deploy,Vercel for Next.js,Manual deployment,vercel deploy,No auto-deploy,Low,https://vercel.com/
+38,Deployment,Use ISR,Incremental static,revalidate for ISR,No ISR,export const revalidate = 60,No revalidation,Medium,
+39,Deployment,Use Standalone,Serverless standalone,standalone output,Default output,output: 'standalone',No standalone,Medium,
+40,Deployment,Use Compression,Brotli compression,Enable compression,No compression,compress: true in config,No compression,Low,

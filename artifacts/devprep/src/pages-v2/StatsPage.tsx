@@ -662,7 +662,7 @@ function RecentActivitySummary({ loading }: { loading: boolean }) {
 export function StatsPage() {
   const { theme, isDark } = useNewTheme()
   const { generated, loading: contentLoading } = useGeneratedContent()
-  const channels = useChannels()
+  const { channels } = useChannels()
 
   const [isPageLoading, setIsPageLoading] = useState(true)
   const [timePeriod, setTimePeriod] = useState<TimePeriod>('month')

@@ -1,0 +1,34 @@
+No,Category,Guideline,Description,Do,Don't,Code Good,Code Bad,Severity,Docs URL
+1,Components,Use Composition,Compound components,Slots and props,Prop drilling,<List><Item /></List>,10+ props on component,High,https://svelte.dev/docs/svelte/components
+2,Components,Use Svelte 5,Svelte 5 runes,Use $state $derived $effect,Old stores for local,let count = $state(0),let count = 0,High,https://svelte.dev/docs/svelte/v5-migration-guide
+3,Components,Use Snippets,Reusable markup,{#snippet},Copy-paste markup,snippet icon(name),Repeated HTML,Medium,https://svelte.dev/docs/svelte/basic-markup#snippets
+4,Components,Keep Components Small,Single responsibility,Split components,Monolithic components,Header.svelte Footer.svelte,500+ line component,Medium,
+5,Styling,Use Scoped CSS,Component styles,Scoped by default,Global styles,:global(.),Global styles,Medium,https://svelte.dev/docs/svelte/css
+6,Styling,Use CSS Variables,Design tokens,CSS custom properties,Hardcoded values,--primary: #2563eb,color: #2563eb everywhere,Medium,
+7,Styling,Use Tailwind,Utility classes,Tailwind with Svelte,Custom CSS only,class="p-4 m-2",style="padding: 1rem",Medium,https://tailwindcss.com/
+8,State,Use Runes,State management,Use $state $derived,Old reactive,$state for reactive,let variable,High,
+9,State,Use Props,Component input,Export props,No typing,let { title = '' } = $props(),No props,Medium,https://svelte.dev/docs/svelte/basic-markup#attributes-and-props
+10,State,Use Stores sparingly,Runes first,Use runes,Stores for everything,let count = $state(0),writable store,Medium,
+11,State,Use Context,Cross-component,setContext getContext,Prop drilling,setContext for theme,Prop drilling,Medium,https://svelte.dev/docs/svelte/svelte#setcontext
+12,Reactivity,Use Derived,Computed values,$derived for computed,Reactive declarations,$derived(a + b),let c = a + b reactive,Medium,https://svelte.dev/docs/svelte/v5-migration-guide#derived
+13,Reactivity,Use Effects,Side effects,$effect for effects,onMount for everything,$effect(() => { }),onMount everywhere,Medium,https://svelte.dev/docs/svelte/v5-migration-guide#effects
+14,Reactivity,Use Fine-grained reactivity,Reactive objects,$state.frozen,Deep reactive all,let obj = $state.frozen({}),$state deep everywhere,Medium,
+15,Events,Use Event delegation,Delegated events,Native handlers,Named handlers,onclick={handler},on:click={handler} (old),Medium,
+16,Events,Use Actions,Reusable behavior,use:action,No actions,function tooltip(node) {},No custom behavior,Low,https://svelte.dev/docs/svelte/elements#actions
+17,Performance,Use Optimistic Updates,UI responsiveness,Immediate updates,Wait for server,<Item completed={true} />,await for completion,Medium,
+18,Performance,Use Code Splitting,Dynamic imports,dynamic import,Static import,dynamic(() => import),import Heavy,Medium,https://svelte.dev/docs/svelte/built-in-components#svelte-component
+19,Performance,Use Virtual Lists,Large lists,virtual list library,Regular each,VirtualList for 1000+,each for huge lists,Medium,
+20,Performance,Use Lazy Images,Image lazy load,lazy loading,Immediate load,loading=lazy,No lazy,Low,
+21,Animation,Use Svelte Motion,Animation library,svelte/motion,svelte-transition,spring tweened,set timeout,Medium,https://svelte.dev/docs/svelte/svelte-motion
+22,Animation,Use Transitions,Built-in transitions,transition:fade,No transitions,in:fade out:fly,No animation,Medium,https://svelte.dev/docs/svelte/built-in-components#svelte-transition
+23,Animation,Use Keyed Each,List transitions,{#each items as item (id)},{#each items},each with key,High,https://svelte.dev/docs/svelte/svelte-elements#await-blocks
+24,Forms,Use Bindings,Two-way binding,bind:value,Manual on:input,textarea bind:value,on:input set state,Medium,https://svelte.dev/docs/svelte/basic-markup#bind-property
+25,Forms,Use Enhance,Progressive enhancement,use:enhance,No progressive,form use:enhance,Regular form submit,Medium,https://svelte.dev/docs/svelte/svelte-elements#svelte-element
+26,Accessibility,Use A11y,Accessibility features,A11y warnings,Ignore a11y,Pass a11y audit,No a11y,High,
+27,Accessibility,Use Proper Labels,Label elements,label for input,No labels,label for="id",No label element,High,
+28,Accessibility,Use Keyboard Nav,Keyboard support,Tab index,No keyboard,tabindex=0,No tab support,High,
+29,Testing,Use Vitest,Unit testing,Vitest,No test,describe test,No tests,Medium,https://vitest.dev/
+30,Testing,Use Playwright,E2E testing,Playwright,Cypress,playwright test,Manual testing,Medium,https://playwright.dev/
+31,SEO,Use Prerender,Static generation,prerender true,Server-only,export const prerender = true,No prerender,Medium,https://svelte.dev/docs/svelte/options#prerender
+32,SEO,Use SSR,Server rendering,SSR enabled,Client-only,SSR by default,No SSR,Medium,
+33,Deployment,Use Adapter,Deployment adapter,adapter-auto,No adapter,svelte.config.js adapter,No adapter,Low,

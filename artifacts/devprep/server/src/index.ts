@@ -6,6 +6,8 @@ import { z } from 'zod'
 import path from 'path'
 import fs from 'fs'
 import { Database } from 'bun:sqlite'
+import { auth } from './auth.js'
+import { toNodeHandler } from 'better-auth/node'
 import { DatabaseWatcher } from './dbWatcher.js'
 import { initializeRedis, isRedisAvailable, closeRedis } from './services/redis/client.js'
 import {
@@ -74,6 +76,19 @@ const app = express()
 const server = createServer(app)
 const wss = new WebSocketServer({ server })
 
+// Cache for table name to avoid repeated sqlite_master queries
+let tableNameCache: string | null = null
+
+// Better Auth route handler - MUST be before express.json() for Express v5
+// The wildcard pattern works with Express
+app.all('/api/auth/*', toNodeHandler(auth))
+
+// Auth health check
+app.get('/api/auth/ok', (_req: Request, res: Response) => {
+  res.json({ status: 'ok' })
+})
+
+// Apply express.json() AFTER Better Auth handler
 app.use(express.json({ limit: '1mb' }))
 app.use(
   cors({
@@ -89,10 +104,23 @@ app.use((req, res, next) => {
 })
 app.use(apiRateLimit)
 
-const AUTH_API_KEY = process.env.AUTH_API_KEY
+// Better Auth route handler - TEMPORARILY DISABLED due to path-to-regexp issue
+// app.use('/api/auth', toNodeHandler(auth))
 
+// Auth health check - must be before any auth middleware
+app.get('/api/auth/ok', (_req: Request, res: Response) => {
+  res.json({ status: 'ok' })
+})
+
+// Basic API key middleware (currently permissive - can be made stricter later)
 const apiAuthMiddleware = (req: Request, res: Response, next: () => void) => {
-  const publicEndpoints = ['/api/health', '/api/channels', '/api/content', '/api/content/stats']
+  const publicEndpoints = [
+    '/api/health',
+    '/api/channels',
+    '/api/content',
+    '/api/content/stats',
+    '/api/auth',
+  ]
   if (publicEndpoints.some(p => req.path.startsWith(p))) {
     return next()
   }
@@ -184,6 +212,10 @@ function initializeDatabase(): void {
     CREATE INDEX IF NOT EXISTS idx_contents_created ON contents(created_at DESC);
     -- Status-only filter
     CREATE INDEX IF NOT EXISTS idx_contents_status ON contents(status);
+    -- Tag-based queries: JOIN optimization (content_tags -> contents)
+    CREATE INDEX IF NOT EXISTS idx_contents_status_pub ON contents(status) WHERE status IN ('published', 'approved');
+    -- Difficulty stats: GROUP BY optimization
+    CREATE INDEX IF NOT EXISTS idx_contents_ch_ty_diff ON contents(channel_id, content_type, difficulty);
   `)
 
   // Denormalized tag index — one row per (content_id, tag) for fast tag-based filtering
@@ -194,7 +226,12 @@ function initializeDatabase(): void {
       PRIMARY KEY (content_id, tag),
       FOREIGN KEY (content_id) REFERENCES contents(id) ON DELETE CASCADE
     );
+    -- Tag lookup: filter by tag, then join to contents
     CREATE INDEX IF NOT EXISTS idx_content_tags_tag ON content_tags(tag);
+    -- JOIN optimization: content_id is FK to contents.id, speeds up reverse lookups
+    CREATE INDEX IF NOT EXISTS idx_content_tags_content_id ON content_tags(content_id);
+    -- Composite for tag + content_id lookups (e.g., "get all tags for content X")
+    CREATE INDEX IF NOT EXISTS idx_content_tags_tag_content ON content_tags(tag, content_id);
   `)
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -495,19 +532,19 @@ function queryContent(options: ContentQueryOptions = {}): ContentRecord[] {
   }
 
   const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
-  // Prefer the new normalized table when available
-  const tableName = ((): string => {
+  // Cache table lookup to avoid repeated sqlite_master queries (only computed once per server lifetime)
+  if (!tableNameCache) {
     try {
       const exists = db
         .prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='contents'")
         .get()
-      return exists ? 'contents' : 'generated_content'
+      tableNameCache = exists ? 'contents' : 'generated_content'
     } catch {
-      return 'generated_content'
+      tableNameCache = 'generated_content'
     }
-  })()
+  }
   const query = `
-    SELECT * FROM ${tableName}
+    SELECT * FROM ${tableNameCache}
     ${whereClause}
     ORDER BY created_at DESC
     LIMIT ? OFFSET ?
@@ -611,21 +648,11 @@ app.get('/api/content/stats', async (_req: Request, res: Response) => {
       }
     }
 
-    const tableName = ((): string => {
-      try {
-        const exists = db
-          .prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='contents'")
-          .get()
-        return exists ? 'contents' : 'generated_content'
-      } catch {
-        return 'generated_content'
-      }
-    })()
     const rows = db
       .prepare(
         `
       SELECT content_type, COUNT(*) as count
-      FROM ${tableName}
+      FROM ${tableNameCache ?? 'contents'}
       GROUP BY content_type
     `
       )
@@ -797,16 +824,7 @@ app.get('/api/content/tagged/:tag', async (req: Request, res: Response) => {
       }
     }
 
-    const tableName = ((): string => {
-      try {
-        const exists = db
-          .prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='contents'")
-          .get()
-        return exists ? 'contents' : 'generated_content'
-      } catch {
-        return 'generated_content'
-      }
-    })()
+    const tableName = tableNameCache ?? 'contents'
 
     let rows: any[]
     if (tableName === 'contents') {
@@ -895,6 +913,11 @@ app.get('/api/health', (_req: Request, res: Response) => {
     dbPath: DB_PATH,
     redis: isRedisAvailable() ? 'InMemoryRedis' : 'disabled',
   })
+})
+
+// Better Auth health check
+app.get('/api/auth/ok', (_req: Request, res: Response) => {
+  res.json({ status: 'ok' })
 })
 
 app.get('/api/channels', (_req: Request, res: Response) => {

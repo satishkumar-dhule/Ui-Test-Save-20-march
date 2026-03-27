@@ -129,7 +129,7 @@ function loadDraft(): Set<string> | null {
 }
 
 export function OnboardingModal({ onDone, initialSelected }: OnboardingModalProps) {
-  const channels = useChannels()
+  const { channels } = useChannels()
   const techChannels = useMemo(() => channels.filter(c => c.type === 'tech'), [channels])
   const certChannels = useMemo(() => channels.filter(c => c.type === 'cert'), [channels])
 

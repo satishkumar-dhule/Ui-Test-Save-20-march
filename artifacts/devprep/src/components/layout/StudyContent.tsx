@@ -49,7 +49,7 @@ export function StudyContent({
   onExamComplete,
   onVoicePractice,
 }: StudyContentProps) {
-  const channels = useChannels()
+  const { channels } = useChannels()
   const currentChannel = channels.find(c => c.id === channelId)
 
   const filtered = useFilteredContent(channelId, currentChannel?.tagFilter)

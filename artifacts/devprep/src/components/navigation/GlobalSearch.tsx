@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { useState, useCallback, useEffect, useRef, useMemo, memo } from 'react'
 import {
   Search,
   Clock,
@@ -18,11 +18,10 @@ import {
   CommandEmpty,
   CommandGroup,
   CommandItem,
-  CommandSeparator,
 } from '@/components/ui/command'
 import { useSearchShortcut } from '@/hooks/useSearchShortcut'
 import { SearchResults } from './SearchResults'
-import { SearchFilters } from './SearchFilters'
+import { SearchFiltersMemo as SearchFilters } from './SearchFilters'
 import { useContent } from '@/hooks/useContent'
 import type { ContentType } from '@/stores/types'
 

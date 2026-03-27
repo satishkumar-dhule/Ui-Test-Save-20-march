@@ -1,0 +1,36 @@
+No,Category,Guideline,Description,Do,Don't,Code Good,Code Bad,Severity,Docs URL
+1,Components,Use shadcn Components,shadcn/ui,Use prebuilt components,Build from scratch,<Button> from shadcn,Custom button,High,https://ui.shadcn.com/
+2,Components,Use Radix Primitives,Accessible primitives,Radix for complex,No radix,Radix Dialog,No radix,High,https://www.radix-ui.com/
+3,Components,Use Vaul,Drawer,vaul for drawer,No vaul,Vaul drawer,No drawer,Medium,https://github.com/hookdrick/vaul
+4,Components,Use cmdk,Command palette,cmdk for cmd,No cmdk,cmdk component,No cmd,Medium,https://cmdk.paco.me/
+5,Components,Use Sonner,Toasts,sonner for toasts,No sonner,Sonner toast,No toast,Medium,https://sonner.emilkowal.ski/
+6,Components,Use React Hook Form,Form lib,react-hook-form,No hook form,useForm for forms,Controlled inputs everywhere,High,https://react-hook-form.com/
+7,Components,Use Zod,Validation,Zod for schema,No zod,zod for validation,Manual validation,High,https://zod.dev/
+8,Components,Use React Table,Data table,React Table v8,No table,React Table,No table,Medium,https://tanstack.com/table/
+9,Components,Use TanStack Query,Data fetching,React Query,No query,useQuery for data,useEffect fetch,High,https://tanstack.com/query/
+10,Components,Use Zustand,State management,Zustand store,No zustand,create((set) => ({ })),Redux for simple,High,https://zustand-demo.pmnd.rs/
+11,Components,Use Framer Motion,Animation,Framer Motion,No motion,AnimatePresence,No anim,High,https://www.framer.com/motion/
+12,Components,Use Lucide Icons,Icons,Lucide React,No lucide,<Icon /> lucide-react,No icons,Medium,https://lucide.dev/
+13,Components,Use React Day Picker,Date picker,react-day-picker,No picker,DayPicker,No date picker,Low,
+14,Components,Use React Popover,Popover,radix popover,No popover,Popover,No popover,Low,
+15,Styling,Use Tailwind,Styling,Tailwind CSS,No tailwind,className="p-4",style={{}},High,https://tailwindcss.com/
+16,Styling,Use CSS Variables,Theme tokens,CSS vars for theming,Hardcoded,CSS vars for colors,Hardcoded colors,Medium,
+17,Styling,Use cva,Variant component,cva for variants,No cva,cva variants,Switch statement,Medium,https://cva.style/
+18,Styling,Use clsx,Conditional,clsx for classes,No clsx,clsx('foo', condition && 'bar'),Template literal,Medium,https://github.com/lukeed/clsx
+19,Styling,Use tva,Variant animation,tva for anim variants,No tva,Variant animation,No variants,Low,
+20,Forms,Use Field Array,Form arrays,useFieldArray,No field array,useFieldArray({ name: 'items' }),No field array,Medium,
+21,Forms,Use Form Schema,zod schema,useForm with zod,zod in form,zodResolver(schema),Manual resolver,Medium,
+22,Forms,Use Field,Form field,Controller for field,No controller,<Controller />,No controller,Medium,
+23,Accessibility,Use A11y,Accessibility,ARIA in shadcn,No a11y,Accessibility labels,No a11y,High,
+24,Accessibility,Use Focus Trap,Trap focus,Radix trap,No trap,FocusTrap,No trap,Medium,
+25,Accessibility,Use Keyboard Nav,Keyboard,Keyboard navigation,No keyboard,Keyboard navigable,No keyboard,High,
+26,State,Use Optimistic,Optimistic update,setData optimistic,No optimistic,Optimistic updates,No optimistic,Medium,
+27,State,Use Persist,State persist,persist zustand,No persist,Persist middleware,No persist,Medium,
+28,Performance,Use Code Splitting,Route split,dynamic import,No split,React.lazy,No split,Medium,
+29,Performance,Use Memo,Render memo,memo for components,No memo,React.memo,No memo,Medium,
+30,Performance,Use Prefetching,Query prefetch,prefetchQuery,No prefetch,prefetchQuery,No prefetch,Low,
+31,Testing,Use Testing Library,Testing,React Testing Library,No lib,render component,No render,Medium,https://testing-library.com/
+32,Testing,Use Vitest,Test runner,Vitest,No vitest,describe test,No vitest,Medium,https://vitest.dev/
+33,Testing,Use Playwright,E2E,Playwright,No E2E,playwright test,No E2E,Medium,https://playwright.dev/
+34,Build,Use Vite,Build tool,Vite for React,Webpack,vite build,webpack build,High,https://vitejs.dev/
+35,Build,Use TypeScript,TS,TypeScript,No TS,TS for all,No TS,High,https://www.typescriptlang.org/

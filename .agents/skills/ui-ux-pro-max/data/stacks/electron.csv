@@ -1,0 +1,36 @@
+No,Category,Guideline,Description,Do,Don't,Code Good,Code Bad,Severity,Docs URL
+1,Components,Use BrowserWindow,Window management,BrowserWindow,No window,new BrowserWindow(),No window,High,https://www.electronjs.org/docs/latest/api/browser-window
+2,Components,Use IPC,Inter-process,ipcMain/ipcRenderer,No IPC,ipcMain.handle(),No ipc,High,https://www.electronjs.org/docs/latest/api/ipc-main
+3,Components,Use Context Bridge,Security,contextBridge,No bridge,contextBridge.exposeInMainWorld,nodeIntegration: true,High,https://www.electronjs.org/docs/latest/api/context-bridge
+4,Components,Use preload,Preload script,preload.js,No preload,preload with context,No preload,High,
+5,Components,Use Menu,Application menu,Menu module,No menu,Menu.setApplicationMenu(),No menu,Medium,
+6,Components,Use Tray,System tray,Tray icon,No tray,new Tray(icon),No tray,Low,
+7,Components,Use Dialog,Native dialogs,dialog module,No dialog,dialog.showOpenDialog(),No dialog,Medium,
+8,Components,Use Notification,Native notif,Notification,No notif,new Notification(),No notif,Low,
+9,Components,Use NativeTheme,Theming,NativeTheme,No theme,NativeTheme.shouldUseDark,No theme,Medium,
+10,Components,Use WebContents,Page control,webContents,No control,webContents.print(),No control,Low,
+11,State,Use Store,Persistence,electron-store,No store,new Store(),localStorage,Medium,https://github.com/electron/electron-store
+12,State,Use IPC for State,Cross-process,ipc sync state,No sync,ipc state sync,No sync,Medium,
+13,State,Use LocalStorage,Renderer state,localStorage in renderer,No LS,localStorage.setItem,No LS,Low,
+14,Security,Use nodeIntegration: false,Security,nodeIntegration false,node integration,webPreferences: { nodeIntegration: false },nodeIntegration: true,High,
+15,Security,Use contextIsolation,Security,contextIsolation true,No isolation,webPreferences: { contextIsolation: true },contextIsolation: false,High,
+16,Security,Use sandbox,Sandbox,Enable sandbox,No sandbox,webPreferences: { sandbox: true },No sandbox,High,
+17,Security,Use webSecurity,Web security,webSecurity default,No websec,webSecurity: true (default),Disable for dev,High,
+18,Security,Use CSP,Content policy,CSP headers,No CSP,Content-Security-Policy,No CSP,High,https://www.electronjs.org/docs/latest/tutorial/security
+19,Security,Use Remote Module carefully,Remote,Disable remote,Enable remote,remote.disable,remote.enable,High,
+20,Security,Use session.clearData,Clear data,Clear data on logout,session.clearData(),No clear,Low,
+21,Performance,Use Lazy Load,Lazy loading,Lazy module import,No lazy,import('electron'),require('electron'),Medium,
+22,Performance,Use DevTools Wisely,Debug,Disable in prod,Enable always,app.isPackaged check,Always on,High,
+23,Performance,Use Hardware Acceleration,GPU,Disable if needed,hw-accel disabled,No disable,hw-accel disabled on crash,Default,Medium,
+24,Performance,Use window.webContents,Page perf,webContents metrics,No metrics,webContents.getMetrics(),No metrics,Low,
+25,Performance,Use Memory Management,Memory,Monitor memory,No monitor,process.memoryUsage(),No monitor,Low,
+26,Build,Use electron-builder,Packaging,electron-builder,No builder,electron-builder build,Manual build,High,https://www.electronjs.org/docs/latest/tutorial/publishing
+27,Build,Use Auto-Updater,Updates,auto-updater,No updater,autoUpdater.checkForUpdates(),No updater,Medium,https://www.electronjs.org/docs/latest/api/auto-updater
+28,Build,Use Code Signing,Sign app,Code signing,No sign,Sign for release,No signing,High,
+29,Build,Use ASAR,Package files,ASAR by default,No asar,ASAR enabled (default),Disable asar,Medium,
+30,Build,Use NSIS/Windows,Installer,NSIS for Windows,No installer,NSIS installer,No installer,Medium,
+31,Accessibility,Use Accessibility API,A11y,a11y in Electron,No a11y,webContents.setAccessibilityEnabled(true),No a11y,High,
+32,Accessibility,Use Focus Management,Focus,Focus in dialogs,No focus,focus in modal,No focus,High,
+33,Accessibility,Use Screen Reader,SR,Label elements,No label,aria-label,No label,High,
+34,Testing,Use Spectron,E2E testing,Spectron/Playwright,No test,Playwright for Electron,No test,Low,https://www.electronjs.org/docs/latest/tutorial/automated-testing
+35,Testing,Use Electron Fiddle,Dev testing,Electron Fiddle,No fiddle,Use Fiddle for test,No fiddle,Low,

@@ -1,0 +1,87 @@
+No,Category,Token,Value,Usage,Example,Notes
+1,Spacing,space-0,0px,No spacing,space-0=0px,Use for zero spacing
+2,Spacing,space-1,0.25rem (4px),Base unit,space-1=4px,4px base unit
+3,Spacing,space-2,0.5rem (8px),Small gap,space-2=8px,8px gap
+4,Spacing,space-3,0.75rem (12px),Medium gap,space-3=12px,12px gap
+5,Spacing,space-4,1rem (16px),Default gap,space-4=16px,16px default
+6,Spacing,space-5,1.25rem (20px),Large gap,space-5=20px,20px gap
+7,Spacing,space-6,1.5rem (24px),XL gap,space-6=24px,24px gap
+8,Spacing,space-8,2rem (32px),2x gap,space-8=32px,32px gap
+9,Spacing,space-10,2.5rem (40px),Large section,space-10=40px,40px section
+10,Spacing,space-12,3rem (48px),Section gap,space-12=48px,48px section
+11,Spacing,space-16,4rem (64px),Hero spacing,space-16=64px,64px hero
+12,Radius,radius-none,0px,No radius,radius-none=0px,Sharp corners
+13,Radius,radius-sm,0.125rem (2px),Small radius,radius-sm=2px,Subtle rounding
+14,Radius,radius DEFAULT,0.25rem (4px),Default radius,radius=4px,Standard rounding
+15,Radius,radius-md,0.375rem (6px),Medium radius,radius-md=6px,More rounding
+16,Radius,radius-lg,0.5rem (8px),Large radius,radius-lg=8px,Soft corners
+17,Radius,radius-xl,0.75rem (12px),XL radius,radius-xl=12px,Rounded corners
+18,Radius,radius-2xl,1rem (16px),2x radius,radius-2xl=16px,Very rounded
+19,Radius,radius-full,9999px,Pill/circle,radius-full=9999px,Full round
+20,Color,primary-50,#f0f9ff,Primary light,primary-50,10% primary
+21,Color,primary-100,#e0f2fe,Primary 100,primary-100,20% primary
+22,Color,primary-200,#bae6fd,Primary 200,primary-200,30% primary
+23,Color,primary-300,#7dd3fc,Primary 300,primary-300,40% primary
+24,Color,primary-400,#38bdf8,Primary 400,primary-400,50% primary
+25,Color,primary-500,#0ea5e9,Primary 500,primary-500,Base primary
+26,Color,primary-600,#0284c7,Primary 600,primary-600,Darker primary
+27,Color,primary-700,#0369a1,Primary 700,primary-700,Dark primary
+28,Color,primary-800,#075985,Primary 800,primary-800,Very dark
+29,Color,primary-900,#0c4a6e,Primary 900,primary-900,Darkest primary
+30,Color,neutral-50,#fafafa,Neutral light,neutral-50,Lightest gray
+31,Color,neutral-100,#f5f5f5,Neutral 100,neutral-100,Light gray
+32,Color,neutral-200,#e5e5e5,Neutral 200,neutral-200,Light-medium
+33,Color,neutral-300,#d4d4d4,Neutral 300,neutral-300,Medium gray
+34,Color,neutral-400,#a3a3a3,Neutral 400,neutral-400,Medium-dark
+35,Color,neutral-500,#737373,Neutral 500,neutral-500,Base gray
+36,Color,neutral-600,#525252,Neutral 600,neutral-600,Dark gray
+37,Color,neutral-700,#404040,Neutral 700,neutral-700,Darker gray
+38,Color,neutral-800,#262626,Neutral 800,neutral-800,Darkest gray
+39,Color,neutral-900,#171717,Neutral 900,neutral-900,Almost black
+40,Color,success-500,#22c55e,Success,success-500,Green
+41,Color,warning-500,#eab308,Warning,warning-500,Amber
+42,Color,error-500,#ef4444,Error,error-500,Red
+43,Color,info-500,#3b82f6,Info,info-500,Blue
+44,Shadows,shadow-sm,0 1px 2px 0 rgb(0 0 0 / 0.05),Small shadow,shadow-sm,Subtle depth
+45,Shadows,shadow,0 1px 3px 0 rgb(0 0 0 / 0.1),Default shadow,shadow,Standard depth
+46,Shadows,shadow-md,0 4px 6px -1px rgb(0 0 0 / 0.1),Medium shadow,shadow-md,Medium depth
+47,Shadows,shadow-lg,0 10px 15px -3px rgb(0 0 0 / 0.1),Large shadow,shadow-lg,High depth
+48,Shadows,shadow-xl,0 20px 25px -5px rgb(0 0 0 / 0.1),XL shadow,shadow-xl,Extra depth
+49,Shadows,shadow-2xl,0 25px 50px -12px rgb(0 0 0 / 0.25),2x shadow,shadow-2xl,Maximum depth
+50,Typography,font-xs,0.75rem (12px),Extra small,font-xs=12px,Caption text
+51,Typography,font-sm,0.875rem (14px),Small,font-sm=14px,Helper text
+52,Typography,font-base,1rem (16px),Base,font-base=16px,Body text
+53,Typography,font-lg,1.125rem (18px),Large,font-lg=18px,Lead text
+54,Typography,font-xl,1.25rem (20px),XL,font-xl=20px,Small heading
+55,Typography,font-2xl,1.5rem (24px),2x XL,font-2xl=24px,Heading
+56,Typography,font-3xl,1.875rem (30px),3x XL,font-3xl=30px,Main heading
+57,Typography,font-4xl,2.25rem (36px),4x XL,font-4xl=36px,Hero heading
+58,Typography,font-5xl,3rem (48px),5x XL,font-5xl=48px,Display text
+59,Typography,leading-none,1,No leading,leading-none=1,Tight text
+60,Typography,leading-tight,1.25,Tight,leading-tight=1.25,Headings
+61,Typography,leading-snug,1.375,Snug,leading-snug=1.375,Tight body
+62,Typography,leading-normal,1.5,Normal,leading-normal=1.5,Default body
+63,Typography,leading-relaxed,1.625,Relaxed,leading-relaxed=1.625,Comfortable
+64,Typography,leading-loose,2,Loose,leading-loose=2,Spacious
+65,Z-Index,z-0,0,Base z-index,z-0=0,Default
+66,Z-Index,z-10,10,Low z-index,z-10=10,Above base
+67,Z-Index,z-20,20,Dropdown z-index,z-20=20,Dropdown
+68,Z-Index,z-30,30,Sticky z-index,z-30=30,Sticky
+69,Z-Index,z-40,40,Modal z-index,z-40=40,Modal
+70,Z-Index,z-50,50,Toast z-index,z-50=50,Toast/overlay
+71,Breakpoints,sm,640px,Small tablet,sm=640px,Mobile landscape
+72,Breakpoints,md,768px,Tablet,md=768px,Portrait tablet
+73,Breakpoints,lg,1024px,Desktop,lg=1024px,Laptop
+74,Breakpoints,xl,1280px,Large desktop,xl=1280px,Desktop
+75,Breakpoints,2xl,1536px,XL desktop,2xl=1536px,Large screen
+76,Animation,duration-75,75ms,75ms duration,duration-75,Fastest
+77,Animation,duration-100,100ms,100ms duration,duration-100,Fast
+78,Animation,duration-150,150ms,150ms duration,duration-150,Quick
+79,Animation,duration-200,200ms,200ms duration,duration-200,Normal
+80,Animation,duration-300,300ms,300ms duration,duration-300,Slow
+81,Animation,duration-500,500ms,500ms duration,duration-500,Very slow
+82,Animation,ease-linear,linear,Linear easing,ease-linear,No easing
+83,Animation,ease-in,ease-in,Ease in,ease-in,Enter animation
+84,Animation,ease-out,ease-out,Ease out,ease-out,Exit animation
+85,Animation,ease-in-out,ease-in-out,Ease in-out,ease-in-out,Standard
+86,Animation,ease-spring,spring,Spring easing,ease-spring,Natural bounce

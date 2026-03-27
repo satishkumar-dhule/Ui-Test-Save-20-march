@@ -2,17 +2,29 @@ import { test, expect } from "@playwright/test";
 
 test.describe("CodingPage - Run and Reset", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/");
-    await page.evaluate(() => {
-      localStorage.setItem(
-        "devprep:selectedIds",
-        JSON.stringify(["javascript"]),
-      );
-      localStorage.setItem("devprep:channelId", JSON.stringify("javascript"));
+    await page.addInitScript(() => {
+      window.localStorage.setItem("devprep:onboarded", "1");
     });
-    await page.reload();
-    await page.getByTestId("section-tab-coding").click();
-    await page.waitForTimeout(500);
+    await page.goto("/");
+    await page.waitForLoadState("domcontentloaded");
+
+    await page.evaluate(() => {
+      const store = (window as any).__ZUSTAND__;
+      if (store) {
+        store.getState().setShowOnboarding(false);
+      }
+    });
+
+    await page.waitForSelector('[data-testid="app-root"]', { timeout: 10000 });
+
+    await page.evaluate(() => {
+      const store = (window as any).__ZUSTAND__;
+      if (store) {
+        store.getState().setSection("coding");
+      }
+    });
+
+    await page.waitForTimeout(1000);
   });
 
   test("should display coding page with editor", async ({ page }) => {

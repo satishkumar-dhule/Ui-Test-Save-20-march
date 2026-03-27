@@ -408,7 +408,7 @@ function ChannelQuickLinks({
 export function DashboardPage() {
   const { theme, isDark } = useNewTheme()
   const { generated, loading: contentLoading } = useGeneratedContent()
-  const channels = useChannels()
+  const { channels } = useChannels()
 
   const [isPageLoading, setIsPageLoading] = useState(true)
 

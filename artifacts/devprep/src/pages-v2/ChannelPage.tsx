@@ -45,7 +45,11 @@ const contentTypes: ContentTypeConfig[] = [
   { id: 'coding', label: 'Coding', icon: <Code className="w-4 h-4" />, color: 'text-rose-500' },
 ]
 
-function ChannelHeader({ channel }: { channel: ReturnType<typeof useChannels>[0] | undefined }) {
+function ChannelHeader({
+  channel,
+}: {
+  channel: ReturnType<typeof useChannels>['channels'][0] | undefined
+}) {
   const { isDark } = useNewTheme()
 
   if (!channel) return null
@@ -69,7 +73,7 @@ function ChannelHeader({ channel }: { channel: ReturnType<typeof useChannels>[0]
           <CardDescription className="text-base">{channel.description}</CardDescription>
           {channel.tagFilter && channel.tagFilter.length > 0 && (
             <div className="flex flex-wrap gap-2 mt-3">
-              {channel.tagFilter.slice(0, 5).map(tag => (
+              {channel.tagFilter.slice(0, 5).map((tag: string) => (
                 <Badge key={tag} variant="outline" size="sm">
                   {tag}
                 </Badge>
@@ -269,7 +273,7 @@ export function ChannelPage() {
   const handleGoBack = useCallback(() => {
     navigate('/dashboard')
   }, [navigate])
-  const channels = useChannels()
+  const { channels } = useChannels()
   const { generated, loading } = useGeneratedContent()
 
   const [filter, setFilter] = useState<ContentTypeFilter>('all')

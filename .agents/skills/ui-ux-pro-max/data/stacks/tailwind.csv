@@ -1,0 +1,51 @@
+No,Category,Guideline,Description,Do,Don't,Code Good,Code Bad,Severity,Docs URL
+1,Basics,Use Utility Classes,Utility-first,Utility classes,Component CSS,<div class="p-4">,div with custom class,High,https://tailwindcss.com/docs/utility-first
+2,Basics,Use JIT Mode,JIT compiler,Just-in-Time,v2 with PurgeCSS,JIT by default,No JIT,High,
+3,Basics,Use Configuration,Custom config,tailwind.config.js,No config,Custom theme in config,No config,Medium,https://tailwindcss.com/docs/configuration
+4,Basics,Use Base Layer,Base styles,@layer base,No base,@layer base { html { } },Global CSS,Low,
+5,Basics,Use Components Layer,Component styles,@layer components,No layer,@layer components { .btn { } },No layer,Low,
+6,Basics,Use Utilities Layer,Override styles,@layer utilities,No layer,@layer utilities { .skew-5 { } },No layer,Low,
+7,Layout,Use Flexbox,Flex utilities,Flexbox classes,No flex,flex justify-between,display flex everywhere,High,
+8,Layout,Use Grid,Grid layout,Grid classes,Flex for grid,grid grid-cols-4,flex with percentages,High,
+9,Layout,Use Container,Container,container class,No container,container mx-auto,container without,Medium,
+10,Layout,Use Spacing,Sizing,Spacing scale,No spacing,p-4 m-4 gap-4,Arbitrary values everywhere,High,https://tailwindcss.com/docs/spacing
+11,Layout,Use Responsive,Mobile-first,Responsive prefix,Desktop-only,mobile: prefix first,lg: everywhere,High,https://tailwindcss.com/docs/responsive-design
+12,Layout,Use Dark Mode,Dark mode,dark: prefix,No dark,dark:bg-gray-900,No dark mode,Medium,https://tailwindcss.com/docs/dark-mode
+13,Typography,Use Font Family,Custom fonts,font-sans,System only,font-sans for body,font-serif everywhere,High,https://tailwindcss.com/docs/font-family
+14,Typography,Use Font Size,Sizing,text- utilities,No size,text-lg font-bold,font-size px everywhere,High,
+15,Typography,Use Line Height,Leading,leading- utilities,No leading,leading-relaxed,line-height px,Medium,
+16,Typography,Use Text Color,Text color,text- colors,No color,text-gray-600,color: rgb,High,
+17,Typography,Use Text Decoration,Decorate,decoration- classes,No decoration,underline decoration-2,border-bottom,Medium,
+18,Typography,Use Letter Spacing,Tracking,tracking- classes,No tracking,tracking-wide,letter-spacing px,Low,
+19,Colors,Use Semantic Names,Semantic colors,gray neutral slate,No semantic,text-gray-500,No semantic,Medium,
+20,Colors,Use Opacity,Transparency,opacity- utilities,No opacity,bg-white/50,rgba everywhere,Medium,https://tailwindcss.com/docs/customizing-colors#using-css-variables
+21,Colors,Use Arbitrary Values,Quick override,arbitrary [],No arbitrary,bg-[#ff0000],Custom CSS,Low,
+22,Colors,Use RGB,RGB mode,rgb() function,No rgb,bg-[rgb(255,0,0)],hex only,Low,
+23,Borders,Use Border Width,border,border- utilities,No border,border border-gray-200,border px,High,
+24,Borders,Use Border Radius,Round corners,rounded- utilities,No radius,rounded-lg,border-radius everywhere,High,
+25,Borders,Use Divide,Children,divide-y for children,No divide,divide-y-2,First-child border,Medium,
+26,Effects,Use Shadows,Shadow,shadow- utilities,No shadow,shadow-lg,box-shadow custom,Medium,https://tailwindcss.com/docs/box-shadow
+27,Effects,Use Ring,Outline ring,ring- for focus,No ring,ring-2 ring-blue-500,outline only,Medium,
+28,Effects,Use Gradients,Backgrounds,bg-gradient-to,No gradient,gradient-to-r,No gradient,Low,
+29,Effects,Use Blur,Blur effect,blur- utilities,No blur,blur-sm,filter blur,Low,
+30,Effects,Use Transitions,Animation,transition- utilities,No transition,transition-colors duration-200,transition custom,High,https://tailwindcss.com/docs/transition-property
+31,Effects,Use Transform,Transforms,transform utilities,No transform,scale-95 rotate-3,transform custom,Low,
+32,Effects,Use Animation,Keyframe anims,animate- utilities,No anim,animate-spin,keyframe custom,Low,
+33,State,Use Hover,Mouse hover,hover: prefix,No hover,hover:bg-blue-600,:hover in CSS,Medium,
+34,State,Use Focus,Keyboard focus,focus: prefix,No focus,focus:ring-2,:focus in CSS,High,
+35,State,Use Active,Click state,active: prefix,No active,active:scale-95,:active in CSS,Medium,
+36,State,Use Disabled,Disabled,disabled: prefix,No disabled,disabled:opacity-50,:disabled in CSS,Medium,
+37,State,Use Group,Parent group,group class,No group,group-hover:opacity-75,No group,Medium,
+38,State,Use Peer,Sibling,peer class,No peer,peer-checked:bg-blue,No peer,Low,
+39,Performance,Use Purging,Remove unused,PurgeCSS,No purge,production build purge,dev only,High,
+40,Performance,Use JIT Over PurgeCSS,JIT vs purge,JIT compiler,PurgeCSS only,JIT by default,Old purgecss,High,
+41,Performance,Use Layer,Code organization,@layer base/components,No layer,@layer components,No layer,Low,
+42,Performance,Use Match Variants,Custom variants,matchVariants,No match,Custom variant,No custom,Low,
+43,Plugins,Use Typography Plugin,Prose,@tailwindcss/typography,No plugin,prose prose-lg,No prose,Low,https://tailwindcss.com/docs/typography-plugin
+44,Plugins,Use Forms Plugin,Form styles,@tailwindcss/forms,No forms,form-input form-label,No forms,Low,https://tailwindcss.com/docs/forms-plugin
+45,Plugins,Use Aspect Ratio,Aspect ratio,@tailwindcss/aspect-ratio,No aspect,aspect-video,No aspect,Low,
+46,Plugins,Use Container Queries,Container,@tailwindcss/container-queries,No container,@container,No container,Low,https://tailwindcss.com/docs/container-queries
+47,Accessibility,Use Focus Visible,Focus ring,focus-visible:ring,No focus-vis,focus-visible:ring-2,No focus-vis,High,
+48,Accessibility,Use Screen Reader,SR only,sr-only class,No sr-only,sr-only,visibility hidden everywhere,Medium,
+49,Accessibility,Use Contrast,Color contrast,Accessible colors,No contrast,text-gray-900 on white,low contrast,High,
+50,Best Practices,Use Design Tokens,Theme tokens,Extend theme,No tokens,Extend colors/spacing,Hardcoded everywhere,Medium,

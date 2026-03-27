@@ -1,0 +1,39 @@
+No,Category,Guideline,Description,Do,Don't,Code Good,Code Bad,Severity,Docs URL
+1,Components,Use Composition API,Script setup,Script setup syntax,Options API,<script setup>,export default { },High,https://vuejs.org/guide/essentials/component-basics.html#using-script-setup
+2,Components,Use Single File Components,SFC pattern,.vue files,.vue files everywhere,template script style,Separate files without reason,High,
+3,Components,Use Pinia,State management,Pinia for state,Vuex for new,createPinia(),new Vuex.Store(),High,https://pinia.vuejs.org/
+4,Components,Keep Components Small,Single responsibility,Split components,Big components,Header.vue Footer.vue,500+ line file,Medium,
+5,Components,Use Teleport,Modal rendering,teleport to body,Overlapping modals,teleport to #modal,Absolute modal in root,Medium,https://vuejs.org/guide/built-ins/teleport.html
+6,Components,Use Suspense,Async components,Suspense for async,No loading,Suspense for data fetch,No suspense,Medium,https://vuejs.org/guide/built-ins/suspense.html
+7,Components,Use Async Components,Lazy loading,defineAsyncComponent,Static import,defineAsyncComponent(() => importHeavy),import Heavy,Medium,
+8,Components,Use Provide/Inject,Dependency injection,provide/inject,Prop drilling,provide('theme', 'dark'),Parent passes 10+ props,Medium,https://vuejs.org/guide/components/provide-inject.html
+9,Components,Use Slots,Slot patterns,Named slots,Prop-only,slot name=default,Props for content,Medium,https://vuejs.org/guide/components/slots.html
+10,Components,Use Dynamic Components,Component switching,component :is,if/else v-show,<component :is="currentView">,v-if for components,Low,https://vuejs.org/guide/essentials/component-basics.html#dynamic-components
+11,Reactivity,Use Ref/Reactive,Reactive state,ref() reactive(),No reactive,$state() or ref(),Direct mutation,High,https://vuejs.org/guide/essentials/reactivity-fundamentals.html
+12,Reactivity,Use Computed,Cached values,computed() for calc,Method for computed,computed(() => sum),methods for display,High,
+13,Reactivity,Use Watchers,Side effects,watchEffect watch,No watchers,watchEffect(() => {}),No side effects,Medium,https://vuejs.org/guide/essentials/watchers.html
+14,Reactivity,Use WatchEffect,Auto watcher,watchEffect for auto-dep,Manual deps,watchEffect(auto) {},watch with explicit,Medium,
+15,Reactivity,Use ToRefs,Destructure reactive,toRefs() for destructure,Destructure without,const { name } = toRefs(props),Destructure without,Low,https://vuejs.org/guide/essentials/reactivity-fundamentals.html#toRefs
+16,Router,Use Vue Router 4,Modern routing,createWebHistory,Hash mode,createWebHistory(),createWebHashHistory(),Medium,https://router.vuejs.org/
+17,Router,Use Route Params,Dynamic routes,:id param,Hardcoded,route.params.id,route.path hardcoded,Medium,
+18,Router,Use Navigation Guards,Route guards,beforeEach afterEach,No guards,router.beforeEach(guard),No guards,Medium,https://router.vuejs.org/advanced/navigation-guards.html
+19,Router,Use Lazy Routes,Code splitting,lazy routes,Static import,component: () => import(),import Home,Medium,
+20,Styling,Use Scoped CSS,Component styles,scoped in style,Global CSS,scoped styles,Unscoped styles,Medium,https://vuejs.org/guide/scaling-up/sfc.html#scoped-css
+21,Styling,Use CSS Modules,Module support,module in style,Global names,module,Global CSS,Low,
+22,Styling,Use Tailwind,Utility classes,Tailwind with Vue,Custom CSS,class="p-4",style="padding: 1rem",Medium,https://tailwindcss.com/
+23,Performance,Use V-Memo,List optimization,v-memo for lists,v-memo=[item.id],v-for without memo,Medium,https://vuejs.org/api/built-in-directives.html#v-memo
+24,Performance,Use KeepAlive,Component caching,KeepAlive for tabs,Recreate views,<KeepAlive>,Recreate on tab,Medium,https://vuejs.org/guide/built-ins/keep-alive.html
+25,Performance,Use ShallowRef,Performance,shallowRef for large,ref for large,shallowRef(largeArray),ref(largeArray),Medium,
+26,Performance,Use v-once,Static content,v-once for static,Render static,v-once,No v-once,Low,https://vuejs.org/api/built-in-directives.html#v-once
+27,Forms,Use v-model,Two-way binding,v-model for inputs,on-input manual,<input v-model="name">,@input="name=$event.target.value",High,https://vuejs.org/guide/essentials/forms.html
+28,Forms,Use Custom Model,v-model modifiers,defineModel,v-model.number,defineModel({ default: '' }),Manual emit,Medium,
+29,Accessibility,Use A11y,Accessibility,aria attributes,No a11y,aria-label for icons,No labels,High,
+30,Accessibility,Use Proper Labels,Label elements,label for input,No labels,<label>Click<input /></label>,No label,High,
+31,Accessibility,Use Focus Management,Focus handling,autofocus,No focus,autofocus or .focus(),No focus mgmt,Medium,
+32,Testing,Use Vitest,Unit testing,Vitest for Vue,No test,describe test,No tests,Medium,https://vitest.dev/
+33,Testing,Use Vue Test Utils,Component testing,Vue Test Utils,Manual,render component,No tests,Medium,https://test-utils.vuejs.org/
+34,Testing,Use Playwright,E2E testing,Playwright,Manual,playwright test,Manual E2E,Medium,https://playwright.dev/
+35,SEO,Use Meta Tags,SEO management,useHead composable,No SEO,useSeoMeta(),No meta,Medium,https://unhead.unjs.io/
+36,SEO,Use SSR,Server rendering,Nuxt for SSR,Client-only,Nuxt framework,No SSR,Medium,https://nuxt.com/
+37,Build,Use Vite,Build tool,Vite for Vue,Webpack,create-vue with Vite,webpack,High,https://vitejs.dev/
+38,Build,Use Auto Import,Auto imports,unplugin-vue-components,Manual imports,Auto Components,Manual imports,Medium,

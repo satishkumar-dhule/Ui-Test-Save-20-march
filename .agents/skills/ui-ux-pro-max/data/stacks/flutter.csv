@@ -1,0 +1,51 @@
+No,Category,Guideline,Description,Do,Don't,Code Good,Code Bad,Severity,Docs URL
+1,Components,Use Widgets,Declarative UI,Flutter widgets,Android Views,Column Row Container,XML layouts,High,https://docs.flutter.dev/development/ui/widgets
+2,Components,Use StatelessWidget,Pure widgets,StatelessWidget,StatefulWidget when not needed,StatelessWidget build,StatefulWidget for static,Medium,https://docs.flutter.dev/development/ui/widgets-intro
+3,Components,Use StatefulWidget,Stateful UI,StatefulWidget for state,setState everywhere,StatefulWidget build,No state,High,
+4,Components,Use BuildContext,Widget tree,BuildContext for theme,No context,Theme.of(context),Hardcoded styles,High,https://docs.flutter.dev/development/ui/build-context
+5,Components,Use Key,List performance,Key for list,No key,Key ValueKey(id),Index key,High,https://docs.flutter.dev/development/ui/performance#keys
+6,Components,Use Consumer,State access,Consumer for rebuild,setState everywhere,Consumer<Store>,setState in build,Medium,https://docs.flutter.dev/development/ui/performance#builder
+7,Components,Use Provider,State management,Provider package,No provider,Provider<Store>,InheritedWidget,High,https://docs.flutter.dev/development/data-and-backend/state-management#provider
+8,Components,Use Riverpod,State management,Riverpod for type-safe,Provider for new,Riverpod providers,Provider,High,https://docs.flutter.dev/development/data-and-backend/state-management#riverpod
+9,Components,Use Bloc,State management,Bloc for complex,No bloc,BlocProvider,setState,Medium,https://bloclibrary.dev/
+10,Components,Use GoRouter,Navigation,go_router for routing,Navigator for new,GoRouter for routing,Navigator 1.0,High,https://docs.flutter.dev/development/ui/navigation
+11,State,Use setState,Local state,setState for local,No state,setState(() {}),No state,High,
+12,State,Use Provider,Dependency inj,Provider.of(context),No DI,Provider.of(context),No DI,Medium,
+13,State,Use InheritedWidget,Tree pass,InheritedWidget,Prop drilling,InheritedWidget for theme,Prop drilling,Medium,
+14,State,Use ChangeNotifier,Simple state,ChangeNotifier,No notifier,ChangeNotifierProvider,No notifier,Medium,
+15,State,Use ValueNotifier,Simple value,ValueNotifier for value,No notifier,ValueNotifier(value),No notifier,Low,
+16,Styling,Use Theme,App theming,ThemeData,Hardcoded,Theme.of(context).textTheme,Hardcoded text styles,High,https://docs.flutter.dev/cookbook/design/themes
+17,Styling,Use DecoratedBox,Box styling,DecoratedBox,No style,BoxDecoration,No decoration,Medium,
+18,Styling,Use Container,Layout+style,Container for box,Stack for simple,Container decoration,Stack for style only,Medium,
+19,Styling,Use Material Design,Material widgets,Material widgets,Custom only,MaterialApp,CustomApp,High,
+20,Styling,Use Cupertino,Apple style,Cupertino widgets,iOS only,CupertinoApp,MaterialApp for iOS,Medium,
+21,Styling,Use Custom Paint,Canvas drawing,CustomPainter,No canvas,CustomPainter paint,No custom,Low,
+22,Performance,Use RepaintBoundary,Repaint isolation,RepaintBoundary for heavy,No boundary,RepaintBoundary,No boundary,Medium,https://docs.flutter.dev/development/ui/performance#repaintboundary
+23,Performance,Use Const Constructors,Widget const,Const constructors,No const,const Card(),Card(),Medium,https://docs.flutter.dev/development/ui/widgets-intro#const-constructors
+24,Performance,Use Automatic KeepAlive,Tab caching,AutomaticKeepAlive,No keepalive,AutomaticKeepAlive,No keepalive,Low,
+25,Performance,Use Lazy Loading,Lazy lists,Lazy loading in lists,LazyLoadingColumn,No lazy,ListView.builder,ListView for huge,Medium,https://docs.flutter.dev/cookbook/lists/long_lists
+26,Performance,Use Image Caching,Image cache,cached_network_image,No cache,cached_network_image,Image.network direct,Medium,https://pub.dev/packages/cached_network_image
+27,Performance,Use Build Caching,Build optimization,Cached build,Rebuild everything,Cached widgets,Rebuild all,Medium,
+28,Forms,Use TextField,Input,TextField for input,No input,TextField controller,No controller,High,
+29,Forms,Use Form/TextFormField,Validation,Form with validation,No validation,Form with TextFormField,No validation,High,https://docs.flutter.dev/cookbook/forms/validation
+30,Forms,Use DropdownButton,Selection,DropdownButton,No dropdown,DropdownButton,No dropdown,Medium,
+31,Forms,Use Checkbox/Switch,Boolean input,Checkbox Switch,No toggle,Checkbox onChanged,No toggle,Medium,
+32,Forms,Use Slider,Range input,Slider,No slider,Slider min max,No slider,Medium,
+33,Forms,Use DatePicker,Date selection,DatePicker,No picker,showDatePicker,No date picker,Medium,
+34,Forms,Use TimePicker,Time selection,TimePicker,No picker,showTimePicker,No time picker,Low,
+35,Animation,Use AnimationController,Animation,AnimationController,No anim,AnimationController,No anim,High,https://docs.flutter.dev/development/ui/animations
+36,Animation,Use Tween,Value interpolation,Tween for values,No tween,Tween<double>,No tween,Medium,
+37,Animation,Use AnimatedBuilder,Optimization,AnimatedBuilder,No builder,AnimatedBuilder,setState anim,Medium,
+38,Animation,Use Hero,Screen transitions,Hero for nav,No hero,Hero tag: 'id',No hero,Medium,https://docs.flutter.dev/development/ui/animations
+39,Animation,Use Implicit Animations,Simple anims,AnimatedContainer,No implicit,AnimatedContainer,No implicit,Medium,
+40,Animation,Use Staggered Animations,Sequenced,AnimatedList,No stagger,AnimatedList for entry,No stagger,Low,
+41,Accessibility,Use Semantics,Screen reader,Semantics widget,No semantics,Semantics label,No semantics,High,https://docs.flutter.dev/development/ui/accessibility-and-internationalization/accessibility
+42,Accessibility,Use ExcludeSemantics,Hide from SR,ExcludeSemantics,No exclude,ExcludeSemantics for decorative,No exclude,Medium,
+43,Accessibility,Use MergeSemantics,Group for SR,MergeSemantics,No merge,MergeSemantics for grouped,No merge,Low,
+44,Testing,Use Flutter Test,Unit testing,flutter_test,No test,testWidgets,No test,Medium,https://docs.flutter.dev/development/testing
+45,Testing,Use Widget Test,Component test,WidgetTester,No widget test,WidgetTester pump,No widget,Medium,
+46,Testing,Use Integration Test,E2E testing,integration_test,No E2E,integration_test package,No E2E,Low,https://docs.flutter.dev/development/testing/integration_testing
+47,Build,Use Build Runner,Code gen,build_runner,No gen,build_runner build,No codegen,Medium,
+48,Build,Use Freezed,Immutable,Freezed for data,No freezed,Freezed annotations,No freezed,Medium,https://pub.dev/packages/freezed
+49,Build,Use JSON Serializable,JSON parsing,json_serializable,No json,json_serializable,Manual JSON,Low,
+50,Build,Use FVM,Version manager,FVM for versions,FVM,flutter version manager,No version,Low,https://fvm.app/

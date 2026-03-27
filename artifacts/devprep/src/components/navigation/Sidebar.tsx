@@ -1,7 +1,21 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Home, LayoutDashboard, BookOpen, Code, FileText, Mic, Settings, User, Palette, Search, Bookmark, BarChart, ChevronRight } from 'lucide-react'
+import {
+  Home,
+  LayoutDashboard,
+  BookOpen,
+  Code,
+  FileText,
+  Mic,
+  Settings,
+  User,
+  Palette,
+  Search,
+  Bookmark,
+  BarChart,
+  ChevronRight,
+} from 'lucide-react'
 import type { Channel } from '@/data/channels'
 import type { Section } from '@/hooks/app/useAppState'
 import { useChannels } from '@/hooks/useChannels'
@@ -43,7 +57,7 @@ export function SidebarNavigation({
   onSearchOpen,
   defaultOpen = true,
 }: SidebarNavigationProps) {
-  const channels = useChannels()
+  const { channels } = useChannels()
   const { theme, toggleTheme } = useTheme()
   const [isMobile, setIsMobile] = useState(false)
 
@@ -62,7 +76,7 @@ export function SidebarNavigation({
       label: 'Home',
       icon: <Home className="h-4 w-4" />,
       isActive: false, // TODO: determine based on route
-      onClick: () => window.location.href = '/',
+      onClick: () => (window.location.href = '/'),
       tooltip: 'Go to homepage',
     },
     {
@@ -70,7 +84,7 @@ export function SidebarNavigation({
       label: 'Dashboard',
       icon: <LayoutDashboard className="h-4 w-4" />,
       isActive: false,
-      onClick: () => window.location.href = '/dashboard',
+      onClick: () => (window.location.href = '/dashboard'),
       tooltip: 'View your dashboard',
     },
   ]
@@ -154,13 +168,13 @@ export function SidebarNavigation({
       id: 'bookmarks',
       label: 'Bookmarks',
       icon: <Bookmark className="h-4 w-4" />,
-      onClick: () => window.location.href = '/bookmarks',
+      onClick: () => (window.location.href = '/bookmarks'),
     },
     {
       id: 'progress',
       label: 'Progress',
       icon: <BarChart className="h-4 w-4" />,
-      onClick: () => window.location.href = '/progress',
+      onClick: () => (window.location.href = '/progress'),
     },
   ]
 
@@ -169,13 +183,13 @@ export function SidebarNavigation({
       id: 'profile',
       label: 'Profile',
       icon: <User className="h-4 w-4" />,
-      onClick: () => window.location.href = '/profile',
+      onClick: () => (window.location.href = '/profile'),
     },
     {
       id: 'preferences',
       label: 'Preferences',
       icon: <Settings className="h-4 w-4" />,
-      onClick: () => window.location.href = '/preferences',
+      onClick: () => (window.location.href = '/preferences'),
     },
     {
       id: 'theme',
@@ -211,14 +225,12 @@ export function SidebarNavigation({
           </div>
         </SidebarHeader>
         <SidebarContent>
-          {filteredGroups.map((group) => (
+          {filteredGroups.map(group => (
             <SidebarGroupComp key={group.id} {...group} />
           ))}
         </SidebarContent>
         <SidebarFooter className="border-t p-4">
-          <div className="text-xs text-muted-foreground">
-            DevPrep v2.0
-          </div>
+          <div className="text-xs text-muted-foreground">DevPrep v2.0</div>
         </SidebarFooter>
         <SidebarRail />
       </SidebarPrimitive>

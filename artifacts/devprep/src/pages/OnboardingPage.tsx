@@ -115,7 +115,7 @@ type Step = 'welcome' | 'presets' | 'channels' | 'review'
 /* ──────────────────────────────────────────────────────────────────── */
 
 export function OnboardingPage({ onDone, initialSelected }: OnboardingPageProps) {
-  const channels = useChannels()
+  const { channels } = useChannels()
   const { toast } = useToast()
 
   const [selected, setSelected] = useState<Set<string>>(() =>

@@ -1,0 +1,36 @@
+No,Category,Guideline,Description,Do,Don't,Code Good,Code Bad,Severity,Docs URL
+1,Components,Use Standalone,Standalone components,Standalone API,Module NgModule,standalone: true,ngModule for new,High,https://angular.io/guide/standalone-components
+2,Components,Use Signal,Reactivity signals,Signal for state,RxJS for local,signal() for state,BehaviorSubject for local,High,https://angular.io/guide/signals
+3,Components,Use Control Flow,New @if @for,@if @for syntax,*ngIf *ngFor,@if condition {@html},*ngIf="condition",High,https://angular.io/guide/control-flow
+4,Components,Use Defer Blocks,On-demand loading,@defer for lazy,No defer,@defer { <Heavy /> },No lazy loading,Medium,https://angular.io/guide/defer
+5,Components,Use Component Input,Input signals,input() signal,@Input for new,input() for signal,@Input() for new,Medium,https://angular.io/guide/inputs-outputs
+6,Components,Use Component Output,Output signals,output() signal,@Output for new,output() for signal,@Output() for new,Medium,
+7,Components,Use Functional Interceptor,Functional guards,Functional guards,Class guards,inject(AuthGuard),CanActivate class,Medium,https://angular.io/guide/functional-guards
+8,Components,Use Pipe Transform,Pure pipes,Custom pipes,Method calls in template,currency pipe,method call {{ price | currency }},Medium,https://angular.io/guide/pipes
+9,Components,Use View Transitions,View transitions,View transitions API,No transitions,withViewTransitions(),No transitions,Low,https://angular.io/guide/view-transitions
+10,State,Use Signal Store,State management,NGRX Signal Store,NGRX for simple,signalStore(),NGRX for simple state,Medium,https://ngrx.io/guide/signals-store
+11,State,Use RxJS sparingly,Reactive patterns,RxJS for streams,Everything in RxJS,signal() for state,Observable for single value,Medium,
+12,State,Use Effects,Signal effects,effect() for side effects,No effects,effect(() => {}),No side effects,Medium,https://angular.io/guide/signals#effects
+13,Router,Use Router Inputs,Router inputs,Router input binding,Route params in component,withComponentInputBinding,Manual route params,Medium,https://angular.io/guide/router-input-binding
+14,Router,Use Lazy Routes,Code splitting,lazy load,Static load,loadChildren: () => import(),Static import,High,https://angular.io/guide/router#lazy-loading
+15,Router,Use Route Resolvers,Data preloading,Resolve for data,ngOnInit fetch,resolve: { data: dataResolver },No resolvers,Medium,
+16,Forms,Use Reactive Forms,Reactive forms,FormGroup for forms,Template-driven for complex,FormGroup for complex,ngModel for complex,High,https://angular.io/guide/reactive-forms
+17,Forms,Use Typed Forms,Form type safety,Typed forms,Any types,FormGroup<LoginForm>,FormGroup,Medium,https://angular.io/guide/typed-forms
+18,Forms,Use Form Actions,Form actions,submit with action,Manual handle,MatButton in forms,No actions,Medium,
+19,Styling,Use Scoped CSS,Component styles,View encapsulation,Global styles,encapsulation: ViewEncapsulation.Emulated,ViewEncapsulation.None,Medium,https://angular.io/guide/component-styles#view-encapsulation
+20,Styling,Use Tailwind,Utility classes,Tailwind with Angular,Custom CSS,class="p-4",style="padding: 1rem",Medium,https://tailwindcss.com/
+21,Styling,Use CSS Variables,Design tokens,CSS custom properties,Hardcoded,CSS vars for theming,Hardcoded colors,Medium,
+22,Performance,Use Zoneless,Change detection,Zoneless for perf,Default detection,provideExperimentalZonelessChangeDetection,Default detection,Medium,https://angular.io/guide/experimental/zoneless
+23,Performance,Use OnPush,Change strategy,OnPush strategy,Default strategy,changeDetection: ChangeDetectionStrategy.OnPush,Default,Medium,https://angular.io/guide/change-detection-skipping
+24,Performance,Use Async Pipe,Async data,async pipe,Manual subscribe,async pipe in template,.subscribe in component,High,https://angular.io/guide/common/async-pipe
+25,Performance,Use TrackBy,List performance,trackBy for ngFor,No trackBy,trackBy: trackById,No trackBy,Medium,
+26,Performance,Use Image Directive,Image optimization,NgOptimizedImage,img tag,<img ngSrc>,img src,High,https://angular.io/guide/image-directive
+27,Accessibility,Use A11y,Accessibility,Accessibility audit,No audit,axe testing,No a11y,High,
+28,Accessibility,Use ARIA,ARIA attributes,ARIA labels,No a11y,aria-label for icons,No labels,High,
+29,Accessibility,Use Focus Management,Focus trap,cdkTrapFocus,No focus,cdkTrapFocus for modal,No trap,Medium,https://material.angular.io/cdk/a11y/api
+30,Testing,Use Jest,Testing framework,Jest for Angular,Karma/Jasmine,jest for test,No jest,Low,https://jestjs.io/
+31,Testing,Use Component Harness,Test harness,Component harness,DebugElement,Testbed with harness,No harness,Medium,https://angular.io/guide/testing-components-harness
+32,Testing,Use Playwright,E2E testing,Playwright,Protractor,playwright test,Protractor,Medium,https://playwright.dev/
+33,SEO,Use SSR,Server rendering,Angular Universal,Client-only,Angular SSR,No SSR,Medium,https://angular.io/guide/ssr
+34,SEO,Use Hydration,Client hydration,hydrate for SSR,No hydration,provideClientHydration(),No hydration,Medium,
+35,Build,Use esbuild,Build tool,esbuild default,webpack,Default esbuild,webpack only,High,https://angular.io/guide/build

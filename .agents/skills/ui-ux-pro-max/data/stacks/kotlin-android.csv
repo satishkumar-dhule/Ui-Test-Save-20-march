@@ -1,0 +1,51 @@
+No,Category,Guideline,Description,Do,Don't,Code Good,Code Bad,Severity,Docs URL
+1,Components,Use Compose UI,Declarative UI,Jetpack Compose,XML Views,@Composable,XML layouts,High,https://developer.android.com/compose
+2,Components,Use Material 3,Design system,Material 3,Material 2,MaterialTheme M3,MaterialTheme M2,High,https://m3.material.io/
+3,Components,Use State,Composable state,remember for state,No state,remember { mutableStateOf(value) },No state,High,
+4,Components,Use remember,Survives recomposition,remember for local,No remember,remember { },No remember,High,
+5,Components,Use rememberSaveable,Persisted state,rememberSaveable for process,No saveable,rememberSaveable { },No saveable,Medium,
+6,Components,Use LaunchedEffect,Side effects,LaunchedEffect for async,No effect,LaunchedEffect(key) { },No effect,High,https://developer.android.com/compose/performance/lifecycle
+7,Components,Use DisposableEffect,Cleanup,DisposableEffect for cleanup,No cleanup,DisposableEffect { },No cleanup,Medium,
+8,Components,Use DerivedState,Derived state,derivedStateOf for computed,recalculate,derivedStateOf { },recalculate every,Medium,
+9,Components,Use StateFlow,Flow-based,StateFlow for state,LiveData for new,StateFlow,LiveData,High,https://developer.android.com/compose/state
+10,Components,Use MutableStateFlow,Mutable state,MutableStateFlow,No mutable,MutableStateFlow,val flow = flowOf,Medium,
+11,Components,Use Compose Navigation,Nav graph,Compose Navigation,Fragments,NavHost for navigation,Fragments,High,https://developer.android.com/compose/navigation
+12,Components,Use Navigation Type-Safe,Type-safe nav,Type-safe arguments,No type-safe,navArgs<Args>(),Bundle manual,Medium,
+13,Components,Use Accompanist,Additional libs,Accompanist libs,No accompanist,Pager, no accompanist,Low,https://google.github.io/accompanist/
+14,State,Use ViewModel,UI state,ViewModel for state,No VM,viewModel() for state,No VM,High,https://developer.android.com/compose/state#viewmodel
+15,State,Use SavedStateHandle,State persistence,SavedStateHandle,No handle,SavedStateHandle,No handle,Medium,
+16,State,Use Hilt,Dependency injection,Hilt for DI,Manual DI,Hilt for new,Dagger manual,High,https://developer.android.com/training/dependency-injection
+17,State,Use Koin,DI alternative,Koin for DI,Hilt for all,Koin for simple,Hilt for everything,Medium,https://insert-koin.io/
+18,State,Use DataStore,Preferences,DataStore,SharedPrefs,DataStore for prefs,SharedPreferences,High,https://developer.android.com/compose/datastore
+19,State,Use Room,Local DB,Room for persistence,No room,Room database,No DB,Medium,https://developer.android.com/jetpack/compose/rooms
+20,Styling,Use Material Theming,Theming,MaterialTheme,No theme,MaterialTheme colors,Hardcoded colors,High,
+21,Styling,Use Dynamic Color,Material You,Dynamic theming,Static colors,dynamicColor on Android 12+,Static palette,Medium,https://developer.android.com/compose/material3/dynamic-color
+22,Styling,Use Modifier,Styling chain,Modifier,No modifier,.padding().fillMaxWidth(),No modifier,High,
+23,Styling,Use Modifier Chain,Composable chain,Modifier chain,No chain,Modifier.padding().clickable(),padding only,Medium,
+24,Styling,Use Box/Column/Row,Layouts,Box Column Row,FrameLayouts,Column Row Box,RelativeLayout,High,
+25,Styling,Use Lazy Lists,Virtual lists,LazyColumn for lists,Column for lists,LazyColumn for 100+,Column for long,High,
+26,Styling,Use Scaffold,Screen scaffold,Scaffold for screen,No scaffold,Scaffold for app bar,Scaffold,Medium,
+27,Styling,Use Surface,Container,Surface for elevation,No surface,Surface color onSurface,Card for color,Medium,
+28,Styling,Use Graphics Layer,Graphics,GraphicsLayer for anim,No layer,graphicsLayer { },No layer,Low,
+29,Performance,Use Skippable,Skip recomposition,Skippable composable,No skip,remember { } for caching,No skip,Medium,
+30,Performance,Use Stable,Stable types,Stable for params,No stable,@Stable annotation,No stable,Medium,https://developer.android.com/compose/performance/stability
+31,Performance,Use Key,Recomposition,stable key,No key,LazyColumn key param,No key,Medium,
+32,Performance,Use Lazy Staggered,Staggered grid,LazyVerticalStaggeredGrid,No stagger,LazyVerticalStaggeredGrid,No stagger,Low,
+33,Performance,Use Benchmark,Perf testing,Jetpack Benchmark,No benchmark,Benchmark Compose,No benchmark,Low,https://developer.android.com/jetpack/compose/benchmarking
+34,Forms,Use TextField,Input fields,OutlinedTextField,No field,OutlinedTextField value,No validation,High,
+35,Forms,Use Outlined TextField,M3 style,OutlinedTextField,No outline,OutlinedTextField,TextField basic,Medium,
+36,Forms,Use Dropdown Menu,Selection,DropdownMenu,No dropdown,DropdownMenu,No dropdown,Medium,
+37,Forms,Use Date Picker,Date input,DatePicker,No picker,DatePickerDialog,No date,Medium,
+38,Forms,Use Time Picker,Time input,TimePicker,No picker,TimePickerDialog,No time,Low,
+39,Animation,Use AnimateX,Implicit anim,animateXAsState,No anim,animateContentSize(),No anim,Medium,https://developer.android.com/compose/animations
+40,Animation,Use AnimatedContent,Content transitions,AnimatedContent,No anim,AnimatedContent,No anim,Medium,
+41,Animation,Use AnimatedVisibility,Visibility,AnimatedVisibility,No anim,AnimatedVisibility,No anim,Medium,
+42,Animation,Use Crossfade,Crossfade,Crossfade for theme,No crossfade,Crossfade,No crossfade,Low,
+43,Animation,Use Infinite Transition,Loop anims,InfiniteTransition,No loop,InfiniteTransition,No loop,Low,
+44,Accessibility,Use Semantics,Accessibility,Semantics modifier,No semantics,Semantics for a11y,No semantics,High,https://developer.android.com/compose/accessibility
+45,Accessibility,Use Content Description,Labels,contentDescription,No desc,contentDescription for icons,No desc,High,
+46,Accessibility,Use Merge Semantics,Grouping,MergeSemantics for groups,No merge,MergeSemantics for groups,No merge,Medium,
+47,Testing,Use Compose Test,Testing,ComposeTestRule,No test,ComposeTestRule,No test,Medium,https://developer.android.com/compose/testing
+48,Testing,Use Test Composables,Composable test,runCompose,No run,runCompose { },No compose,Medium,
+49,Testing,Use Espresso,E2E testing,Espresso for E2E,No E2E,Espresso for UI,Manual UI,Low,
+50,Build,Use Compose Compiler,Compiler plugin,Compose compiler,No compiler,Compose compiler plugin,No compiler,High,

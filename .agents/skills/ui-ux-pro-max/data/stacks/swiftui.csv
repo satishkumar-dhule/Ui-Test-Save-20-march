@@ -1,0 +1,56 @@
+No,Category,Guideline,Description,Do,Don't,Code Good,Code Bad,Severity,Docs URL
+1,Components,Use SwiftUI Views,Declarative UI,SwiftUI for UI,UIKit for new,VStack HStack ZStack,UIViewControllers,High,https://developer.apple.com/documentation/swiftui
+2,Components,Use View Builder,View composition,ViewBuilder,No builder,@ViewBuilder var body: some View,Multiple returns in body,Medium,https://developer.apple.com/documentation/swiftui/viewbuilder
+3,Components,Use App Protocol,App lifecycle,@main App protocol,AppDelegate,@main struct App: App,UIApplicationMain,High,https://developer.apple.com/documentation/swiftui/app
+4,Components,Use Scene Protocol,Window management,@SceneBuilder,No scenes,@SceneBuilder var body: some Scene,No scene builder,Medium,
+5,Components,Use Identifiable,Data models,Identifiable protocol,No ID,struct Item: Identifiable,struct Item { var id },High,https://developer.apple.com/documentation/swiftui/identifiable
+6,Components,Use LazyVStack,Lazy loading,LazyVStack for lists,VStack for lists,LazyVStack for large,LazyVStack for all,Medium,https://developer.apple.com/documentation/swiftui/lazyvstack
+7,Components,Use Grids,Advanced layout,LazyVGrid for grids,Manual layout,LazyVGrid columns for layout,Manual frames,Medium,https://developer.apple.com/documentation/swiftui/lazyvgrid
+8,State,Use @State,Local state,@State for local,No local state,@State private var isOn,No state,High,https://developer.apple.com/documentation/swiftui/state
+9,State,Use @Binding,Two-way binding,@Binding for parent,No binding,@Binding var value: String,No binding,Medium,https://developer.apple.com/documentation/swiftui/binding
+10,State,Use @Published,ObservableObject,@Published for model,No observable,@Published var items: [Item],No @Published,High,https://developer.apple.com/documentation/swiftui/published
+11,State,Use @StateObject,Object lifecycle,@StateObject for observed,No lifecycle,@StateObject var vm = VM(),@ObservedObject everywhere,High,https://developer.apple.com/documentation/swiftui/stateobject
+12,State,Use @ObservedObject,External state,@ObservedObject for shared,No observed,@ObservedObject var vm: VM,No observed,Medium,
+13,State,Use @Environment,Environment values,@Environment for system,No env,@Environment(\.colorScheme) var cs,No env,Medium,https://developer.apple.com/documentation/swiftui/environment
+14,State,Use @EnvironmentObject,Shared state,@EnvironmentObject for global,No env obj,@EnvironmentObject var store: Store,Prop drilling,Medium,https://developer.apple.com/documentation/swiftui/environmentobject
+15,State,Use @FocusState,Focus handling,@FocusState for keyboard,FNo focus,@FocusState private var focused: Bool,No focus state,Medium,
+16,State,Use @GestureState,Drag gestures,@GestureState for temp,No gesture state,@GestureState var offset: CGFloat = 0,No gesture state,Medium,
+17,State,Use @AppStorage,User defaults,@AppStorage for prefs,UserDefaults directly,@AppStorage("key") var key: String,UserDefaults.standard,Medium,https://developer.apple.com/documentation/swiftui/appstorage
+18,State,Use @SceneStorage,Scene persistence,@SceneStorage,No scene storage,@SceneStorage("key") var key: String,No scene storage,Low,
+19,State,Use @Rendered,Animation tracking,@Rendered for animation,No render tracking,@Rendered var isRendered: Bool,No render,Low,
+20,Reactivity,Use Equatable,Diffing,Equatable conformance,No equatable,extension Item: Equatable,No equatable,Medium,https://developer.apple.com/documentation/swiftui/equatable
+21,Reactivity,Use EquatableView,View diffing,EquatableView for custom,No diffing,EquatableViewProtocol,No equatable,Low,
+22,Navigation,Use NavigationStack,Navigation container,NavigationStack,UIImagePickerController,NavigationStack { },UINavigationController,High,https://developer.apple.com/documentation/swiftui/navigationstack
+23,Navigation,Use NavigationLink,Programmatic nav,NavigationLink,performSegue,NavigationLink value,Manual nav,High,
+24,Navigation,Use NavigationPath,Type-safe path,NavigationPath,URL routes,NavigationPath(),String paths,Medium,
+25,Navigation,Use TabView,Tab bar,TabView for tabs,No tabs,TabView { },Custom tab bar,Medium,https://developer.apple.com/documentation/swiftui/tabview
+26,Navigation,Use sheet,Modal presentation,sheet modifier,Present modal,presentationDetents([.medium]),No detents,Medium,
+27,Navigation,Use fullScreenCover,Full screen modal,fullScreenCover,Custom modal,fullScreenCover(isPresented),No fullscreen,Low,
+28,Navigation,Use toolbar,Toolbar items,toolbar modifier,Custom toolbar,toolbar { },No toolbar,Medium,https://developer.apple.com/documentation/swiftui/view-toolbar
+29,Styling,Use @ViewBuilder Style,Custom styles,ViewModifier,No style,struct CardStyle: ViewModifier,No modifier,Medium,
+30,Styling,Use Shapes,Custom shapes,Shape protocol,No shapes,struct Circle: Shape,No shapes,Low,
+31,Styling,Use Gradients,Gradient fills,LinearGradient Radial,No gradients,LinearGradient,No gradient,Medium,
+32,Styling,Use Animations,Animation curves,.animation modifier,.animation(.easeInOut),No animation,No animation,High,https://developer.apple.com/documentation/swiftui/animation
+33,Styling,Use Transitions,View transitions,.transition modifier,.transition(.asymmetric),No transition,No transition,Medium,
+34,Styling,Use Phase Animator,Phase-based,.phaseAnimator for stages,No phase,@PhaseAnimator for steps,No phase anim,Low,
+35,Styling,Use Keyframes,Keyframe anims,.keyframeAnimator for complex,No keyframes,@KeyframeAnimator for keyframes,No keyframes,Low,
+36,Performance,Use redacted,Loading state,redacted modifier,.redacted(),No loading,redacted(.placeholder),No placeholder,Medium,
+37,Performance,Use Task,Async tasks,Task for async,No task,Task { await load() },No task,Medium,
+38,Performance,Use TaskGroup,Parallel async,TaskGroup for parallel,No group,TaskGroup for concurrent,Sequential load,Low,
+39,Performance,Use Lazy Loading,On-demand,List with id,No id,List(items) { $0 },No id,Medium,
+40,Forms,Use TextField,Input fields,TextField,No input,TextField("Name", text: $name),No text field,High,
+41,Forms,Use SecureField,Password,SecureField,No secure,SecureField("Pass", text: $pwd),Plain text pass,Medium,
+42,Forms,Use TextEditor,Multiline,TextEditor,No multiline,TextEditor(text: $text),No editor,Medium,
+43,Forms,Use Picker,Selection,Picker,No picker,Picker("Option", selection: $val),No picker,Medium,
+44,Forms,Use Slider,Range input,Slider,No slider,Slider(value: $val),No slider,Medium,
+45,Forms,Use Toggle,Switch input,Toggle,No toggle,Toggle("Enable", isOn: $val),No toggle,Medium,
+46,Forms,Use DatePicker,Date input,DatePicker,No date,DatePicker("Date", selection: $date),No picker,Medium,
+47,Forms,Use Form,Form layout,Form container,No form,Form { },No form,Low,
+48,Accessibility,Use accessibility,Accessibility,accessibility labels,No a11y,accessibility(label: "Submit"),No a11y,High,https://developer.apple.com/documentation/swiftui/accessibility
+49,Accessibility,Use AccessibilityFocus,Focus control,AccessibilityFocus,No focus,AccessibilityFocus($focused),No focus,Medium,
+50,Accessibility,Use Reduced Motion,Reduce motion,accessibilityReducedMotion,No reduce,accessibilityReducedMotion,No reduce,Medium,
+51,Testing,Use ViewInspector,View testing,ViewInspector,No inspect,inspect(View),No inspect,Low,
+52,Testing,Use XCTest,Unit testing,XCTest for Swift,No test,XCTTest,No tests,Medium,
+53,Testing,Use Snapshot Testing,Visual tests,Snapshot testing,No snapshot,swift-snapshot-testing,No snapshot,Low,
+54,Build,Use XcodeGen,Project gen,XcodeGen,Manual project,project.yml for gen,Manual Xcode,Low,https://github.com/yonaskolb/xcodegen
+55,Build,Use SPM,Package manager,Swift Package Manager,CocoaPods,Package.swift dependencies,CocoaPods,Low,

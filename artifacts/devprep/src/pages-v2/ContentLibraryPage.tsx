@@ -468,7 +468,7 @@ function EmptyState({
 
 export function ContentLibraryPage() {
   const { generated, loading: contentLoading } = useGeneratedContent()
-  const channels = useChannels()
+  const { channels } = useChannels()
 
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
   const [currentPage, setCurrentPage] = useState(1)

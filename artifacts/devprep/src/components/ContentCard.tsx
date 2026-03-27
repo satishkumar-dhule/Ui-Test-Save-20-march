@@ -1,3 +1,4 @@
+import { memo, useMemo, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
@@ -13,21 +14,21 @@ interface ContentCardProps {
   className?: string
 }
 
-function getQualityColor(score: number): string {
+const getQualityColor = (score: number): string => {
   if (score >= 0.8) return 'text-emerald-400'
   if (score >= 0.6) return 'text-blue-400'
   if (score >= 0.4) return 'text-amber-400'
   return 'text-red-400'
 }
 
-function getQualityBgColor(score: number): string {
+const getQualityBgColor = (score: number): string => {
   if (score >= 0.8) return 'bg-emerald-500/20'
   if (score >= 0.6) return 'bg-blue-500/20'
   if (score >= 0.4) return 'bg-amber-500/20'
   return 'bg-red-500/20'
 }
 
-function formatTimeAgo(timestamp: number): string {
+const formatTimeAgo = (timestamp: number): string => {
   const now = Date.now()
   const diff = now - timestamp
 
@@ -37,18 +38,27 @@ function formatTimeAgo(timestamp: number): string {
   return new Date(timestamp).toLocaleDateString()
 }
 
-export function ContentCard({
+function ContentCard({
   item,
   onClick,
   isNew = false,
   showQualityScore = true,
   className,
 }: ContentCardProps) {
+  // Memoize quality color to avoid recalculation on re-renders
+  const qualityColor = useMemo(() => getQualityColor(item.qualityScore), [item.qualityScore])
+  const qualityBgColor = useMemo(() => getQualityBgColor(item.qualityScore), [item.qualityScore])
+
+  // Memoize the onClick handler to maintain referential equality
+  const handleClick = useCallback(() => {
+    onClick?.()
+  }, [onClick])
+
   return (
     <motion.div
       whileHover={{ scale: 1.02, y: -2 }}
       whileTap={{ scale: 0.98 }}
-      onClick={onClick}
+      onClick={handleClick}
       className={cn(
         'glass-card-md group relative p-4 rounded-2xl cursor-pointer touch-feedback touch-target',
         'glass-hover glass-transition',
@@ -100,21 +110,21 @@ export function ContentCard({
             {showQualityScore && (
               <div className="flex items-center gap-1.5">
                 <TrendingUp className="w-3 h-3 text-secondary opacity-70 drop-shadow-sm" />
-                <span className={cn('text-xs font-medium', getQualityColor(item.qualityScore))}>
+                <span className={cn('text-xs font-medium', qualityColor)}>
                   {(item.qualityScore * 100).toFixed(0)}%
                 </span>
                 <div
                   className={cn(
                     'w-16 h-1.5 rounded-full overflow-hidden bg-secondary',
                     ' [&>div]:h-full [&>div]:rounded-full',
-                    getQualityBgColor(item.qualityScore)
+                    qualityBgColor
                   )}
                 >
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${item.qualityScore * 100}%` }}
                     transition={{ duration: 0.5, delay: 0.2 }}
-                    className={getQualityColor(item.qualityScore)}
+                    className={qualityColor}
                     style={{
                       backgroundColor: `var(--quality-color, currentColor)`,
                     }}
@@ -153,6 +163,22 @@ export function ContentCard({
     </motion.div>
   )
 }
+
+// Memoize ContentCard to prevent unnecessary re-renders
+export const ContentCardMemo = memo(ContentCard, (prevProps, nextProps) => {
+  return (
+    prevProps.item.id === nextProps.item.id &&
+    prevProps.item.qualityScore === nextProps.item.qualityScore &&
+    prevProps.item.title === nextProps.item.title &&
+    prevProps.item.preview === nextProps.item.preview &&
+    prevProps.isNew === nextProps.isNew &&
+    prevProps.showQualityScore === nextProps.showQualityScore &&
+    prevProps.className === nextProps.className
+  )
+})
+
+// Also export as default name for backward compatibility
+export { ContentCardMemo as ContentCard }
 
 interface NewBadgeProps {
   pulse?: boolean
