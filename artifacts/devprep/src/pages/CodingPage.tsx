@@ -199,7 +199,7 @@ const SimpleCodeEditor = React.memo(function SimpleCodeEditor({
     <div className="flex flex-1 overflow-hidden bg-[var(--dp-bg-0)]">
       {/* Line numbers */}
       <div
-        className="hidden md:flex flex-col items-end pr-3 pt-[14px] pb-[14px] select-none min-w-[48px] bg-[var(--dp-bg-0)] border-r border-border/40"
+        className="flex desktop-only flex-col items-end pr-3 pt-[14px] pb-[14px] select-none min-w-[48px] bg-[var(--dp-bg-0)] border-r border-border/40"
         aria-hidden="true"
       >
         {Array.from({ length: lineCount }, (_, i) => (
@@ -448,7 +448,7 @@ export function CodingPage({
     return (
       <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
         {/* Sidebar skeleton */}
-        <div className="hidden md:flex md:w-[240px] flex-col border-r border-border bg-muted/30 p-4 gap-3">
+        <div className="flex desktop-only md:w-[240px] flex-col border-r border-border bg-muted/30 p-4 gap-3">
           {Array.from({ length: 5 }, (_, i) => (
             <div key={i} className="h-12 rounded-lg bg-muted/60 animate-pulse" />
           ))}
@@ -523,7 +523,7 @@ export function CodingPage({
           ${
             sidebarOpen
               ? 'fixed inset-y-0 left-0 z-50 w-[280px] translate-x-0 md:relative md:translate-x-0'
-              : 'hidden md:flex md:w-[240px] lg:w-[260px]'
+              : 'flex desktop-only md:w-[240px] lg:w-[260px]'
           }
         `}
       >
@@ -538,7 +538,7 @@ export function CodingPage({
           </span>
           <button
             onClick={() => setSidebarOpen(false)}
-            className="md:hidden flex items-center justify-center w-9 h-9 -mr-1 rounded-lg hover:bg-muted transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+            className="flex mobile-only items-center justify-center w-9 h-9 -mr-1 rounded-lg hover:bg-muted transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
             aria-label="Close sidebar"
           >
             <X size={15} className="text-muted-foreground" />
@@ -610,14 +610,14 @@ export function CodingPage({
           {/* Mobile sidebar toggle */}
           <button
             onClick={() => setSidebarOpen(true)}
-            className="md:hidden flex items-center justify-center w-11 h-11 rounded-lg border border-border bg-background hover:bg-muted transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+            className="flex mobile-only items-center justify-center w-11 h-11 rounded-lg border border-border bg-background hover:bg-muted transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
             aria-label="Open challenge list"
           >
             <Menu size={16} className="text-muted-foreground" />
           </button>
 
           {/* Mobile panel switcher: Problem / Code */}
-          <div className="md:hidden flex items-center gap-0.5 bg-muted/60 rounded-lg p-0.5 border border-border/50" role="tablist" aria-label="Switch panel">
+          <div className="flex mobile-only items-center gap-0.5 bg-muted/60 rounded-lg p-0.5 border border-border/50" role="tablist" aria-label="Switch panel">
             <button
               role="tab"
               aria-selected={mobilePanel === 'problem'}
@@ -723,7 +723,7 @@ export function CodingPage({
         {/* ── Split pane ───────────────────────────────────────────── */}
         <div className="flex-1 flex flex-col md:flex-row overflow-hidden min-h-0">
           {/* ── Left: Problem description ───────────────────────────── */}
-          <div className={`${mobilePanel === 'code' ? 'hidden md:flex' : 'flex'} md:w-[42%] flex-shrink-0 flex-col border-b md:border-b-0 md:border-r border-border bg-background/50 overflow-hidden min-h-0 flex-1 md:flex-none`}>
+          <div className={`flex ${mobilePanel === 'code' ? 'desktop-only' : ''} md:w-[42%] flex-shrink-0 flex-col border-b md:border-b-0 md:border-r border-border bg-background/50 overflow-hidden min-h-0 flex-1 md:flex-none`}>
             <div className="flex-1 overflow-y-auto">
               {/* Title + tags */}
               <div className="px-5 pt-5 pb-4 border-b border-border">
@@ -890,7 +890,7 @@ export function CodingPage({
           </div>
 
           {/* ── Right: Editor ───────────────────────────────────────── */}
-          <div className={`${mobilePanel === 'problem' ? 'hidden md:flex' : 'flex'} flex-1 flex-col overflow-hidden min-w-0`}>
+          <div className={`flex ${mobilePanel === 'problem' ? 'desktop-only' : ''} flex-1 flex-col overflow-hidden min-w-0`}>
             {/* Editor chrome header */}
             <div className="flex items-center gap-2.5 px-3 h-[38px] border-b border-border bg-muted/40 flex-shrink-0">
               {/* Traffic lights */}
