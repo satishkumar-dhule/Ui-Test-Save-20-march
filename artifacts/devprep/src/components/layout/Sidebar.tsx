@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { Channel } from '@/data/channels'
-import type { Section } from '@/App'
+import type { Section } from '@/stores/contentStore'
 import { cn } from '@/lib/utils'
 import {
   MessageSquare,

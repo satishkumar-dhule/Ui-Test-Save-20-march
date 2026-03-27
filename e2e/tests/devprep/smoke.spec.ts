@@ -15,12 +15,8 @@ test.describe("E2E Smoke Tests - Critical User Journeys", () => {
     const onboardingModal = page.locator('[data-testid="onboarding-modal"]');
     await expect(onboardingModal).toBeVisible();
 
-    // Click Recommended button to select channels (more reliable than single channel)
-    const recommendedBtn = page.locator('button:has-text("Recommended")');
-    await recommendedBtn.click();
-    await page.waitForTimeout(1000);
-
-    // Now done button should be enabled
+    // OnboardingModal has JavaScript pre-selected by default
+    // Just click the done button
     const doneBtn = page.locator('[data-testid="onboarding-done-btn"]');
     await expect(doneBtn).toBeEnabled({ timeout: 10000 });
     await doneBtn.click();

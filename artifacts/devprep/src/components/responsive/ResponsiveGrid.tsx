@@ -1,4 +1,5 @@
 import { type ReactNode, type HTMLAttributes } from 'react'
+import { cn } from '@/lib/utils/cn'
 
 interface ResponsiveGridProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode
@@ -39,6 +40,21 @@ const justifyItemsClasses = {
   stretch: 'justify-items-stretch',
 }
 
+const colClasses: Record<number, string> = {
+  1: 'grid-cols-1',
+  2: 'grid-cols-2',
+  3: 'grid-cols-3',
+  4: 'grid-cols-4',
+  5: 'grid-cols-5',
+  6: 'grid-cols-6',
+  7: 'grid-cols-7',
+  8: 'grid-cols-8',
+  9: 'grid-cols-9',
+  10: 'grid-cols-10',
+  11: 'grid-cols-11',
+  12: 'grid-cols-12',
+}
+
 export function ResponsiveGrid({
   children,
   columns = { default: 1, sm: 2, md: 3, lg: 4 },
@@ -48,28 +64,28 @@ export function ResponsiveGrid({
   className = '',
   ...props
 }: ResponsiveGridProps) {
-  const gridCols = `grid-cols-${columns.default || 1}`
-  const smCols = columns.sm ? `sm:grid-cols-${columns.sm}` : ''
-  const mdCols = columns.md ? `md:grid-cols-${columns.md}` : ''
-  const lgCols = columns.lg ? `lg:grid-cols-${columns.lg}` : ''
-  const xlCols = columns.xl ? `xl:grid-cols-${columns.xl}` : ''
-  const xxlCols = columns['2xl'] ? `2xl:grid-cols-${columns['2xl']}` : ''
+  const defaultCols = columns.default || 1
+  const smColsVal = columns.sm
+  const mdColsVal = columns.md
+  const lgColsVal = columns.lg
+  const xlColsVal = columns.xl
+  const xxlColsVal = columns['2xl']
 
   return (
     <div
-      className={`
-        grid 
-        ${gridCols} 
-        ${smCols} 
-        ${mdCols} 
-        ${lgCols} 
-        ${xlCols} 
-        ${xxlCols}
-        ${gapClasses[gap]}
-        ${alignItemsClasses[alignItems]}
-        ${justifyItemsClasses[justifyItems]}
-        ${className}
-      `}
+      className={cn(
+        'grid',
+        colClasses[defaultCols] || 'grid-cols-1',
+        smColsVal && colClasses[smColsVal] ? `sm:${colClasses[smColsVal]}` : '',
+        mdColsVal && colClasses[mdColsVal] ? `md:${colClasses[mdColsVal]}` : '',
+        lgColsVal && colClasses[lgColsVal] ? `lg:${colClasses[lgColsVal]}` : '',
+        xlColsVal && colClasses[xlColsVal] ? `xl:${colClasses[xlColsVal]}` : '',
+        xxlColsVal && colClasses[xxlColsVal] ? `2xl:${colClasses[xxlColsVal]}` : '',
+        gapClasses[gap],
+        alignItemsClasses[alignItems],
+        justifyItemsClasses[justifyItems],
+        className
+      )}
       {...props}
     >
       {children}

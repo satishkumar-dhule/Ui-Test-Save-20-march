@@ -1,4 +1,4 @@
-import { X } from 'lucide-react'
+import { X, Search, Sun, Moon, BookOpen, Layers, Code, FileText, Mic } from 'lucide-react'
 import type { Channel } from '@/data/channels'
 import type { Section } from '@/hooks/app'
 import type { Theme } from '@/hooks/useTheme'
@@ -22,12 +22,12 @@ interface NavigationDrawerProps {
   theme: Theme
 }
 
-const TABS: { id: Section; label: string; icon: string }[] = [
-  { id: 'qa', label: 'Q&A', icon: '📖' },
-  { id: 'flashcards', label: 'Cards', icon: '🃏' },
-  { id: 'coding', label: 'Code', icon: '💻' },
-  { id: 'exam', label: 'Exam', icon: '📝' },
-  { id: 'voice', label: 'Voice', icon: '🎤' },
+const TABS: { id: Section; label: string; icon: React.ReactNode }[] = [
+  { id: 'qa', label: 'Q&A', icon: <BookOpen className="h-5 w-5" /> },
+  { id: 'flashcards', label: 'Cards', icon: <Layers className="h-5 w-5" /> },
+  { id: 'coding', label: 'Code', icon: <Code className="h-5 w-5" /> },
+  { id: 'exam', label: 'Exam', icon: <FileText className="h-5 w-5" /> },
+  { id: 'voice', label: 'Voice', icon: <Mic className="h-5 w-5" /> },
 ]
 
 export function NavigationDrawer({
@@ -58,17 +58,21 @@ export function NavigationDrawer({
       {/* Overlay with animation */}
       <div
         className="md:hidden fixed inset-0 z-50 bg-background/80 backdrop-blur-sm transition-opacity duration-300 ease-in-out"
-        style={{ opacity: isOpen ? 1 : 0 }}
+        style={{ opacity: isOpen ? 1 : 0, pointerEvents: isOpen ? 'auto' : 'none' }}
         onClick={onClose}
         aria-hidden="true"
       />
 
       {/* Drawer with slide animation */}
       <div
-        className="md:hidden fixed left-0 top-0 bottom-0 w-80 max-w-[85vw] bg-background border-r border-border shadow-2xl z-50 transform transition-transform duration-300 ease-out will-change-transform"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Navigation menu"
+        aria-hidden={!isOpen}
+        className="md:hidden fixed left-0 top-0 bottom-0 w-80 max-w-[85vw] bg-background border-r border-border shadow-2xl z-50 transform transition-transform duration-300 ease-out will-change-transform pt-[env(safe-area-inset-top,0px)]"
         style={{ transform: isOpen ? 'translateX(0)' : 'translateX(-100%)' }}
       >
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col h-full pb-[env(safe-area-inset-bottom,0px)]">
           {/* Drawer Header */}
           <div className="flex items-center justify-between p-4 border-b border-border bg-background/95 backdrop-blur-md sticky top-0">
             <div className="flex items-center gap-2">
@@ -111,8 +115,9 @@ export function NavigationDrawer({
                       ? 'bg-primary/10 text-primary'
                       : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                   }`}
+                  aria-pressed={section === tab.id}
                 >
-                  <span className="text-xl">{tab.icon}</span>
+                  <span className="text-primary">{tab.icon}</span>
                   <span className="text-[10px] font-medium">{tab.label}</span>
                   {sectionCounts[tab.id] > 0 && (
                     <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground text-[9px] font-bold flex items-center justify-center">
@@ -135,6 +140,7 @@ export function NavigationDrawer({
                       ? 'bg-primary/10 text-primary'
                       : 'text-muted-foreground hover:text-foreground'
                   }`}
+                  aria-pressed={channelTypeFilter === 'tech'}
                 >
                   Tech Channels
                 </button>
@@ -145,6 +151,7 @@ export function NavigationDrawer({
                       ? 'bg-primary/10 text-primary'
                       : 'text-muted-foreground hover:text-foreground'
                   }`}
+                  aria-pressed={channelTypeFilter === 'cert'}
                 >
                   Certifications
                 </button>
@@ -178,6 +185,7 @@ export function NavigationDrawer({
                       ? 'bg-primary/10 text-primary border border-primary/20'
                       : 'text-foreground hover:bg-muted/50 border border-transparent hover:border-border/50'
                   }`}
+                  aria-pressed={channelId === channel.id}
                 >
                   <span className="text-2xl">{channel.emoji}</span>
                   <div className="flex-1 min-w-0">
@@ -197,10 +205,13 @@ export function NavigationDrawer({
           {/* Drawer Footer */}
           <div className="p-4 border-t border-border bg-background/95 backdrop-blur-md space-y-3">
             <button
-              onClick={onSearchOpen}
+              onClick={() => {
+                onSearchOpen()
+                onClose()
+              }}
               className="w-full flex items-center gap-4 px-4 py-4 rounded-xl text-foreground hover:bg-muted/50 transition-colors touch-manipulation touch-feedback border border-transparent hover:border-border/50"
             >
-              <span className="text-2xl">🔍</span>
+              <Search className="h-6 w-6 text-primary" />
               <div className="flex-1 text-left">
                 <div className="text-base font-medium">Search</div>
                 <div className="text-sm text-muted-foreground">Find any content</div>
@@ -210,7 +221,11 @@ export function NavigationDrawer({
               onClick={onThemeToggle}
               className="w-full flex items-center gap-4 px-4 py-4 rounded-xl text-foreground hover:bg-muted/50 transition-colors touch-manipulation touch-feedback border border-transparent hover:border-border/50"
             >
-              <span className="text-2xl">{theme === 'dark' ? '☀️' : '🌙'}</span>
+              {theme === 'dark' ? (
+                <Sun className="h-6 w-6 text-amber-500" />
+              ) : (
+                <Moon className="h-6 w-6 text-indigo-500" />
+              )}
               <div className="flex-1 text-left">
                 <div className="text-base font-medium">
                   {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}

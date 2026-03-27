@@ -133,11 +133,16 @@ export function OnboardingModal({ onDone, initialSelected }: OnboardingModalProp
   const techChannels = useMemo(() => channels.filter(c => c.type === 'tech'), [channels])
   const certChannels = useMemo(() => channels.filter(c => c.type === 'cert'), [channels])
 
-  const [selected, setSelected] = useState<Set<string>>(() =>
-    initialSelected && initialSelected.size > 0
-      ? initialSelected
-      : (loadDraft() ?? new Set(['javascript']))
-  )
+  const [selected, setSelected] = useState<Set<string>>(() => {
+    if (initialSelected && initialSelected.size > 0) {
+      return initialSelected
+    }
+    const draft = loadDraft()
+    if (draft && draft.size > 0) {
+      return draft
+    }
+    return new Set(['javascript'])
+  })
   const modalRef = useRef<HTMLDivElement>(null)
   const doneButtonRef = useRef<HTMLButtonElement>(null)
 
@@ -200,9 +205,7 @@ export function OnboardingModal({ onDone, initialSelected }: OnboardingModalProp
       <div
         ref={modalRef}
         className="glass-card-lg w-full max-w-2xl max-h-[88vh] flex flex-col rounded-2xl overflow-hidden"
-
         style={{ boxShadow: '0 24px 60px rgba(0,0,0,0.6)' }}
-
         data-testid="onboarding-modal"
       >
         {/* Hero header */}

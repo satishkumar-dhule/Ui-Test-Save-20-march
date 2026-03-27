@@ -10,7 +10,7 @@
  * - Intersection observer helpers
  */
 
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { Metric, onCLS, onFCP, onINP, onLCP, onTTFB } from 'web-vitals'
 
 // Performance metric types

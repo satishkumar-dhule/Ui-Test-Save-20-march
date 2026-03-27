@@ -204,7 +204,7 @@ body {
 }
 
 /* Typography for dark mode adjustments */
-.dark {
+:root[data-theme='dark'] {
   --display-font-family: var(--apple-font-family);
   --title1-font-family: var(--apple-font-family);
   --title2-font-family: var(--apple-font-family);
@@ -280,7 +280,7 @@ body {
   --vision-text-tertiary: rgba(255, 255, 255, 0.5);
 }
 
-.dark {
+:root[data-theme='dark'] {
   --vision-text-primary: rgba(255, 255, 255, 0.95);
   --vision-text-secondary: rgba(255, 255, 255, 0.7);
   --vision-text-tertiary: rgba(255, 255, 255, 0.45);

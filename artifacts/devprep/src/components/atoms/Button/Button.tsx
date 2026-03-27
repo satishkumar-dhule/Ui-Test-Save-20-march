@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { Slot } from '@radix-ui/react-slot'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils/cn'
 import { Loader2 } from 'lucide-react'
@@ -55,19 +56,16 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ) => {
     const isDisabled = disabled || loading
 
-    if (loading) {
+    if (asChild) {
       return (
-        <button
+        <Slot
           ref={ref}
           className={cn(buttonVariants({ variant, size, className }), 'gap-2')}
-          disabled={isDisabled}
-          aria-busy="true"
+          aria-disabled={isDisabled}
           {...props}
         >
-          <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-          <span className="sr-only">Loading</span>
           {children}
-        </button>
+        </Slot>
       )
     }
 
@@ -87,27 +85,35 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       </>
     )
 
-    if (asChild && React.isValidElement<{ className?: string }>(children)) {
-      const childClassName = (children as React.ReactElement<{ className?: string }>).props
-        .className
-      return React.cloneElement(children, {
-        className: cn(buttonVariants({ variant, size, className }), childClassName),
-        ref,
-        disabled: isDisabled,
-        'aria-disabled': isDisabled,
-        ...props,
-      } as React.HTMLAttributes<HTMLElement>)
-    }
-
     return (
       <button
         ref={ref}
         className={cn(buttonVariants({ variant, size, className }), 'gap-2')}
         disabled={isDisabled}
         aria-disabled={isDisabled}
+        aria-busy={loading}
         {...props}
       >
-        {content}
+        {loading ? (
+          <>
+            <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+            <span className="sr-only">Loading</span>
+          </>
+        ) : (
+          <>
+            {leftIcon && (
+              <span className="flex-shrink-0" aria-hidden="true">
+                {leftIcon}
+              </span>
+            )}
+            {children}
+            {rightIcon && (
+              <span className="flex-shrink-0" aria-hidden="true">
+                {rightIcon}
+              </span>
+            )}
+          </>
+        )}
       </button>
     )
   }

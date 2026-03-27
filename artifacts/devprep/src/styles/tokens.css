@@ -437,7 +437,7 @@
 }
 
 /* Dark mode glass adjustments */
-.dark {
+:root[data-theme='dark'] {
   --glass-bg-light: rgba(28, 28, 30, 0.72);
   --glass-bg-medium: rgba(28, 28, 30, 0.5);
   --glass-bg-dark: rgba(28, 28, 30, 0.3);
@@ -512,7 +512,7 @@
 }
 
 /* Dark mode depth adjustments */
-.dark {
+:root[data-theme='dark'] {
   --spatial-shadow-1:
     0 1px 2px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.05);

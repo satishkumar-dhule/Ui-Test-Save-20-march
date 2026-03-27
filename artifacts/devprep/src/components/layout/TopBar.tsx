@@ -1,6 +1,7 @@
+import { memo } from 'react'
 import { Sun, Moon, Search, Menu, Sparkles } from 'lucide-react'
 import type { Channel } from '@/data/channels'
-import type { Section } from '@/App'
+import type { Section } from '@/stores/contentStore'
 
 interface TopBarProps {
   currentChannel: Channel | undefined
@@ -20,7 +21,7 @@ const SECTION_LABELS: Record<Section, { label: string; color: string }> = {
   stats: { label: 'Statistics', color: '#39d3f4' },
 }
 
-export function TopBar({
+export const TopBar = memo(function TopBar({
   currentChannel,
   section,
   theme,
@@ -96,16 +97,16 @@ export function TopBar({
         </nav>
       </div>
 
-      {/* ── Center: Search (hidden on small screens) ── */}
+      {/* ── Center: Search (⌘K hidden on mobile) ── */}
       <button
         className="topbar-search"
         onClick={onSearchOpen}
         data-testid="search-button"
-        aria-label="Search content (⌘K)"
+        aria-label="Search content"
       >
         <Search size={14} className="topbar-search-icon" aria-hidden="true" />
         <span className="topbar-search-label">Search</span>
-        <kbd className="topbar-search-kbd" aria-hidden="true">
+        <kbd className="topbar-search-kbd hidden sm:inline-flex" aria-hidden="true">
           <span>⌘</span>
           <span>K</span>
         </kbd>
@@ -130,4 +131,4 @@ export function TopBar({
       </div>
     </header>
   )
-}
+})

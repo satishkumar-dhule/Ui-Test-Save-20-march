@@ -5,6 +5,7 @@ test.describe("OnboardingModal Flow", () => {
     await page.goto("/");
     await page.evaluate(() => {
       localStorage.removeItem("devprep:selectedIds");
+      localStorage.removeItem("devprep:onboarding-draft");
     });
     await page.reload();
   });

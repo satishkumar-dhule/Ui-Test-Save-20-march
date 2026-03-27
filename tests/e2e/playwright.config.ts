@@ -4,6 +4,7 @@ export default defineConfig({
   testDir: ".",
   timeout: 30000,
   retries: 0,
+  workers: 5,
   use: {
     baseURL: process.env.BASE_URL || "http://localhost:3001",
     trace: "on-first-retry",

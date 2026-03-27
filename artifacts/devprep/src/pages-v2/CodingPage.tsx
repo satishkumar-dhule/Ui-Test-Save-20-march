@@ -591,20 +591,37 @@ export function CodingPage({ challengeId }: CodingPageProps) {
             />
           </div>
 
+          {/* Action Bar */}
+          <div className="flex-shrink-0 flex items-center justify-between px-4 py-3 border-t border-border bg-card">
+            <Text className="text-sm text-muted-foreground">Press Ctrl+Enter to run tests</Text>
+            <Button
+              onClick={runTests}
+              disabled={isRunning}
+              className="gap-2"
+              leftIcon={
+                isRunning ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Play className="w-4 h-4" />
+                )
+              }
+            >
+              {isRunning ? 'Running...' : 'Run Tests'}
+            </Button>
+          </div>
+
           {/* Results Panel */}
           {testResults.length > 0 && (
-            <div className="flex-shrink-0 border-t border-border bg-card max-h-[35vh] overflow-y-auto overscroll-contain relative z-10">
-              <div className="p-3 border-b border-border">
+            <div className="flex-shrink-0 border-t border-border bg-card max-h-[40vh] overflow-y-auto overflow-x-hidden overscroll-contain">
+              <div className="p-4 border-b border-border">
                 <div className="flex items-center justify-between">
                   <Text className="font-semibold">Test Results</Text>
-                  <div className="flex items-center gap-2">
-                    <Badge variant={allTestsPassed ? 'success' : 'destructive'}>
-                      {passedTests}/{testResults.length} Passed
-                    </Badge>
-                  </div>
+                  <Badge variant={allTestsPassed ? 'success' : 'destructive'} className="shrink-0">
+                    {passedTests}/{testResults.length} Passed
+                  </Badge>
                 </div>
               </div>
-              <div className="p-3 space-y-2">
+              <div className="p-4 space-y-3">
                 {testResults.map((testCase, index) => (
                   <div
                     key={testCase.id}

@@ -21,7 +21,7 @@ const variantClasses = {
   default: 'bg-card border border-border',
   outlined: 'bg-transparent border border-border',
   elevated: 'bg-card border border-border shadow-md hover:shadow-lg transition-shadow',
-  glass: 'glass backdrop-blur-lg border border-glass-border',
+  glass: 'bg-background/80 backdrop-blur-md border border-border/50',
 }
 
 export const ResponsiveCard = forwardRef<HTMLDivElement, ResponsiveCardProps>(
@@ -84,7 +84,7 @@ export function AdaptiveCard({
         <div className="flex items-start justify-between gap-4 mb-4">
           <div className="flex items-center gap-3">
             {icon && (
-              <div className="cq-card-icon flex-shrink-0 flex items-center justify-center">
+              <div className="flex-shrink-0 flex items-center justify-center text-primary">
                 {icon}
               </div>
             )}
@@ -93,7 +93,7 @@ export function AdaptiveCard({
           {actions && <div className="flex-shrink-0">{actions}</div>}
         </div>
       )}
-      <div className="cq-text-left">{children}</div>
+      <div className="text-left">{children}</div>
     </div>
   )
 }
@@ -160,9 +160,12 @@ export function MobileResponsiveCard({
         ${isInteractive ? 'touch-feedback' : ''}
         ${className}
       `}
+      style={{ touchAction: isInteractive ? 'manipulation' : undefined }}
       onClick={isInteractive ? onClick : undefined}
       role={isInteractive ? 'button' : undefined}
       tabIndex={isInteractive ? 0 : undefined}
+      aria-pressed={isInteractive ? selected : undefined}
+      aria-disabled={disabled}
       onKeyDown={
         isInteractive
           ? e => {
@@ -237,13 +240,15 @@ export function StatsCard({ label, value, change, icon, className = '' }: StatsC
           <p className="text-responsive-sm text-muted-foreground">{label}</p>
           <p className="text-responsive-2xl font-bold">{value}</p>
           {change !== undefined && (
-            <p className={`text-responsive-xs ${change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            <p
+              className={`text-responsive-xs ${change >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}
+            >
               {change >= 0 ? '+' : ''}
               {change}%
             </p>
           )}
         </div>
-        {icon && <div className="cq-card-icon flex-shrink-0 text-muted-foreground">{icon}</div>}
+        {icon && <div className="flex-shrink-0 text-muted-foreground">{icon}</div>}
       </div>
     </div>
   )

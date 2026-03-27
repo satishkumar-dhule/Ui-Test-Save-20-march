@@ -1,4 +1,8 @@
-import { apiClient, type ApiResponse } from './client'
+/**
+ * @deprecated This module is deprecated. Import directly from @/services/contentApi
+ * This file is kept for backward compatibility - it now delegates to contentApi.ts
+ */
+import { fetchAllContent, fetchChannelContent, type ContentRecord } from '@/services/contentApi'
 
 export interface ContentItem {
   id: string
@@ -7,6 +11,18 @@ export interface ContentItem {
   data: Record<string, unknown>
   quality_score: number
   created_at: number
+}
+
+// Convert contentApi record to ContentItem format
+function toContentItem(record: ContentRecord): ContentItem {
+  return {
+    id: record.id,
+    content_type: record.content_type as ContentItem['content_type'],
+    channel_id: record.channel_id,
+    data: record.data as Record<string, unknown>,
+    quality_score: record.quality_score,
+    created_at: record.created_at,
+  }
 }
 
 export interface Channel {
@@ -25,35 +41,39 @@ export interface ContentParams {
 }
 
 export const contentApi = {
-  getAll: async (params?: ContentParams): Promise<ApiResponse<ContentItem[]>> => {
-    const queryParams: Record<string, string> = {}
-    if (params?.channel) queryParams.channel = params.channel
-    if (params?.type) queryParams.type = params.type
-    if (params?.limit) queryParams.limit = params.limit.toString()
-    if (params?.offset) queryParams.offset = params.offset.toString()
-
-    return apiClient.get<ContentItem[]>('/content', queryParams)
+  getAll: async (params?: ContentParams) => {
+    const records = await fetchAllContent({
+      channelId: params?.channel,
+      contentType: params?.type,
+      limit: params?.limit,
+      offset: params?.offset,
+    })
+    return {
+      ok: true,
+      data: records.map(toContentItem),
+    }
   },
 
-  getByType: async (
-    type: string,
-    params?: Omit<ContentParams, 'type'>
-  ): Promise<ApiResponse<ContentItem[]>> => {
+  getByType: async (type: string, params?: Omit<ContentParams, 'type'>) => {
     return contentApi.getAll({ ...params, type })
   },
 
-  getByChannel: async (
-    channelId: string,
-    params?: Omit<ContentParams, 'channel'>
-  ): Promise<ApiResponse<ContentItem[]>> => {
-    return contentApi.getAll({ ...params, channel: channelId })
+  getByChannel: async (channelId: string, params?: Omit<ContentParams, 'channel'>) => {
+    const records = await fetchChannelContent(channelId, {
+      contentType: params?.type,
+      limit: params?.limit,
+      offset: params?.offset,
+    })
+    return {
+      ok: true,
+      data: records.map(toContentItem),
+    }
   },
 }
 
+// Keep existing channelsApi (returns static data for now)
 export const channelsApi = {
-  getAll: async (): Promise<ApiResponse<Channel[]>> => {
-    // Channels are currently static in the frontend, but we can create an API endpoint later
-    // For now, we'll return a mock response
+  getAll: async (): Promise<{ ok: boolean; data: Channel[] }> => {
     return {
       ok: true,
       data: [

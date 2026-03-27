@@ -483,6 +483,8 @@ export function SearchModal({
   const totalResults = results.length
   const filteredCount = filteredResults.length
 
+  if (!mounted) return null
+
   return createPortal(
     <div
       className="fixed inset-0 z-[100] flex items-start justify-center px-4"

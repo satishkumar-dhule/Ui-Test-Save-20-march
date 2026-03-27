@@ -51,13 +51,6 @@ export default defineConfig({
     },
     testTimeout: 10000,
     hookTimeout: 10000,
-    pool: 'threads',
-    poolOptions: {
-      threads: {
-        maxThreads: 4,
-        minThreads: 1,
-      },
-    },
     retry: 0,
     bail: 0,
     logHeapUsage: false,
@@ -66,10 +59,6 @@ export default defineConfig({
     restoreMocks: true,
     isolate: true,
     passWithNoTests: true,
-    updateSnapshot: false,
-    dangerouslySetExperimentalOptions: {
-      experimentalTestEnvironment: false,
-    },
   },
   resolve: {
     alias: {
@@ -83,6 +72,8 @@ export default defineConfig({
   define: {
     'import.meta.env.VITEST': true,
     'import.meta.env.VITE_API_URL': JSON.stringify('http://localhost:3001'),
+    'import.meta.env.PROD': false,
+    'import.meta.env.SSR': false,
   },
   esbuild: {
     target: 'esnext',

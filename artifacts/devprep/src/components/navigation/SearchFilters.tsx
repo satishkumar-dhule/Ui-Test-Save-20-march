@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useMemo, memo, useCallback } from 'react'
 import { Filter, X, Hash, Tag, Layers, ChevronDown, ChevronUp } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -34,48 +34,70 @@ const difficulties = [
   { value: 'hard', label: 'Hard' },
 ]
 
-export function SearchFilters({ filters, onFiltersChange }: SearchFiltersProps) {
+// Memoized static data to prevent recreation on every render
+const CONTENT_TYPES: { value: ContentType; label: string }[] = [
+  { value: 'question', label: 'Questions' },
+  { value: 'flashcard', label: 'Flashcards' },
+  { value: 'exam', label: 'Exams' },
+  { value: 'voice', label: 'Voice' },
+  { value: 'coding', label: 'Coding' },
+]
+
+const COMMON_TAGS = [
+  'javascript',
+  'typescript',
+  'react',
+  'nodejs',
+  'python',
+  'docker',
+  'kubernetes',
+  'aws',
+  'terraform',
+  'devops',
+]
+
+function SearchFiltersInner({ filters, onFiltersChange }: SearchFiltersProps) {
   const [expanded, setExpanded] = useState(true)
-  const channels = useChannels()
+  const { channels } = useChannels()
 
-  // Common tags extracted from filters
-  const commonTags = [
-    'javascript',
-    'typescript',
-    'react',
-    'nodejs',
-    'python',
-    'docker',
-    'kubernetes',
-    'aws',
-    'terraform',
-    'devops',
-  ]
+  // Memoize derived values
+  const activeFiltersCount = useMemo(
+    () =>
+      filters.channels.length +
+      filters.types.length +
+      filters.difficulties.length +
+      filters.tags.length,
+    [
+      filters.channels.length,
+      filters.types.length,
+      filters.difficulties.length,
+      filters.tags.length,
+    ]
+  )
 
-  const toggleArrayFilter = <T,>(key: keyof SearchFilters, value: T) => {
-    const current = filters[key] as T[]
-    const updated = current.includes(value) ? current.filter(v => v !== value) : [...current, value]
+  const toggleArrayFilter = useCallback(
+    <T,>(key: keyof SearchFilters, value: T) => {
+      const current = filters[key] as T[]
+      const updated = current.includes(value)
+        ? current.filter(v => v !== value)
+        : [...current, value]
 
-    onFiltersChange({
-      ...filters,
-      [key]: updated,
-    })
-  }
+      onFiltersChange({
+        ...filters,
+        [key]: updated,
+      })
+    },
+    [filters, onFiltersChange]
+  )
 
-  const clearAllFilters = () => {
+  const clearAllFilters = useCallback(() => {
     onFiltersChange({
       channels: [],
       types: [],
       difficulties: [],
       tags: [],
     })
-  }
-
-  const activeFiltersCount =
-    filters.channels.length +
-    filters.types.length +
-    filters.difficulties.length +
-    filters.tags.length
+  }, [onFiltersChange])
 
   return (
     <div className="border-b bg-muted/30">
@@ -184,7 +206,7 @@ export function SearchFilters({ filters, onFiltersChange }: SearchFiltersProps) 
               Tags
             </h4>
             <div className="flex flex-wrap gap-1.5">
-              {commonTags.map(tag => (
+              {COMMON_TAGS.map((tag: string) => (
                 <Button
                   key={tag}
                   variant={filters.tags.includes(tag) ? 'default' : 'outline'}
@@ -262,3 +284,6 @@ export function SearchFilters({ filters, onFiltersChange }: SearchFiltersProps) 
     </div>
   )
 }
+
+// Export memoized version for parent component re-renders
+export const SearchFiltersMemo = memo(SearchFiltersInner)

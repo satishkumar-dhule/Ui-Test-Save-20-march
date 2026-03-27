@@ -1,39 +1,6 @@
-import { useQuery } from '@tanstack/react-query'
-import { fetchChannelContent } from '@/services/contentApi'
-import { QUERY_KEYS } from '@/lib/queryClient'
-import { transformRecord, type ContentItem, type UseContentOptions } from './useContent'
+/**
+ * @deprecated This hook has been consolidated into useContent.ts
+ * Re-exports for backward compatibility.
+ */
 
-interface UseContentByChannelOptions extends UseContentOptions {
-  offset?: number
-}
-
-export function useContentByChannel(
-  channelId: string | null,
-  options: UseContentByChannelOptions = {}
-) {
-  const enabled = options.enabled !== false && !!channelId
-
-  return useQuery({
-    queryKey: QUERY_KEYS.byChannel(channelId || ''),
-    queryFn: async () => {
-      const records = await fetchChannelContent(channelId!, {
-        contentType: options.type,
-        status: options.status,
-        minQuality: options.minQuality,
-        limit: options.limit,
-        offset: options.offset,
-      })
-      return records.map(transformRecord)
-    },
-    enabled,
-    staleTime: 30_000,
-  })
-}
-
-export type UseContentByChannelResult = {
-  items: ContentItem[]
-  isLoading: boolean
-  isError: boolean
-  error: Error | null
-  refetch: () => Promise<unknown>
-}
+export { useContentByChannel, type UseContentByChannelResult } from './useContent'

@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { devtools, persist, subscribeWithSelector } from 'zustand/middleware'
-import { useMemo } from 'react'
+import { useMemo, useEffect } from 'react'
 import type { Question } from '@/data/questions'
 import type { Flashcard } from '@/data/flashcards'
 import type { ExamQuestion } from '@/data/exam'
@@ -127,7 +127,6 @@ const persistConfig = {
     selectedChannelIds: state.selectedChannelIds,
     section: state.section,
     theme: state.theme,
-    showOnboarding: false,
     items: state.items,
     stats: state.stats,
     selectedIds: state.selectedIds,
@@ -136,7 +135,7 @@ const persistConfig = {
 }
 
 const initialState = {
-  channelId: 'javascript',
+  ...getUrlState(),
   selectedChannelIds: [] as string[],
   section: 'qa' as Section,
   theme: 'dark' as const,
@@ -160,6 +159,36 @@ const initialState = {
   lastFetched: null as number | null,
 }
 
+function getUrlState(): { channelId: string; section: Section } {
+  if (typeof window === 'undefined') {
+    return { channelId: 'javascript', section: 'qa' }
+  }
+  const params = new URLSearchParams(window.location.search)
+  const channel = params.get('channel')
+  const section = params.get('section')
+  return {
+    channelId: channel || 'javascript',
+    section: (section as Section) || 'qa',
+  }
+}
+
+function syncStateToUrl(state: { channelId: string; section: Section }) {
+  if (typeof window === 'undefined') return
+  const params = new URLSearchParams(window.location.search)
+  if (state.channelId !== 'javascript') {
+    params.set('channel', state.channelId)
+  } else {
+    params.delete('channel')
+  }
+  if (state.section !== 'qa') {
+    params.set('section', state.section)
+  } else {
+    params.delete('section')
+  }
+  const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname
+  window.history.replaceState({}, '', newUrl)
+}
+
 export const useContentStore = create<ContentStore>()(
   subscribeWithSelector(
     devtools(
@@ -167,7 +196,10 @@ export const useContentStore = create<ContentStore>()(
         (set, get) => ({
           ...initialState,
 
-          setChannelId: id => set({ channelId: id }),
+          setChannelId: id => {
+            set({ channelId: id })
+            syncStateToUrl({ channelId: id, section: get().section })
+          },
           setSelectedChannelIds: ids => set({ selectedChannelIds: ids }),
           toggleSelectedChannel: id =>
             set(state => ({
@@ -175,7 +207,10 @@ export const useContentStore = create<ContentStore>()(
                 ? state.selectedChannelIds.filter(x => x !== id)
                 : [...state.selectedChannelIds, id],
             })),
-          setSection: section => set({ section }),
+          setSection: section => {
+            set({ section })
+            syncStateToUrl({ channelId: get().channelId, section })
+          },
           setTheme: theme => set({ theme }),
           toggleTheme: () => set(state => ({ theme: state.theme === 'dark' ? 'light' : 'dark' })),
           setShowOnboarding: show => set({ showOnboarding: show }),
@@ -204,7 +239,10 @@ export const useContentStore = create<ContentStore>()(
             }
           },
           closeMobileSidebar: () => set({ isMobileSidebarOpen: false }),
-          switchChannel: id => set({ channelId: id, isMobileSidebarOpen: false }),
+          switchChannel: id => {
+            set({ channelId: id, isMobileSidebarOpen: false })
+            syncStateToUrl({ channelId: id, section: get().section })
+          },
 
           setItems: items => {
             const itemsMap = items.reduce(

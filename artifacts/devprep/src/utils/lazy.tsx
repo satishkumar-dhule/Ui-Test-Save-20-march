@@ -107,14 +107,38 @@ type LazyComponent = ComponentType<any> & { preload: () => Promise<void> }
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getLazyPageImport(key: LazyPageKey): () => Promise<{ default: ComponentType<any> }> {
   const pageMap: Record<LazyPageKey, () => Promise<{ default: ComponentType<any> }>> = {
-    QAPage: () => import('@/pages/QAPage').then(m => ({ default: m.QAPage })) as Promise<{ default: ComponentType<any> }>,
-    FlashcardsPage: () => import('@/pages/FlashcardsPage').then(m => ({ default: m.FlashcardsPage })) as Promise<{ default: ComponentType<any> }>,
-    MockExamPage: () => import('@/pages/MockExamPage').then(m => ({ default: m.MockExamPage })) as Promise<{ default: ComponentType<any> }>,
-    VoicePracticePage: () => import('@/pages/VoicePracticePage').then(m => ({ default: m.VoicePracticePage })) as Promise<{ default: ComponentType<any> }>,
-    CodingPage: () => import('@/pages/CodingPage').then(m => ({ default: m.CodingPage })) as Promise<{ default: ComponentType<any> }>,
-    RealtimeDashboard: () => import('@/pages/RealtimeDashboard').then(m => ({ default: m.RealtimeDashboard })) as Promise<{ default: ComponentType<any> }>,
-    OnboardingPage: () => import('@/pages/OnboardingPage').then(m => ({ default: m.OnboardingPage })) as Promise<{ default: ComponentType<any> }>,
-    AIPage: () => import('@/pages/AIPage').then(m => ({ default: m.default })) as Promise<{ default: ComponentType<any> }>,
+    QAPage: () =>
+      import('@/pages/QAPage').then(m => ({ default: m.QAPage })) as Promise<{
+        default: ComponentType<any>
+      }>,
+    FlashcardsPage: () =>
+      import('@/pages/FlashcardsPage').then(m => ({ default: m.FlashcardsPage })) as Promise<{
+        default: ComponentType<any>
+      }>,
+    MockExamPage: () =>
+      import('@/pages/MockExamPage').then(m => ({ default: m.MockExamPage })) as Promise<{
+        default: ComponentType<any>
+      }>,
+    VoicePracticePage: () =>
+      import('@/pages/VoicePracticePage').then(m => ({ default: m.VoicePracticePage })) as Promise<{
+        default: ComponentType<any>
+      }>,
+    CodingPage: () =>
+      import('@/pages/CodingPage').then(m => ({ default: m.CodingPage })) as Promise<{
+        default: ComponentType<any>
+      }>,
+    RealtimeDashboard: () =>
+      import('@/pages/RealtimeDashboard').then(m => ({ default: m.RealtimeDashboard })) as Promise<{
+        default: ComponentType<any>
+      }>,
+    OnboardingPage: () =>
+      import('@/pages/OnboardingPage').then(m => ({ default: m.OnboardingPage })) as Promise<{
+        default: ComponentType<any>
+      }>,
+    AIPage: () =>
+      import('@/pages/AIPage').then(m => ({ default: m.default })) as Promise<{
+        default: ComponentType<any>
+      }>,
   }
   return pageMap[key]
 }
@@ -282,6 +306,37 @@ export const SECTION_TO_PAGE: Record<string, LazyPageKey> = {
 
 export function getLazyPageForSection(section: string): LazyPageKey | null {
   return SECTION_TO_PAGE[section] ?? null
+}
+
+/**
+ * Lazy load data modules (questions, flashcards, etc.)
+ */
+export const LazyData = {
+  questions: () => import('@/data/questions').then(m => m.questions),
+  flashcards: () => import('@/data/flashcards').then(m => m.flashcards),
+  exam: () => import('@/data/exam').then(m => m.examQuestions),
+  coding: () => import('@/data/coding').then(m => m.codingChallenges),
+  voice: () => import('@/data/voicePractice').then(m => m.voicePrompts),
+  channels: () => import('@/data/channels').then(m => m.channels),
+}
+
+/**
+ * Preload data on idle
+ */
+export function preloadDataOnIdle(callback?: () => void): void {
+  if ('requestIdleCallback' in window) {
+    requestIdleCallback(() => {
+      LazyData.questions()
+      LazyData.flashcards()
+      callback?.()
+    })
+  } else {
+    setTimeout(() => {
+      LazyData.questions()
+      LazyData.flashcards()
+      callback?.()
+    }, 100)
+  }
 }
 
 /**

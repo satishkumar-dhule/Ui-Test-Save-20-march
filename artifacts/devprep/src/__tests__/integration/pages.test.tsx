@@ -5,49 +5,35 @@ import userEvent from '@testing-library/user-event'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 // Mock the API service
-vi.mock('@/services/contentApi', () => ({
+vi.mock('@/lib/api/endpoints', () => ({
   contentApi: {
-    getAll: vi.fn(),
-    getByType: vi.fn(),
-    getByChannel: vi.fn(),
+    getAll: vi.fn().mockResolvedValue({ ok: true, data: [] }),
+    getByType: vi.fn().mockResolvedValue({ ok: true, data: [] }),
+    getByChannel: vi.fn().mockResolvedValue({ ok: true, data: [] }),
   },
 }))
 
-// Mock WebSocket service
-vi.mock('@/services/websocket', () => ({
-  useWebSocket: vi.fn(() => ({
-    isConnected: true,
-    lastMessage: null,
-    sendMessage: vi.fn(),
-  })),
-}))
-
-// Mock stores
-vi.mock('@/stores/contentStore', () => ({
-  useContentStore: vi.fn(() => ({
-    contents: [],
-    isLoading: false,
-    error: null,
-    fetchContents: vi.fn(),
-  })),
-}))
+import { contentApi } from '@/lib/api/endpoints'
 
 vi.mock('@/lib/filterStore', () => ({
-  useFilterStore: vi.fn(() => ({
-    filters: { channel: null, type: null, quality: null, search: '' },
-    setFilter: vi.fn(),
-    clearFilters: vi.fn(),
-  })),
+  useFilterStore: vi.fn().mockReturnValue({
+    channelId: null,
+    contentType: null,
+    difficulty: null,
+    status: null,
+    searchQuery: '',
+    sortBy: 'newest',
+    sortOrder: 'desc',
+    setChannelId: vi.fn(),
+  }),
 }))
 
 vi.mock('@/hooks/useTheme', () => ({
-  useTheme: vi.fn(() => ({
+  useTheme: vi.fn().mockReturnValue({
     theme: 'light',
     setTheme: vi.fn(),
-  })),
+  }),
 }))
-
-import { contentApi } from '@/lib/api/endpoints'
 
 // Test wrapper with all providers
 function TestWrapper({ children }: { children: React.ReactNode }) {

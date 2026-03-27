@@ -9,6 +9,12 @@ export {
   TaskOrchestrator,
 } from "./team/manager";
 export { agentTeam, AgentTeam } from "./team/team";
+export {
+  localAgentRegistry,
+  findBestLocalAgent,
+  getAllLocalAgents,
+} from "./local-registry";
+export type { LocalAgent, LocalAgentType } from "./local-registry";
 export type { TaskTracker, TaskCheckpoint } from "./tracking/delegation";
 export type { TaskAssignment, TeamConfig } from "./team/manager";
 export type { TeamMember } from "./team/team";
