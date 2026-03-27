@@ -164,7 +164,7 @@ function saveCache(data: GeneratedContentMap) {
 }
 
 const memoryCache = new Map<string, { ts: number; data: GeneratedContentMap }>()
-let fetchPromise: Promise<void> | null = null
+const fetchPromiseRef: { current: Promise<void> | null } = { current: null }
 
 function getUserFriendlyErrorMessage(errors: Array<{ type: string; message: string }>): string {
   if (errors.length === 0) return ''

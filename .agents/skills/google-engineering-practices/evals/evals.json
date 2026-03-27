@@ -1,0 +1,35 @@
+{
+  "skill_name": "google-engineering-practices",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "My team is new to code reviews and I want to implement Google-style code reviews. What should our reviewers look for and what's the standard we should aim for?",
+      "expected_output": "Should explain Google's code review standards including: the primary purpose (code health), what to look for (design, functionality, complexity, tests, naming, comments, style, documentation), the LGTM convention, speed expectations, and the distinction between must-fix and nitpick comments.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "We're setting up SRE practices at our company and I need to understand SLIs, SLOs, and error budgets. Can you explain these concepts with examples?",
+      "expected_output": "Should explain SLIs (latency, availability, throughput, error rate), SLOs as target values, error budgets as 100%-SLO, with practical examples of how to set them and what to do when error budget is depleted.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "What makes a good test according to Google's testing practices? Our team wants to write better unit tests.",
+      "expected_output": "Should explain F.I.R.S.T. principles (Fast, Independent, Repeatable, Self-Validating, Timely), the AAA pattern (Arrange-Act-Assert), test naming best practices, narrow assertions, and what to mock vs not mock.",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "I just became a tech lead and I've never managed people before. What are the key skills I need to develop?",
+      "expected_output": "Should cover technical breadth, delegation techniques, communication skills, mentorship, and decision making. Should explain delegation levels from 'tell' to 'delegate', how to run effective meetings, one-on-ones, and the RAPID framework for decisions.",
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "Our API service had an outage yesterday. How does Google do incident management and postmortems?",
+      "expected_output": "Should explain incident roles (Incident Commander, Communications Lead, Ops Lead), the blameless postmortem concept, what should be in a postmortem (what happened, why, how to prevent), and the focus on systemic issues over individual blame.",
+      "files": []
+    }
+  ]
+}

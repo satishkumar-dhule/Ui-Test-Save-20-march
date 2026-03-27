@@ -15,7 +15,6 @@ import { Sidebar } from '@/components/layout/Sidebar'
 import { TopBar } from '@/components/layout/TopBar'
 import { StudyContent } from '@/components/layout/StudyContent'
 import { useContentStore, useSectionCounts } from '@/stores/contentStore'
-import type { SearchResult } from '@/types/search'
 import { LazyWrapper } from '@/components/LazyWrapper'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useQueryBackdoor } from '@/utils/queryBackdoor'
@@ -32,6 +31,9 @@ const LazyChannelBrowser = lazy(() =>
 export type Section = 'qa' | 'flashcards' | 'exam' | 'voice' | 'coding' | 'stats'
 
 import { SearchModalWrapperMemo } from '@/components/SearchModalWrapper'
+
+const SidebarMemo = memo(Sidebar)
+const TopBarMemo = memo(TopBar)
 
 function App() {
   const allChannels = useChannels()
@@ -270,13 +272,5 @@ function App() {
 }
 
 // Search functionality consolidated in SearchModalWrapper component
-
-const TYPE_TO_SECTION: Record<string, Section> = {
-  question: 'qa',
-  flashcard: 'flashcards',
-  exam: 'exam',
-  voice: 'voice',
-  coding: 'coding',
-}
 
 export default memo(App)
