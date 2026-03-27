@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useCallback } from 'react'
+import React, { useEffect, useRef, useCallback, useState } from 'react'
 import {
   webVitalsTracker,
   WebVitalsMetrics,
@@ -27,6 +27,28 @@ interface PerformanceMetrics extends WebVitalsMetrics {
 
 const ANALYTICS_ENDPOINT = '/api/analytics/web-vitals'
 
+const getConsoleStyle = (rating: string): string => {
+  switch (rating) {
+    case 'good':
+      return 'color: #10b981; font-weight: bold;'
+    case 'needs-improvement':
+      return 'color: #f59e0b; font-weight: bold;'
+    case 'poor':
+      return 'color: #ef4444; font-weight: bold;'
+    default:
+      return 'color: #6b7280; font-weight: bold;'
+  }
+}
+
+let sampleCounter = 0
+const generateSampleId = (() => {
+  let counter = 0
+  return () => {
+    counter++
+    return counter
+  }
+})()
+
 export function PerformanceMonitor({
   enabled = true,
   reportToConsole = true,
@@ -37,6 +59,11 @@ export function PerformanceMonitor({
   const isInitialized = useRef(false)
   const isSubscribed = useRef(false)
   const analyticsTimeoutRef = useRef<number | null>(null)
+  const sampleRateRef = useRef(sampleRate)
+
+  useEffect(() => {
+    sampleRateRef.current = sampleRate
+  }, [sampleRate])
 
   const getDeviceInfo = useCallback((): Partial<PerformanceMetrics> => {
     if (typeof window === 'undefined') {
@@ -48,7 +75,9 @@ export function PerformanceMonitor({
       deviceMemory?: number
     }
 
-    const connection = nav.connection
+    const connection = (
+      nav as Navigator & { connection?: { effectiveType?: string; saveData?: boolean } }
+    ).connection
     const viewport = {
       width: window.innerWidth,
       height: window.innerHeight,
@@ -65,9 +94,10 @@ export function PerformanceMonitor({
   }, [])
 
   const shouldReport = useCallback((): boolean => {
-    if (sampleRate >= 1) return true
-    return Math.random() < sampleRate
-  }, [sampleRate])
+    if (sampleRateRef.current >= 1) return true
+    sampleCounter++
+    return sampleCounter % Math.ceil(1 / sampleRateRef.current) === 0
+  }, [])
 
   const consoleReport = useCallback(
     (metric: Metric) => {
@@ -88,19 +118,6 @@ export function PerformanceMonitor({
     },
     [thresholds]
   )
-
-  const getConsoleStyle = (rating: string): string => {
-    switch (rating) {
-      case 'good':
-        return 'color: #10b981; font-weight: bold;'
-      case 'needs-improvement':
-        return 'color: #f59e0b; font-weight: bold;'
-      case 'poor':
-        return 'color: #ef4444; font-weight: bold;'
-      default:
-        return 'color: #6b7280; font-weight: bold;'
-    }
-  }
 
   const sendToAnalytics = useCallback(
     (metrics: PerformanceMetrics) => {
@@ -216,7 +233,7 @@ export function PerformanceMonitor({
 }
 
 export function useLCP(): number | null {
-  const lcpRef = useRef<number | null>(null)
+  const [lcp, setLcp] = useState<number | null>(null)
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -224,7 +241,9 @@ export function useLCP(): number | null {
     const observer = new PerformanceObserver(list => {
       const entries = list.getEntries()
       const lastEntry = entries[entries.length - 1]
-      lcpRef.current = lastEntry.startTime
+      if (lastEntry) {
+        setLcp(lastEntry.startTime)
+      }
     })
 
     try {
@@ -236,11 +255,11 @@ export function useLCP(): number | null {
     return () => observer.disconnect()
   }, [])
 
-  return lcpRef.current
+  return lcp
 }
 
 export function useCLS(): number {
-  const clsRef = useRef(0)
+  const [cls, setCls] = useState(0)
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -254,7 +273,7 @@ export function useCLS(): number {
           cumulativeLayoutShift += layoutEntry.value
         }
       }
-      clsRef.current = cumulativeLayoutShift
+      setCls(cumulativeLayoutShift)
     })
 
     try {
@@ -266,12 +285,14 @@ export function useCLS(): number {
     return () => observer.disconnect()
   }, [])
 
-  return clsRef.current
+  return cls
 }
 
 export function useINP(): { value: number | null; isPending: boolean } {
-  const inpRef = useRef<number | null>(null)
-  const isPendingRef = useRef(false)
+  const [inp, setInp] = useState<{ value: number | null; isPending: boolean }>({
+    value: null,
+    isPending: false,
+  })
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -285,7 +306,7 @@ export function useINP(): { value: number | null; isPending: boolean } {
           const duration = eventEntry.duration
           if (duration > maxDuration) {
             maxDuration = duration
-            inpRef.current = duration
+            setInp({ value: duration, isPending: false })
           }
         }
       }
@@ -300,11 +321,11 @@ export function useINP(): { value: number | null; isPending: boolean } {
     return () => observer.disconnect()
   }, [])
 
-  return { value: inpRef.current, isPending: isPendingRef.current }
+  return inp
 }
 
 export function useFirstInputDelay(): number | null {
-  const fidRef = useRef<number | null>(null)
+  const [fid, setFid] = useState<number | null>(null)
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -314,7 +335,7 @@ export function useFirstInputDelay(): number | null {
       const firstEntry = entries[0]
 
       if (firstEntry && firstEntry.processingStart > 0) {
-        fidRef.current = firstEntry.processingStart - firstEntry.startTime
+        setFid(firstEntry.processingStart - firstEntry.startTime)
       }
     })
 
@@ -327,21 +348,22 @@ export function useFirstInputDelay(): number | null {
     return () => observer.disconnect()
   }, [])
 
-  return fidRef.current
+  return fid
 }
 
 export function useTotalBlockingTime(): number {
-  const tbtRef = useRef(0)
-  const longTasksRef = useRef<number[]>([])
+  const [tbt, setTbt] = useState(0)
 
   useEffect(() => {
     if (typeof window === 'undefined') return
 
+    const longTasks: number[] = []
+
     const observer = new PerformanceObserver(list => {
       for (const entry of list.getEntries()) {
         if (entry.duration > 50) {
-          longTasksRef.current.push(entry.duration - 50)
-          tbtRef.current = longTasksRef.current.reduce((sum, duration) => sum + duration, 0)
+          longTasks.push(entry.duration - 50)
+          setTbt(longTasks.reduce((sum, duration) => sum + duration, 0))
         }
       }
     })
@@ -355,12 +377,19 @@ export function useTotalBlockingTime(): number {
     return () => observer.disconnect()
   }, [])
 
-  return tbtRef.current
+  return tbt
 }
 
-export function useNetworkInformation() {
-  const infoRef = useRef({
-    effectiveType: 'unknown' as string | null,
+export interface NetworkInfo {
+  effectiveType: string | null
+  downlink: number
+  rtt: number
+  saveData: boolean
+}
+
+export function useNetworkInformation(): NetworkInfo {
+  const [info, setInfo] = useState<NetworkInfo>({
+    effectiveType: 'unknown',
     downlink: 0,
     rtt: 0,
     saveData: false,
@@ -384,12 +413,12 @@ export function useNetworkInformation() {
 
     const updateConnectionInfo = () => {
       if (connection) {
-        infoRef.current = {
+        setInfo({
           effectiveType: connection.effectiveType ?? null,
           downlink: connection.downlink ?? 0,
           rtt: connection.rtt ?? 0,
           saveData: connection.saveData ?? false,
-        }
+        })
       }
     }
 
@@ -405,11 +434,11 @@ export function useNetworkInformation() {
     }
   }, [])
 
-  return infoRef.current
+  return info
 }
 
 export function LazyPerformanceMonitor() {
-  const [shouldMount, setShouldMount] = React.useState(false)
+  const [shouldMount, setShouldMount] = useState(false)
 
   useEffect(() => {
     const timeout = setTimeout(() => {

@@ -10,22 +10,14 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default:
-          // @replit: glass primary button
-          'glass-primary rounded-xl',
+        default: 'glass-primary rounded-xl',
         destructive: 'glass rounded-xl border-red-500/30 text-red-500',
-        outline:
-          // @replit: glass outline button
-          'glass-light rounded-xl',
-        secondary:
-          // @replit: glass secondary button
-          'glass-secondary rounded-xl',
-        // @replit: glass ghost button
+        outline: 'glass-light rounded-xl',
+        secondary: 'glass-secondary rounded-xl',
         ghost: 'glass-subtle rounded-xl',
         link: 'text-primary underline-offset-4 hover:underline focus-visible:underline',
       },
       size: {
-        // @replit changed sizes - ensuring minimum 44px touch target
         default: 'min-h-[44px] px-4 py-3',
         sm: 'min-h-[44px] px-3 py-2',
         lg: 'min-h-[48px] px-6 py-3',

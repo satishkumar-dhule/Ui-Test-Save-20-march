@@ -11,7 +11,6 @@ try {
 } catch {
   Database = (await import('better-sqlite3')).default
 }
-import runtimeErrorOverlay from '@replit/vite-plugin-runtime-error-modal'
 import { VitePWA } from 'vite-plugin-pwa'
 import compression from 'vite-plugin-compression'
 import 'dotenv/config'
@@ -100,7 +99,6 @@ export default defineConfig({
     tailwindcss(),
     compression({ algorithm: 'gzip' }),
     compression({ algorithm: 'brotliCompress', ext: '.br' }),
-    runtimeErrorOverlay(),
     serveDatabase(),
     VitePWA({
       registerType: 'autoUpdate',
@@ -205,16 +203,6 @@ export default defineConfig({
         ],
       },
     }),
-    ...(process.env.NODE_ENV !== 'production' && process.env.REPL_ID !== undefined
-      ? [
-          await import('@replit/vite-plugin-cartographer').then(m =>
-            m.cartographer({
-              root: path.resolve(import.meta.dirname, '..'),
-            })
-          ),
-          await import('@replit/vite-plugin-dev-banner').then(m => m.devBanner()),
-        ]
-      : []),
   ],
   resolve: {
     alias: {

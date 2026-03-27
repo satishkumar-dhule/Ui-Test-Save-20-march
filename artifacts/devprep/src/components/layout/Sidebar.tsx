@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import type { Channel } from '@/data/channels'
 import type { Section } from '@/App'
 import { cn } from '@/lib/utils'
@@ -9,7 +9,6 @@ import {
   GraduationCap,
   Mic2,
   ChevronRight,
-  Plus,
   Search,
   BookOpen,
   LayoutGrid,

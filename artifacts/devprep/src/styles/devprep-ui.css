@@ -2067,20 +2067,52 @@ input:focus:not(:focus-visible) {
 }
 
 /* ── Responsive visibility helpers ───────────────────────────────────────
-   Tailwind v4 generates base utilities after responsive variants in the CSS
-   source order, causing flex/block to override md:hidden on the same element.
-   These helpers use !important to guarantee correct responsive behaviour.
+   FIX: Tailwind v4 CSS source order issue causing responsive classes
+   to override !important declarations. Using higher-specificity selectors.
    Usage:
      mobile-only  → visible on mobile (<768px), hidden on desktop (≥768px)
      desktop-only → hidden on mobile (<768px), visible on desktop (≥768px)
    ────────────────────────────────────────────────────────────────────── */
 @media (min-width: 768px) {
+  html body .mobile-only,
   .mobile-only {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+}
+@media (max-width: 767px) {
+  html body .desktop-only,
+  .desktop-only {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+}
+
+/* Ensure mobile-only elements don't take up space when hidden */
+.mobile-only {
+  display: none;
+}
+.desktop-only {
+  display: flex;
+}
+
+@media (min-width: 768px) {
+  .mobile-only {
+    display: none !important;
+  }
+  .mobile-only--force {
     display: none !important;
   }
 }
 @media (max-width: 767px) {
   .desktop-only {
+    display: none !important;
+  }
+  .desktop-only--force {
     display: none !important;
   }
 }

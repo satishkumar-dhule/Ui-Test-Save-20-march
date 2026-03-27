@@ -14,7 +14,6 @@ import { Spinner } from '@/components/ui/spinner'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { TopBar } from '@/components/layout/TopBar'
 import { StudyContent } from '@/components/layout/StudyContent'
-import { SectionTabs } from '@/components/app/SectionTabs'
 import { useContentStore, useSectionCounts } from '@/stores/contentStore'
 import type { SearchResult } from '@/types/search'
 import { LazyWrapper } from '@/components/LazyWrapper'
@@ -151,10 +150,6 @@ function App() {
       analyticsRef.current.trackVoicePractice?.(promptId, channelId, rating),
     [channelId]
   )
-
-  const handleSetShowChannelBrowser = useCallback(() => {
-    setShowChannelBrowser(true)
-  }, [setShowChannelBrowser])
 
   const handleCloseChannelBrowser = useCallback(() => {
     setShowChannelBrowser(false)
@@ -456,14 +451,6 @@ function SearchModalWrapper() {
     setIsSearchLoading(false)
   }, [setIsSearchOpen])
 
-  const TYPE_TO_SECTION: Record<string, Section> = {
-    question: 'qa',
-    flashcard: 'flashcards',
-    exam: 'exam',
-    voice: 'voice',
-    coding: 'coding',
-  }
-
   const handleSelect = useCallback(
     (result: SearchResult) => {
       handleClose()
@@ -504,6 +491,14 @@ function SearchModalWrapper() {
       />
     </Suspense>
   )
+}
+
+const TYPE_TO_SECTION: Record<string, Section> = {
+  question: 'qa',
+  flashcard: 'flashcards',
+  exam: 'exam',
+  voice: 'voice',
+  coding: 'coding',
 }
 
 export default memo(App)

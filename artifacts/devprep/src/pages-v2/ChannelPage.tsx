@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useLocation } from 'wouter'
 import {
   Card,
   CardContent,
@@ -263,8 +263,12 @@ function EmptyState({ onGoBack }: { onGoBack: () => void }) {
 }
 
 export function ChannelPage() {
-  const { channelId } = useParams<{ channelId: string }>()
-  const navigate = useNavigate()
+  const [location, navigate] = useLocation()
+  const channelId = location.split('/channels/')[1]?.split('/')[0] || null
+
+  const handleGoBack = useCallback(() => {
+    navigate('/dashboard')
+  }, [navigate])
   const channels = useChannels()
   const { generated, loading } = useGeneratedContent()
 
@@ -363,10 +367,6 @@ export function ChannelPage() {
     }
     return result
   }, [allContent, generated, channelId, channel])
-
-  const handleGoBack = useCallback(() => {
-    navigate('/dashboard')
-  }, [navigate])
 
   if (!channel) {
     return (

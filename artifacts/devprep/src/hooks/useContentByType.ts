@@ -1,9 +1,13 @@
 import { useQuery } from '@tanstack/react-query'
-import { fetchContentByType, type ContentRecord } from '@/services/contentApi'
+import { fetchContentByType } from '@/services/contentApi'
 import { QUERY_KEYS } from '@/lib/queryClient'
 import { transformRecord, type ContentItem, type UseContentOptions } from './useContent'
 
-export function useContentByType(type: string | null, options: UseContentOptions = {}) {
+interface UseContentByTypeOptions extends UseContentOptions {
+  offset?: number
+}
+
+export function useContentByType(type: string | null, options: UseContentByTypeOptions = {}) {
   const enabled = options.enabled !== false && !!type
 
   return useQuery({

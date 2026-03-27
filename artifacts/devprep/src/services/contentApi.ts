@@ -59,7 +59,7 @@ export class RequestCancelledError extends Error {
   }
 }
 
-const API_BASE = import.meta.env.VITE_API_URL || '/api'
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 const DEFAULT_TIMEOUT_MS = 30000
 
 async function apiFetch<T>(

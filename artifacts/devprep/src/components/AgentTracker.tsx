@@ -7,7 +7,6 @@ import {
   formatDuration,
   formatTimestamp,
   getStatusColor,
-  getStatusBgColor,
   type Agent,
   type AgentLog,
   type AgentStatus,
@@ -57,11 +56,6 @@ function AgentCard({ agent }: { agent: Agent }) {
     }, 1000)
     return () => clearInterval(interval)
   }, [agent.id, agent.status])
-
-  const progressColor = useMemo(() => {
-    if (agent.progress === 100) return 'bg-green-500'
-    return 'bg-cyan-500'
-  }, [agent.progress])
 
   return (
     <div className="bg-card border border-border rounded-lg p-4 space-y-3">

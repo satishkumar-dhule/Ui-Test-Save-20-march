@@ -143,9 +143,9 @@ const LANGUAGE_OPTIONS = [
 ]
 
 const difficultyConfig = {
-  easy: { label: 'Easy', variant: 'success' as const, color: 'text-emerald-500' },
-  medium: { label: 'Medium', variant: 'warning' as const, color: 'text-amber-500' },
-  hard: { label: 'Hard', variant: 'destructive' as const, color: 'text-red-500' },
+  easy: { label: 'Easy', variant: 'success' as const, color: 'text-success' },
+  medium: { label: 'Medium', variant: 'warning' as const, color: 'text-warning' },
+  hard: { label: 'Hard', variant: 'destructive' as const, color: 'text-destructive' },
 }
 
 export function CodingPage({ challengeId }: CodingPageProps) {
@@ -249,15 +249,17 @@ export function CodingPage({ challengeId }: CodingPageProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="flex flex-col lg:flex-row h-[calc(100dvh-4rem)] min-h-0 overflow-hidden">
+      <div className="flex flex-col lg:flex-row lg:h-[calc(100dvh-4rem)] min-h-0 overflow-hidden">
         {/* Left Panel - Problem Description */}
-        <div className="w-full lg:w-1/2 flex flex-col border-r border-border overflow-hidden">
+        <div className="w-full lg:w-[45%] xl:w-[42%] flex flex-col border-b lg:border-b-0 lg:border-r border-border overflow-hidden">
           {/* Header */}
-          <div className="flex-shrink-0 p-4 border-b border-border bg-card">
+          <div className="flex-shrink-0 p-3 sm:p-4 border-b border-border bg-card">
             <div className="flex items-start justify-between gap-4">
-              <div>
-                <h1 className="text-2xl font-bold text-foreground">{challenge.title}</h1>
-                <div className="flex items-center gap-2 mt-2 flex-wrap">
+              <div className="min-w-0 flex-1">
+                <h1 className="text-xl sm:text-2xl font-bold text-foreground leading-snug truncate pr-2">
+                  {challenge.title}
+                </h1>
+                <div className="flex items-center gap-2 mt-2 flex-wrap gap-y-2">
                   <Badge variant={difficultyConfig[challenge.difficulty].variant}>
                     {difficultyConfig[challenge.difficulty].label}
                   </Badge>
@@ -268,13 +270,13 @@ export function CodingPage({ challengeId }: CodingPageProps) {
                   )}
                   {challenge.timeLimit && (
                     <Badge variant="outline" className="text-muted-foreground">
-                      <Clock className="w-3 h-3 mr-1" />
+                      <Clock className="w-3.5 h-3.5 mr-1" />
                       {challenge.timeLimit}
                     </Badge>
                   )}
                   {challenge.spaceLimit && (
                     <Badge variant="outline" className="text-muted-foreground">
-                      <Zap className="w-3 h-3 mr-1" />
+                      <Zap className="w-3.5 h-3.5 mr-1" />
                       {challenge.spaceLimit}
                     </Badge>
                   )}
@@ -283,6 +285,7 @@ export function CodingPage({ challengeId }: CodingPageProps) {
               <Button
                 variant="outline"
                 size="sm"
+                className="flex-shrink-0 min-h-[44px] min-w-[44px]"
                 onClick={() => setShowSolution(!showSolution)}
                 leftIcon={
                   showSolution ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />
@@ -291,7 +294,7 @@ export function CodingPage({ challengeId }: CodingPageProps) {
                 {showSolution ? 'Hide' : 'View'} Solution
               </Button>
             </div>
-            <div className="flex gap-1 mt-3">
+            <div className="flex gap-2 mt-2 flex-wrap">
               {challenge.tags.map(tag => (
                 <Badge key={tag} variant="secondary" size="sm">
                   {tag}
@@ -302,58 +305,115 @@ export function CodingPage({ challengeId }: CodingPageProps) {
 
           {/* Tabs */}
           <div className="flex-shrink-0 border-b border-border bg-card">
-            <div className="flex gap-1 p-2">
-              <Button
-                variant={activeTab === 'description' ? 'secondary' : 'ghost'}
-                size="sm"
+            <div className="flex gap-1 px-2 py-1.5" role="tablist">
+              <button
+                role="tab"
+                aria-selected={activeTab === 'description'}
+                className={cn(
+                  'flex-1 px-4 py-2.5 text-sm font-medium rounded-md transition-colors min-h-[44px]',
+                  activeTab === 'description'
+                    ? 'bg-secondary text-secondary-foreground'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+                )}
                 onClick={() => setActiveTab('description')}
               >
                 Description
-              </Button>
-              <Button
-                variant={activeTab === 'solution' ? 'secondary' : 'ghost'}
-                size="sm"
-                onClick={() => setActiveTab('solution')}
+              </button>
+              <button
+                role="tab"
+                aria-selected={activeTab === 'solution'}
+                aria-disabled={!showSolution}
+                className={cn(
+                  'flex-1 px-4 py-2.5 text-sm font-medium rounded-md transition-colors min-h-[44px]',
+                  activeTab === 'solution'
+                    ? 'bg-secondary text-secondary-foreground'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-accent',
+                  !showSolution && 'opacity-50 cursor-not-allowed'
+                )}
+                onClick={() => showSolution && setActiveTab('solution')}
                 disabled={!showSolution}
               >
                 Solution
-              </Button>
+              </button>
             </div>
           </div>
 
           {/* Content */}
-          <div className="flex-1 overflow-y-auto p-4">
+          <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6">
             {activeTab === 'description' ? (
-              <div className="space-y-6 prose prose-sm dark:prose-invert max-w-none">
-                <Markdown remarkPlugins={[remarkGfm]}>{challenge.description}</Markdown>
+              <div className="space-y-4 sm:space-y-6 prose prose-sm dark:prose-invert max-w-none leading-relaxed">
+                <Markdown
+                  remarkPlugins={[remarkGfm]}
+                  components={{
+                    h1: ({ children }) => (
+                      <h2 className="text-xl font-semibold mb-3 mt-4">{children}</h2>
+                    ),
+                    h2: ({ children }) => (
+                      <h2 className="text-lg font-semibold mb-2 mt-5">{children}</h2>
+                    ),
+                    p: ({ children }) => <p className="mb-4 leading-relaxed">{children}</p>,
+                    code: ({ className, children }) => {
+                      const isInline = !className?.includes('language-')
+                      return isInline ? (
+                        <code className="px-1.5 py-0.5 rounded text-xs font-mono bg-muted">
+                          {children}
+                        </code>
+                      ) : (
+                        <code className={className}>{children}</code>
+                      )
+                    },
+                  }}
+                >
+                  {challenge.description}
+                </Markdown>
 
                 {/* Examples */}
-                <div className="space-y-2">
-                  <Text variant="h3" className="font-semibold">
+                <div className="space-y-3">
+                  <h2 className="text-lg font-semibold text-foreground">
                     Example{challenge.examples.length > 1 ? 's' : ''}
-                  </Text>
+                  </h2>
                   {challenge.examples.map((example, index) => (
                     <Card key={index} className="overflow-hidden">
                       <button
-                        className="w-full flex items-center justify-between p-3 hover:bg-accent/50 transition-colors"
+                        className="w-full flex items-center justify-between p-3 min-h-[44px] hover:bg-accent/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                         onClick={() => toggleExample(index)}
+                        aria-expanded={expandedExamples.has(index)}
+                        aria-controls={`example-content-${index}`}
                       >
                         <Text className="font-medium">Example {index + 1}</Text>
-                        {expandedExamples.has(index) ? (
-                          <ChevronUp className="w-4 h-4" />
-                        ) : (
-                          <ChevronDown className="w-4 h-4" />
-                        )}
+                        <ChevronDown
+                          className={cn(
+                            'w-4 h-4 text-muted-foreground transition-transform duration-200',
+                            expandedExamples.has(index) && 'rotate-180'
+                          )}
+                        />
                       </button>
                       {expandedExamples.has(index) && (
-                        <CardContent className="pt-0 space-y-2 border-t border-border">
-                          <div className="bg-muted p-2 rounded font-mono text-sm">
-                            <Text className="text-muted-foreground">Input:</Text>
-                            <pre className="mt-1 whitespace-pre-wrap">{example.input}</pre>
+                        <CardContent
+                          className="pt-0 space-y-3 border-t border-border"
+                          id={`example-content-${index}`}
+                        >
+                          <div className="bg-muted/50 border border-border rounded-md overflow-hidden">
+                            <div className="bg-muted px-3 py-1.5 border-b border-border flex items-center gap-2">
+                              <Code className="w-3 h-3 text-blue-500" />
+                              <Text className="text-xs text-muted-foreground font-medium">
+                                Input
+                              </Text>
+                            </div>
+                            <pre className="p-3 overflow-x-auto text-sm font-mono whitespace-pre-wrap text-foreground">
+                              {example.input}
+                            </pre>
                           </div>
-                          <div className="bg-muted p-2 rounded font-mono text-sm">
-                            <Text className="text-muted-foreground">Output:</Text>
-                            <pre className="mt-1 whitespace-pre-wrap">{example.output}</pre>
+                          <div className="bg-muted/50 border border-border rounded-md overflow-hidden">
+                            <div className="bg-muted px-3 py-1.5 border-b border-border flex items-center gap-2">
+                              <CheckCircle2 className="w-3 h-3 text-emerald-500" />
+                              <Text className="text-xs text-muted-foreground font-medium">
+                                Output
+                              </Text>
+                            </div>
+                            <pre className="p-3 overflow-x-auto text-sm font-mono whitespace-pre-wrap text-foreground">
+                              {example.output}
+                            </pre>
                           </div>
                           {example.explanation && (
                             <Text className="text-sm text-muted-foreground">
@@ -367,14 +427,20 @@ export function CodingPage({ challengeId }: CodingPageProps) {
                 </div>
 
                 {/* Constraints */}
-                <div className="space-y-2">
-                  <Text variant="h3" className="font-semibold">
-                    Constraints
-                  </Text>
-                  <ul className="list-disc list-inside space-y-1 text-sm">
+                <div className="space-y-3 mt-6">
+                  <h2 className="text-lg font-semibold text-foreground">Constraints</h2>
+                  <ul className="list-none space-y-2" aria-label="Problem constraints">
                     {challenge.constraints.map((constraint, index) => (
-                      <li key={index} className="text-foreground">
-                        <code className="bg-muted px-1 rounded text-xs">{constraint}</code>
+                      <li key={index} className="flex items-start gap-3">
+                        <XCircle className="w-4 h-4 text-muted-foreground flex-shrink-0 mt-0.5" />
+                        <code
+                          className={cn(
+                            'px-2 py-1 rounded text-xs font-mono overflow-x-auto break-all max-w-full block',
+                            isDark ? 'bg-[#1e1e1e] text-[#d4d4d4]' : 'bg-[#f6f8fa] text-[#24292e]'
+                          )}
+                        >
+                          {constraint}
+                        </code>
                       </li>
                     ))}
                   </ul>
@@ -382,35 +448,45 @@ export function CodingPage({ challengeId }: CodingPageProps) {
 
                 {/* Hints */}
                 {challenge.hints.length > 0 && (
-                  <div className="space-y-2">
+                  <div className="space-y-3 mt-6">
                     <div className="flex items-center justify-between">
-                      <Text variant="h3" className="font-semibold flex items-center gap-2">
-                        <Lightbulb className="w-4 h-4 text-amber-500" />
+                      <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                        <Lightbulb className="w-4 h-4 text-warning" />
                         Hints
-                      </Text>
+                      </h2>
                       {showHints && currentHint < challenge.hints.length - 1 && (
-                        <Button variant="ghost" size="sm" onClick={revealNextHint}>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="min-h-[44px]"
+                          onClick={revealNextHint}
+                        >
                           Show Next Hint
                         </Button>
                       )}
                     </div>
                     <Button
                       variant="outline"
-                      className="w-full justify-start"
+                      className="w-full justify-start min-h-[44px]"
                       onClick={() => setShowHints(!showHints)}
                       leftIcon={<Lightbulb className="w-4 h-4" />}
                     >
                       {showHints ? 'Hide Hints' : `Show Hints (${challenge.hints.length})`}
                     </Button>
                     {showHints && (
-                      <div className="space-y-2">
+                      <div className="space-y-3">
                         {challenge.hints.slice(0, currentHint + 1).map((hint, index) => (
                           <div
                             key={index}
-                            className="flex items-start gap-2 p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg"
+                            className="flex items-start gap-3 p-4 rounded-lg border bg-warning/5 border-warning/20"
                           >
-                            <Lightbulb className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
-                            <Text className="text-sm">{hint}</Text>
+                            <Lightbulb className="w-5 h-5 text-warning mt-0.5 flex-shrink-0" />
+                            <div>
+                              <Text className="text-sm font-medium text-warning">
+                                Hint {index + 1}
+                              </Text>
+                              <Text className="text-sm mt-1">{hint}</Text>
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -420,16 +496,16 @@ export function CodingPage({ challengeId }: CodingPageProps) {
               </div>
             ) : (
               <div className="space-y-4">
-                <Text className="text-muted-foreground">
+                <Text className="text-muted-foreground" size="sm">
                   Here's a possible solution to the problem:
                 </Text>
                 <pre
                   className={cn(
-                    'p-4 rounded-lg overflow-x-auto text-sm font-mono',
-                    isDark ? 'bg-slate-900' : 'bg-gray-100'
+                    'p-4 rounded-lg overflow-x-auto text-sm font-mono leading-6 border border-border',
+                    isDark ? 'bg-[#1e1e1e] text-[#d4d4d4]' : 'bg-[#f6f8fa] text-[#24292e]'
                   )}
                 >
-                  <code>{challenge.solution}</code>
+                  <code className="whitespace-pre-wrap">{challenge.solution}</code>
                 </pre>
                 <div className="grid grid-cols-2 gap-4">
                   <Card>
@@ -451,14 +527,20 @@ export function CodingPage({ challengeId }: CodingPageProps) {
         </div>
 
         {/* Right Panel - Code Editor */}
-        <div className="w-full lg:w-1/2 flex flex-col">
+        <div className="w-full lg:w-[55%] xl:w-[58%] flex flex-col border-l border-border">
           {/* Editor Toolbar */}
-          <div className="flex-shrink-0 flex items-center justify-between p-3 border-b border-border bg-card">
-            <div className="flex items-center gap-2">
+          <div className="flex-shrink-0 flex items-center justify-between px-4 py-3 border-b border-border bg-card">
+            <div className="flex items-center gap-3">
               <select
                 value={language}
                 onChange={e => setLanguage(e.target.value)}
-                className="bg-background border border-input rounded-md px-2 py-1 text-sm text-foreground"
+                aria-label="Select programming language"
+                className={cn(
+                  'h-9 min-w-[140px] rounded-md px-3 text-sm text-foreground',
+                  'bg-background border border-input',
+                  'focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background',
+                  'transition-colors cursor-pointer hover:border-input/80'
+                )}
               >
                 {LANGUAGE_OPTIONS.map(opt => (
                   <option key={opt.value} value={opt.value}>
@@ -471,6 +553,7 @@ export function CodingPage({ challengeId }: CodingPageProps) {
               <Button
                 variant="ghost"
                 size="sm"
+                className="min-h-[44px] min-w-[44px]"
                 onClick={copyCode}
                 leftIcon={copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
               >
@@ -479,6 +562,7 @@ export function CodingPage({ challengeId }: CodingPageProps) {
               <Button
                 variant="ghost"
                 size="sm"
+                className="min-h-[44px] min-w-[44px]"
                 onClick={resetCode}
                 leftIcon={<RotateCcw className="w-4 h-4" />}
               >
@@ -488,35 +572,23 @@ export function CodingPage({ challengeId }: CodingPageProps) {
           </div>
 
           {/* Code Editor */}
-          <div className="flex-1 overflow-hidden min-h-0">
+          <div className="flex-1 overflow-hidden min-h-0 min-h-[200px]">
             <textarea
               value={code}
               onChange={e => setCode(e.target.value)}
               className={cn(
-                'w-full h-full p-4 font-mono text-sm resize-none focus:outline-none',
-                isDark ? 'bg-slate-950 text-gray-300' : 'bg-gray-50 text-gray-800'
+                'w-full h-full p-4 font-mono text-sm resize-none',
+                'focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary/50',
+                'leading-6',
+                isDark
+                  ? 'bg-[#1e1e1e] text-[#d4d4d4] selection:bg-primary/30 scrollbar-thin'
+                  : 'bg-[#f8f9fa] text-[#24292e] selection:bg-primary/20 scrollbar-thin'
               )}
+              style={{ tabSize: 4 }}
               placeholder="// Write your code here..."
               spellCheck={false}
+              aria-label="Code editor"
             />
-          </div>
-
-          {/* Action Bar */}
-          <div className="flex-shrink-0 flex items-center justify-between p-3 border-t border-border bg-card">
-            <Text className="text-sm text-muted-foreground">Press Ctrl+Enter to run tests</Text>
-            <Button
-              onClick={runTests}
-              disabled={isRunning}
-              leftIcon={
-                isRunning ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Play className="w-4 h-4" />
-                )
-              }
-            >
-              {isRunning ? 'Running...' : 'Run Tests'}
-            </Button>
           </div>
 
           {/* Results Panel */}
@@ -551,18 +623,37 @@ export function CodingPage({ challengeId }: CodingPageProps) {
                     <div className="flex-1 min-w-0">
                       <Text className="font-medium">Test Case {index + 1}</Text>
                       <div className="mt-1 space-y-1 text-xs">
-                        <div className="flex gap-2">
-                          <Text className="text-muted-foreground">Input:</Text>
-                          <code className="bg-muted px-1 rounded">{testCase.input}</code>
+                        <div className="flex gap-2 items-center min-w-0">
+                          <Text className="text-muted-foreground flex-shrink-0">Input:</Text>
+                          <code
+                            className={cn(
+                              'px-1.5 py-0.5 rounded text-xs font-mono overflow-x-auto break-all',
+                              isDark ? 'bg-slate-800 text-slate-200' : 'bg-gray-200 text-gray-800'
+                            )}
+                          >
+                            {testCase.input}
+                          </code>
                         </div>
-                        <div className="flex gap-2">
-                          <Text className="text-muted-foreground">Expected:</Text>
-                          <code className="bg-muted px-1 rounded">{testCase.expectedOutput}</code>
+                        <div className="flex gap-2 items-center min-w-0">
+                          <Text className="text-muted-foreground flex-shrink-0">Expected:</Text>
+                          <code
+                            className={cn(
+                              'px-1.5 py-0.5 rounded text-xs font-mono overflow-x-auto break-all',
+                              isDark ? 'bg-slate-800 text-slate-200' : 'bg-gray-200 text-gray-800'
+                            )}
+                          >
+                            {testCase.expectedOutput}
+                          </code>
                         </div>
                         {!testCase.passed && (
-                          <div className="flex gap-2">
-                            <Text className="text-muted-foreground">Actual:</Text>
-                            <code className="bg-muted px-1 rounded text-red-500">
+                          <div className="flex gap-2 items-center min-w-0">
+                            <Text className="text-muted-foreground flex-shrink-0">Actual:</Text>
+                            <code
+                              className={cn(
+                                'px-1.5 py-0.5 rounded text-xs font-mono overflow-x-auto break-all',
+                                isDark ? 'bg-red-900/30 text-red-400' : 'bg-red-100 text-red-700'
+                              )}
+                            >
                               {testCase.actualOutput}
                             </code>
                           </div>
@@ -576,7 +667,7 @@ export function CodingPage({ challengeId }: CodingPageProps) {
               {/* Success Message */}
               {allTestsPassed && (
                 <div className="p-4 border-t border-border">
-                  <Card className="bg-emerald-500/10 border-emerald-500/30">
+                  <Card className="bg-emerald-500/10 border border-emerald-500/30">
                     <CardContent className="pt-4 flex items-center gap-3">
                       <CheckCircle2 className="w-8 h-8 text-emerald-500" />
                       <div>

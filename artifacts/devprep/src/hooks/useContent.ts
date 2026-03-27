@@ -2,6 +2,8 @@ import { useCallback } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { QUERY_KEYS } from '@/lib/queryClient'
 import { useContentStore, type ContentItem, type ContentStats } from '@/stores/contentStore'
+
+export type { ContentItem, ContentStats }
 import type { ContentType, ContentStatus } from '@/stores/types'
 import { fetchAllContent, fetchContentStats, type ContentRecord } from '@/services/contentApi'
 

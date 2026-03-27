@@ -1,16 +1,23 @@
 import { useQuery } from '@tanstack/react-query'
-import { fetchChannelContent, type ContentRecord } from '@/services/contentApi'
+import { fetchChannelContent } from '@/services/contentApi'
 import { QUERY_KEYS } from '@/lib/queryClient'
 import { transformRecord, type ContentItem, type UseContentOptions } from './useContent'
 
-export function useContentByChannel(channelId: string | null, options: UseContentOptions = {}) {
+interface UseContentByChannelOptions extends UseContentOptions {
+  offset?: number
+}
+
+export function useContentByChannel(
+  channelId: string | null,
+  options: UseContentByChannelOptions = {}
+) {
   const enabled = options.enabled !== false && !!channelId
 
   return useQuery({
     queryKey: QUERY_KEYS.byChannel(channelId || ''),
     queryFn: async () => {
       const records = await fetchChannelContent(channelId!, {
-        contentType: options.contentType,
+        contentType: options.type,
         status: options.status,
         minQuality: options.minQuality,
         limit: options.limit,
